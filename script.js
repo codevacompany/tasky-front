@@ -1,6 +1,6 @@
 // Configurações globais
 const CONFIG = {
-  API_BASE_URL: "http://localhost:4443", // Assuming the NestJS app is running on localhost:4443
+  API_BASE_URL: "https://tasky-api-lime.vercel.app",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
