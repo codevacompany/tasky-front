@@ -1,5 +1,6 @@
 const CONFIG = {
-  API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  // API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  API_BASE_URL: "http://localhost:4443",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
@@ -168,7 +169,7 @@ class ChamadosSystem {
   async handleLogin(e) {
     e.preventDefault();
     const loginData = {
-      email: document.getElementById("nomeLogin").value,
+      email: document.getElementById("emailLogin").value,
       password: document.getElementById("senhaLogin").value,
     };
 
@@ -292,23 +293,18 @@ class ChamadosSystem {
   }
 
   getTicketFormData() {
-    const conclusaoRaw = document.getElementById("conclusao").value;
-    let conclusao = "";
+    const conclusao = document.getElementById("conclusao").value;
 
-    if (conclusaoRaw) {
-      const date = new Date(conclusaoRaw);
-      conclusao = this.formatDateTime(date);
-    }
+    console.log(document.getElementById("prioridade").value);
 
     return {
-      nome: document.getElementById("nome").value,
-      prioridade: document.getElementById("prioridade").value,
-      descricao: document.getElementById("descricao").value,
-      setor_destino_id: document.getElementById("setorDestino").value,
-      solicitante_id: this.user.id,
-      status: "pendente",
-      data_criacao: this.formatDateTime(new Date()),
-      conclusao: conclusao,
+      name: document.getElementById("nome").value,
+      priority: document.getElementById("prioridade").value,
+      description: document.getElementById("descricao").value,
+      departmentId: parseInt(document.getElementById("setorDestino").value, 10),
+      requesterId: parseInt(this.user.id, 10),
+      status: "Pendente",
+      completionDate: conclusao,
     };
   }
 
@@ -408,16 +404,22 @@ class ChamadosSystem {
   }
 
   getTicketRowHTML(ticket) {
-    const prioridade = ticket.prioridade.toUpperCase();
+    const prioridade = ticket.priority.toUpperCase();
     const status = ticket.status.toUpperCase();
 
     return `
       <td>${ticket.id}</td>
-      <td>${ticket.nome}</td>
-      <td><span class="priority-label priority-${ticket.prioridade.toLowerCase()}">${prioridade}</span></td>
-      <td><span class="status-label status-${ticket.status.toLowerCase()}">${status}</span></td>
-      <td>${this.formatDate(ticket.data_criacao)}</td>
-      <td>${ticket.conclusao ? this.formatDate(ticket.conclusao) : "-"}</td>
+      <td>${ticket.name}</td>
+      <td><span class="priority-label priority-${
+        ticket.priority
+      }">${prioridade}</span></td>
+      <td><span class="status-label status-${
+        ticket.status
+      }">${status}</span></td>
+      <td>${this.formatDate(ticket.createdAt)}</td>
+      <td>${
+        ticket.completionDate ? this.formatDate(ticket.completionDate) : "-"
+      }</td>
       <td>
         <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${
           ticket.id
@@ -764,17 +766,17 @@ class ChamadosSystem {
     const toggleBtn = document.getElementById("toggleAtivoBtn");
 
     details.innerHTML = this.getColaboradorDetailsHTML(colaborador);
-    toggleBtn.textContent = colaborador.ativo === "1" ? "Desativar" : "Ativar";
-    toggleBtn.setAttribute("data-ativo", colaborador.ativo);
+    toggleBtn.textContent = colaborador.isActive ? "Desativar" : "Ativar";
+    toggleBtn.setAttribute("data-ativo", colaborador.isActive);
 
     modal.style.display = "block";
   }
 
   getColaboradorDetailsHTML(colaborador) {
-    const ativo = colaborador.ativo === "1" ? "Sim" : "Não";
+    const ativo = colaborador.isActive ? "Sim" : "Não";
     const dataCadastro =
-      colaborador.data_cadastro && colaborador.data_cadastro !== "1"
-        ? colaborador.data_cadastro
+      colaborador.createdAt && colaborador.createdAt
+        ? colaborador.createdAt
         : "Não definida";
 
     return `
@@ -786,29 +788,24 @@ class ChamadosSystem {
         </div>
         <div class="detail-item">
           <p><i class="fas fa-user"></i> <strong>Nome:</strong> ${
-            colaborador.nome
+            colaborador.firstName
           }</p>
         </div>
         <div class="detail-item">
           <p><i class="fas fa-building"></i> <strong>Setor:</strong> ${this.getSetorNome(
-            colaborador.setor_id
+            colaborador.departmentId
           )}</p>
         </div>
         <div class="detail-item">
-          <p><i class="fas fa-lock"></i> <strong>Senha:</strong> ${
-            colaborador.senha
-          }</p>
-        </div>
-        <div class="detail-item">
           <p><i class="fas fa-user-shield"></i> <strong>Administrador:</strong> ${
-            colaborador.is_admin === "1" ? "Sim" : "Não"
+            colaborador.isAdmin ? "Sim" : "Não"
           }</p>
         </div>
         <div class="detail-item">
           <p><i class="fas fa-check-circle"></i> <strong>Ativo:</strong> ${ativo}</p>
         </div>
         <div class="detail-item full-width">
-          <p><i class="fas fa-calendar-alt"></i> <strong>Data de Cadastro:</strong> ${dataCadastro}</p>
+          <p><i class="fas fa-calendar-alt"></i> <strong>Data de Cadastro:</strong>${dataCadastro}</p>
         </div>
       </div>
     `;
@@ -880,8 +877,8 @@ class ChamadosSystem {
       if (!select) return;
 
       select.innerHTML =
-        id === "setorSelect"
-          ? '<option value="">Selecione um setor...</option>'
+        id === "setorDestino"
+          ? '<option value="">Selecione um setor</option>'
           : "";
 
       setores.forEach((setor) => {
@@ -1218,7 +1215,7 @@ class ChamadosSystem {
 
   resetUI() {
     // Limpar campos do formulário
-    document.getElementById("nomeLogin").value = "";
+    document.getElementById("emailLogin").value = "";
     document.getElementById("senhaLogin").value = "";
 
     // Restaurar estado inicial
@@ -1254,54 +1251,55 @@ class ChamadosSystem {
         <p>
           <i class="fas fa-ticket-alt"></i>
           <strong>Assunto:</strong>
-          ${ticket.nome}
+          ${ticket.name}
         </p>
         <p>
           <i class="fas fa-exclamation-circle"></i>
           <strong>Prioridade:</strong>
-          <span class="priority-label priority-${ticket.prioridade.toLowerCase()}">${
-      ticket.prioridade
+          <span class="priority-label priority-${ticket.priority}">${
+      ticket.priority
     }</span>
         </p>
         <p>
           <i class="fas fa-tag"></i>
           <strong>Status:</strong>
-          <span class="status-label status-${ticket.status
-            .toLowerCase()
-            .replace(" ", "-")}">${ticket.status}</span>
+          <span class="status-label status-${ticket.status.replace(
+            " ",
+            "-"
+          )}">${ticket.status}</span>
         </p>
         <p>
           <i class="fas fa-building"></i>
           <strong>Setor:</strong>
-          ${ticket.setor_destino_nome}
+          ${ticket.department.name}
         </p>
         <p>
           <i class="fas fa-user"></i>
           <strong>Solicitante:</strong>
-          ${ticket.solicitante_nome}
+          ${ticket.requester.name}
         </p>
         <p>
           <i class="fas fa-calendar-alt"></i>
           <strong>Criado em:</strong>
-          ${ticket.data_criacao}
+          ${ticket.createdAt}
         </p>
         <p>
           <i class="fas fa-calendar-check"></i>
           <strong>Conclusão:</strong>
-          ${ticket.conclusao || "Não definida"}
+          ${ticket.completionDate || "Não definida"}
         </p>
         <p class="full-width">
           <i class="fas fa-align-left"></i>
           <strong>Descrição:</strong>
-          ${ticket.descricao}
+          ${ticket.description}
         </p>
         ${
-          ticket.motivo
+          ticket.disapprovalReason
             ? `
         <p class="full-width">
           <i class="fas fa-exclamation-triangle"></i>
           <strong>Motivo da Reprovação:</strong>
-          ${ticket.motivo}
+          ${ticket.disapprovalReason}
         </p>`
             : ""
         }
@@ -1326,7 +1324,7 @@ class ChamadosSystem {
             <span class="comment-author">${a.user.name}</span>
             <span class="comment-timestamp">${a.dateTime}</span>
           </div>
-          <div class="comment-text">${a.comentario}</div>
+          <div class="comment-text">${a.comment}</div>
         `;
         commentContainer.appendChild(commentDiv);
       });
@@ -1451,13 +1449,13 @@ class ChamadosSystem {
 
       const colaboradores = await this.apiRequest("/users");
       const colaboradoresDoSetor = colaboradores.filter(
-        (c) => c.departmentId === setorId && c.isActive === true
+        (c) => c.departmentId == setorId
       );
 
       colaboradoresDoSetor.forEach((colaborador) => {
         const option = document.createElement("option");
         option.value = colaborador.id;
-        option.textContent = colaborador.nome;
+        option.textContent = `${colaborador.firstName} ${colaborador.lastName}`;
         selectUsuario.appendChild(option);
       });
     } catch (error) {
