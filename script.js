@@ -220,6 +220,7 @@ class ChamadosSystem {
 
     this.updateUIForLoggedUser();
     this.startNotificationCheck();
+    this.carregarUltimosTickets();
   }
 
   // Métodos de UI
@@ -265,12 +266,13 @@ class ChamadosSystem {
 
   formatDate(date) {
     if (!date) return "-";
-    const partes = date.split(" ");
-    if (partes.length !== 2) return date;
+    const [dataParte, horaParte] = date.split(" ");
+    if (!dataParte || !horaParte) return date;
 
-    const [data_, hora] = partes;
-    const [dia, mes, ano] = data_.split("/");
-    return `${dia}/${mes}/${ano} ${hora}`;
+    const [dia, mes, ano] = dataParte.split("/");
+    const [hora, minuto] = horaParte.split(":");
+    
+    return `${dia}/${mes}/${ano.slice(-2)} ${hora}:${minuto}`;
   }
 
   // Gerenciamento de Tickets
@@ -287,6 +289,7 @@ class ChamadosSystem {
       this.showAlert("Ticket enviado com sucesso!");
       document.getElementById("ticketForm").reset();
       this.updateNotificationCount(1);
+      this.carregarUltimosTickets();
     } catch (error) {
       this.showAlert("Erro ao enviar ticket. Tente novamente.");
     }
@@ -294,8 +297,7 @@ class ChamadosSystem {
 
   getTicketFormData() {
     const conclusao = document.getElementById("conclusao").value;
-
-    console.log(document.getElementById("prioridade").value);
+    const targetUserId = document.getElementById("usuarioDestino").value;
 
     return {
       name: document.getElementById("nome").value,
@@ -303,6 +305,7 @@ class ChamadosSystem {
       description: document.getElementById("descricao").value,
       departmentId: parseInt(document.getElementById("setorDestino").value, 10),
       requesterId: parseInt(this.user.id, 10),
+      targetUserId: targetUserId ? parseInt(targetUserId, 10) : null,
       status: "Pendente",
       completionDate: conclusao,
     };
@@ -410,20 +413,12 @@ class ChamadosSystem {
     return `
       <td>${ticket.id}</td>
       <td>${ticket.name}</td>
-      <td><span class="priority-label priority-${
-        ticket.priority
-      }">${prioridade}</span></td>
-      <td><span class="status-label status-${
-        ticket.status
-      }">${status}</span></td>
-      <td>${this.formatDate(ticket.createdAt)}</td>
-      <td>${
-        ticket.completionDate ? this.formatDate(ticket.completionDate) : "-"
-      }</td>
+      <td><span class="priority-label priority-${ticket.priority}">${prioridade}</span></td>
+      <td><span class="status-label status-${ticket.status}">${status}</span></td>
+      <td>${formatarData(ticket.createdAt)}</td>
+      <td>${ticket.completionDate ? formatarData(ticket.completionDate) : "-"}</td>
       <td>
-        <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${
-          ticket.id
-        })">
+        <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
           <i class="fas fa-eye"></i>
         </button>
       </td>
@@ -1118,7 +1113,7 @@ class ChamadosSystem {
     switch (section) {
       case "meusTickets":
         console.log("Carregando meus tickets...");
-        this.loadTicketsSolicitante();
+        carregarMeusTickets();
         break;
       case "ticketsSetor":
         this.loadTicketsSetor();
@@ -1129,8 +1124,7 @@ class ChamadosSystem {
         // Limpar o select de usuário destino
         const selectUsuario = document.getElementById("usuarioDestino");
         if (selectUsuario) {
-          selectUsuario.innerHTML =
-            '<option value="">Selecione um usuário</option>';
+          selectUsuario.innerHTML = '<option value="">Selecione um usuário</option>';
         }
         break;
     }
@@ -1251,58 +1245,49 @@ class ChamadosSystem {
         <p>
           <i class="fas fa-ticket-alt"></i>
           <strong>Assunto:</strong>
-          ${ticket.name}
+          ${ticket.name || 'Sem título'}
         </p>
         <p>
           <i class="fas fa-exclamation-circle"></i>
           <strong>Prioridade:</strong>
-          <span class="priority-label priority-${ticket.priority}">${
-      ticket.priority
-    }</span>
+          <span class="priority-label priority-${ticket.priority?.toLowerCase() || 'baixa'}">${ticket.priority || 'Baixa'}</span>
         </p>
         <p>
           <i class="fas fa-tag"></i>
           <strong>Status:</strong>
-          <span class="status-label status-${ticket.status.replace(
-            " ",
-            "-"
-          )}">${ticket.status}</span>
+          <span class="status-label status-${(ticket.status || 'pendente').toLowerCase().replace(" ", "-")}">${ticket.status || 'Pendente'}</span>
         </p>
         <p>
           <i class="fas fa-building"></i>
           <strong>Setor:</strong>
-          ${ticket.department.name}
+          ${ticket.department?.name || 'Não especificado'}
         </p>
         <p>
           <i class="fas fa-user"></i>
           <strong>Solicitante:</strong>
-          ${ticket.requester.name}
+          ${ticket.requester?.firstName || 'Não especificado'}
         </p>
         <p>
           <i class="fas fa-calendar-alt"></i>
           <strong>Criado em:</strong>
-          ${ticket.createdAt}
+          ${formatarData(ticket.createdAt)}
         </p>
         <p>
           <i class="fas fa-calendar-check"></i>
           <strong>Conclusão:</strong>
-          ${ticket.completionDate || "Não definida"}
+          ${ticket.completionDate ? formatarData(ticket.completionDate) : "Não definida"}
         </p>
         <p class="full-width">
           <i class="fas fa-align-left"></i>
           <strong>Descrição:</strong>
-          ${ticket.description}
+          ${ticket.description || 'Sem descrição'}
         </p>
-        ${
-          ticket.disapprovalReason
-            ? `
+        ${ticket.disapprovalReason ? `
         <p class="full-width">
           <i class="fas fa-exclamation-triangle"></i>
           <strong>Motivo da Reprovação:</strong>
           ${ticket.disapprovalReason}
-        </p>`
-            : ""
-        }
+        </p>` : ""}
       </div>
     `;
   }
@@ -1322,7 +1307,7 @@ class ChamadosSystem {
         commentDiv.innerHTML = `
           <div class="comment-header">
             <span class="comment-author">${a.user.name}</span>
-            <span class="comment-timestamp">${a.dateTime}</span>
+            <span class="comment-timestamp">${formatarData(a.dateTime)}</span>
           </div>
           <div class="comment-text">${a.comment}</div>
         `;
@@ -1399,18 +1384,31 @@ class ChamadosSystem {
 
   async showTicketDetails(ticketId) {
     try {
+      console.log('Carregando detalhes do ticket:', ticketId);
+      
+      if (!ticketId) {
+        throw new Error('ID do ticket não fornecido');
+      }
+
       const ticket = await this.apiRequest(`/tickets/${ticketId}`);
+      console.log('Dados do ticket recebidos:', ticket);
+
+      if (!ticket || !ticket.id) {
+        throw new Error('Dados do ticket inválidos');
+      }
+
       this.currentTicketId = ticketId;
 
       const modal = document.getElementById("ticketModal");
       const details = document.getElementById("ticketDetails");
 
       if (!modal || !details) {
-        console.error("Modal ou container de detalhes não encontrado");
-        return;
+        throw new Error('Elementos do modal não encontrados');
       }
 
+      // Renderizar detalhes do ticket
       details.innerHTML = this.getTicketDetailsHTML(ticket);
+      console.log('HTML dos detalhes renderizado');
 
       // Limpar e carregar comentários
       const atualizacoesContainer = document.getElementById("atualizacoes");
@@ -1425,6 +1423,7 @@ class ChamadosSystem {
 
       // Carregar atualizações
       await this.carregarAtualizacoes(ticketId);
+      console.log('Atualizações carregadas');
 
       // Exibir modal
       modal.style.display = "block";
@@ -1433,9 +1432,10 @@ class ChamadosSystem {
       if (comentarioInput) {
         comentarioInput.focus();
       }
+
     } catch (error) {
-      console.error("Erro ao exibir detalhes do ticket:", error);
-      this.showAlert("Erro ao exibir detalhes do ticket. Tente novamente.");
+      console.error("Erro detalhado ao exibir detalhes do ticket:", error);
+      this.showAlert(`Erro ao exibir detalhes do ticket: ${error.message}`);
     }
   }
 
@@ -1463,9 +1463,257 @@ class ChamadosSystem {
       this.showAlert("Erro ao carregar usuários do setor. Tente novamente.");
     }
   }
+
+  async carregarUltimosTickets() {
+    const ultimosTicketsList = document.querySelector('.ultimos-tickets-list');
+    if (!ultimosTicketsList) return;
+
+    try {
+      if (!this.user || !this.user.id) {
+        throw new Error('Usuário não identificado');
+      }
+
+      const userId = this.user.id;
+      const tickets = await this.apiRequest(`/tickets/requester/${userId}`);
+      
+      if (!tickets || !Array.isArray(tickets)) {
+        throw new Error('Dados inválidos recebidos do servidor');
+      }
+
+      const ultimosTickets = tickets
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
+
+      if (ultimosTickets.length === 0) {
+        ultimosTicketsList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <p>Você ainda não criou nenhum ticket</p>
+          </div>
+        `;
+        return;
+      }
+
+      ultimosTicketsList.innerHTML = ultimosTickets.map(ticket => `
+        <div class="ticket-item" data-ticket-id="${ticket.id}">
+          <div class="ticket-header">
+            <div class="ticket-title">
+              <i class="fas fa-ticket-alt"></i>
+              ${ticket.name || 'Sem título'}
+            </div>
+            <span class="ticket-status status-${(ticket.status || 'pendente').toLowerCase().replace(' ', '_')}">
+              ${(ticket.status || 'Pendente').toUpperCase()}
+            </span>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-meta">
+              <span>
+                <i class="fas fa-calendar-alt"></i> 
+                ${formatarData(ticket.createdAt)}
+              </span>
+              <span>
+                <i class="fas fa-building"></i> 
+                ${(ticket.department && ticket.department.name) || 'Setor não especificado'}
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.ticket-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const ticketId = item.dataset.ticketId;
+          if (ticketId) this.showTicketDetails(ticketId);
+        });
+      });
+    } catch (error) {
+      console.error('Erro ao carregar últimos tickets:', error);
+      ultimosTicketsList.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>Não foi possível carregar os últimos tickets</p>
+          <small>${error.message}</small>
+        </div>
+      `;
+    }
+  }
 }
 
 // Inicialização do sistema
 document.addEventListener("DOMContentLoaded", () => {
   window.chamadosSystem = new ChamadosSystem();
 });
+
+// Chamar a função quando a página carregar e quando um novo ticket for criado
+document.addEventListener('DOMContentLoaded', () => {
+  if (chamadosSystem && chamadosSystem.user) {
+    chamadosSystem.carregarUltimosTickets();
+  }
+});
+
+// Adicionar chamada após o login bem-sucedido
+const originalHandleSuccessfulLogin = chamadosSystem.handleSuccessfulLogin;
+chamadosSystem.handleSuccessfulLogin = function(data) {
+  originalHandleSuccessfulLogin.call(this, data);
+  chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após o login
+};
+
+// Adicionar chamada após criar um novo ticket
+const originalHandleTicketSubmit = chamadosSystem.handleTicketSubmit;
+chamadosSystem.handleTicketSubmit = async function(e) {
+  await originalHandleTicketSubmit.call(this, e);
+  chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após criar um novo ticket
+};
+
+async function carregarMeusTickets() {
+  const ticketsCriadosContainer = document.getElementById('ticketsCriados');
+  const ticketsRecebidosContainer = document.getElementById('ticketsRecebidos');
+  
+  if (!ticketsCriadosContainer || !ticketsRecebidosContainer) return;
+
+  try {
+    console.log('Iniciando carregamento de tickets...');
+    console.log('ID do usuário:', chamadosSystem.user.id);
+
+    // Carregar tickets criados (onde o usuário é o requester)
+    const ticketsCriados = await chamadosSystem.apiRequest(`/tickets/requester/${chamadosSystem.user.id}`);
+    console.log('Tickets criados:', ticketsCriados);
+    
+    // Carregar tickets recebidos (onde o usuário é o targetUser)
+    const ticketsRecebidos = await chamadosSystem.apiRequest(`/tickets/target-user/${chamadosSystem.user.id}`);
+    console.log('Tickets recebidos:', ticketsRecebidos);
+    
+    // Atualizar contadores
+    atualizarContadores(ticketsCriados, ticketsRecebidos);
+    
+    // Atualizar contadores específicos de cada seção
+    document.getElementById('ticketsRecebidosCount').textContent = ticketsRecebidos?.length || 0;
+    document.getElementById('ticketsCriadosCount').textContent = ticketsCriados?.length || 0;
+    
+    // Renderizar tickets criados
+    if (ticketsCriados && Array.isArray(ticketsCriados)) {
+      if (ticketsCriados.length === 0) {
+        ticketsCriadosContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <p>Você ainda não criou nenhum ticket</p>
+          </div>
+        `;
+      } else {
+        ticketsCriadosContainer.innerHTML = ticketsCriados
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map(ticket => criarTicketHTML(ticket))
+          .join('');
+      }
+    }
+    
+    // Renderizar tickets recebidos
+    if (ticketsRecebidos && Array.isArray(ticketsRecebidos)) {
+      if (ticketsRecebidos.length === 0) {
+        ticketsRecebidosContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>Você não tem tickets atribuídos</p>
+          </div>
+        `;
+      } else {
+        ticketsRecebidosContainer.innerHTML = ticketsRecebidos
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map(ticket => criarTicketHTML(ticket))
+          .join('');
+      }
+    }
+    
+    // Adicionar eventos de clique
+    document.querySelectorAll('.ticket-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const ticketId = item.dataset.ticketId;
+        if (ticketId) chamadosSystem.showTicketDetails(ticketId);
+      });
+    });
+  } catch (error) {
+    console.error('Erro ao carregar tickets:', error);
+    const errorMessage = `
+      <div class="empty-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Não foi possível carregar os tickets</p>
+        <small>${error.message}</small>
+      </div>
+    `;
+    ticketsCriadosContainer.innerHTML = errorMessage;
+    ticketsRecebidosContainer.innerHTML = errorMessage;
+  }
+}
+
+function formatarData(dataString) {
+  if (!dataString) return '-';
+  
+  const data = new Date(dataString);
+  
+  // Formatar dia, mês, ano
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  
+  // Formatar hora e minuto
+  const hora = String(data.getHours()).padStart(2, '0');
+  const minuto = String(data.getMinutes()).padStart(2, '0');
+  
+  return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
+}
+
+function criarTicketHTML(ticket) {
+  return `
+    <div class="ticket-item" data-ticket-id="${ticket.id}">
+      <div class="ticket-header">
+        <div class="ticket-title">
+          <i class="fas fa-ticket-alt"></i>
+          ${ticket.name || 'Sem título'}
+        </div>
+        <span class="ticket-status status-${(ticket.status || 'pendente').toLowerCase().replace(' ', '_')}">
+          ${(ticket.status || 'PENDENTE').toUpperCase()}
+        </span>
+      </div>
+      <div class="ticket-info">
+        <div class="ticket-meta">
+          <span>
+            <i class="fas fa-calendar-alt"></i>
+            ${formatarData(ticket.createdAt)}
+          </span>
+          <span>
+            <i class="fas fa-building"></i>
+            ${(ticket.department && ticket.department.name) || 'Setor não especificado'}
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function atualizarContadores(ticketsCriados = [], ticketsRecebidos = []) {
+  // Usar apenas tickets recebidos para o dashboard
+  const total = ticketsRecebidos.length;
+  const pendentes = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'PENDENTE').length;
+  const emAndamento = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'EM_ANDAMENTO').length;
+  const resolvidos = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'FINALIZADO').length;
+  
+  document.querySelectorAll('.summary-item').forEach(item => {
+    const label = item.querySelector('.stat-label').textContent.toLowerCase();
+    const numberElement = item.querySelector('.stat-number');
+    
+    switch(label) {
+      case 'total':
+        numberElement.textContent = total;
+        break;
+      case 'pendentes':
+        numberElement.textContent = pendentes;
+        break;
+      case 'em andamento':
+        numberElement.textContent = emAndamento;
+        break;
+      case 'resolvidos':
+        numberElement.textContent = resolvidos;
+        break;
+    }
+  });
+}

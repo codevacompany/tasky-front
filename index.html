@@ -379,105 +379,130 @@
             <div class="welcome-card">
               <i class="fas fa-plus-circle fa-3x"></i>
               <h2>Criar Novo Ticket</h2>
-              <p>
-                Preencha os detalhes abaixo para criar um novo ticket de suporte
-              </p>
+              <p>Preencha os detalhes abaixo para criar um novo ticket de suporte</p>
             </div>
 
-            <form id="ticketForm">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="nome">Assunto:</label>
-                  <input
-                    type="text"
-                    id="nome"
-                    placeholder="Digite o assunto do ticket"
-                  />
+            <div class="novo-ticket-container">
+              <div class="ticket-form-container">
+                <form id="ticketForm">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="nome">Assunto:</label>
+                      <input type="text" id="nome" placeholder="Digite o assunto do ticket" required />
+                    </div>
+                    <div class="form-group">
+                      <label for="prioridade">Prioridade:</label>
+                      <select id="prioridade" required>
+                        <option value="Baixa">Baixa</option>
+                        <option value="Média">Média</option>
+                        <option value="Alta">Alta</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="setorDestino">Setor Destino:</label>
+                      <select id="setorDestino" required></select>
+                    </div>
+                    <div class="form-group">
+                      <label for="usuarioDestino">Usuário Destino:</label>
+                      <select id="usuarioDestino" required></select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="descricao">Descrição:</label>
+                    <textarea id="descricao" placeholder="Descreva o ticket" rows="4" required></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="conclusao">Data de Conclusão:</label>
+                    <input type="datetime-local" id="conclusao" />
+                  </div>
+                  <div class="button-group">
+                    <button type="reset" class="btn-secondary">Limpar</button>
+                    <button type="submit" class="btn-primary">Enviar</button>
+                  </div>
+                </form>
+              </div>
+              <div class="ultimos-tickets-container">
+                <div class="card">
+                  <h2><i class="fas fa-history"></i> Últimos Tickets Criados</h2>
+                  <div class="ultimos-tickets-list">
+                    <!-- Os últimos tickets serão inseridos dinamicamente via JavaScript -->
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="prioridade">Prioridade:</label>
-                  <select id="prioridade">
-                    <option value="Baixa">Baixa</option>
-                    <option value="Média">Média</option>
-                    <option value="Alta">Alta</option>
-                  </select>
-                </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="setorDestino">Setor Destino:</label>
-                  <select id="setorDestino"></select>
-                </div>
-                <div class="form-group">
-                  <label for="usuarioDestino">Usuário Destino:</label>
-                  <select id="usuarioDestino"></select>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="descricao">Descrição:</label>
-                <textarea
-                  id="descricao"
-                  placeholder="Descreva o ticket"
-                  rows="4"
-                ></textarea>
-              </div>
-              <div class="form-group">
-                <label for="conclusao">Data de Conclusão:</label>
-                <input type="datetime-local" id="conclusao" />
-              </div>
-              <div class="button-group">
-                <button type="reset" class="btn-secondary">Limpar</button>
-                <button type="submit" class="btn-primary">Enviar</button>
-              </div>
-            </form>
+            </div>
           </div>
 
           <!-- Seção Meus Tickets -->
           <div id="meusTicketsSection" class="user-section">
-            <div class="welcome-card">
-              <i class="fas fa-ticket-alt fa-3x"></i>
-              <h2>Meus Tickets</h2>
-              <p>Acompanhe e gerencie todos os seus tickets</p>
-            </div>
+            <div class="meus-tickets-container">
+              <div class="welcome-card">
+                <i class="fas fa-ticket-alt fa-3x"></i>
+                <h2>Meus Tickets</h2>
+                <p>Acompanhe e gerencie todos os seus tickets</p>
+              </div>
 
-            <div class="dashboard-grid">
-              <div class="stat-card">
-                <i class="fas fa-ticket-alt fa-2x"></i>
-                <h3>Total</h3>
-                <p id="totalTickets" class="stat-number">0</p>
+              <div class="tickets-summary">
+                <div class="summary-item">
+                  <i class="fas fa-inbox"></i>
+                  <div class="summary-info">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Total Recebidos</span>
+                  </div>
+                </div>
+                <div class="summary-item">
+                  <i class="fas fa-clock"></i>
+                  <div class="summary-info">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Pendentes</span>
+                  </div>
+                </div>
+                <div class="summary-item">
+                  <i class="fas fa-sync-alt"></i>
+                  <div class="summary-info">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Em Andamento</span>
+                  </div>
+                </div>
+                <div class="summary-item">
+                  <i class="fas fa-check-circle"></i>
+                  <div class="summary-info">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">Resolvidos</span>
+                  </div>
+                </div>
               </div>
-              <div class="stat-card">
-                <i class="fas fa-clock fa-2x"></i>
-                <h3>Pendentes</h3>
-                <p id="pendingTickets" class="stat-number">0</p>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-sync-alt fa-2x"></i>
-                <h3>Em Andamento</h3>
-                <p id="inProgressTickets" class="stat-number">0</p>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-check-circle fa-2x"></i>
-                <h3>Resolvidos</h3>
-                <p id="resolvedTickets" class="stat-number">0</p>
-              </div>
-            </div>
 
-            <div class="table-container">
-              <table id="ticketsSolicitante">
-                <thead>
-                  <tr>
-                    <th><i class="fas fa-hashtag"></i>ID</th>
-                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
-                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
-                    <th><i class="fas fa-tag"></i>Status</th>
-                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
-                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
-                    <th><i class="fas fa-cog"></i>Ações</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="tickets-sections">
+                <!-- Seção de Tickets Recebidos -->
+                <div class="tickets-section">
+                  <div class="tickets-section-header">
+                    <h3><i class="fas fa-inbox"></i> Tickets Recebidos</h3>
+                    <div class="tickets-count">
+                      <i class="fas fa-ticket-alt"></i>
+                      <span id="ticketsRecebidosCount">0</span>
+                    </div>
+                  </div>
+                  <div class="tickets-section-content" id="ticketsRecebidos">
+                    <!-- Conteúdo será preenchido dinamicamente -->
+                  </div>
+                </div>
+
+                <!-- Seção de Tickets Criados -->
+                <div class="tickets-section">
+                  <div class="tickets-section-header">
+                    <h3><i class="fas fa-ticket-alt"></i> Tickets Criados</h3>
+                    <div class="tickets-count">
+                      <i class="fas fa-ticket-alt"></i>
+                      <span id="ticketsCriadosCount">0</span>
+                    </div>
+                  </div>
+                  <div class="tickets-section-content" id="ticketsCriados">
+                    <!-- Conteúdo será preenchido dinamicamente -->
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -536,23 +561,22 @@
     <!-- Modal de Detalhes do Ticket -->
     <div id="ticketModal" class="modal">
       <div class="modal-content">
-        <span class="close">×</span>
-        <div class="ticket-details-container">
-          <div class="ticket-details-header">
-            <h2>Detalhes do Ticket</h2>
-          </div>
-          <div id="ticketDetails" class="ticket-details-grid"></div>
-          <div class="ticket-updates-section">
+        <div class="modal-header">
+          <h2>Detalhes do Ticket</h2>
+          <button class="close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="ticketDetails"></div>
+          
+          <div class="updates-section">
             <h3><i class="fas fa-comments"></i> Atualizações</h3>
-            <div id="atualizacoes" class="updates-container"></div>
-            <div class="update-form">
-              <textarea
-                id="novoComentario"
-                placeholder="Escreva um comentário..."
-              ></textarea>
+            <div id="atualizacoes"></div>
+            
+            <div class="comment-form">
+              <textarea id="novoComentario" placeholder="Digite seu comentário..."></textarea>
               <button onclick="chamadosSystem.enviarComentario()">
                 <i class="fas fa-paper-plane"></i>
-                Enviar
+                Enviar Comentário
               </button>
             </div>
           </div>
