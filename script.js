@@ -1,4 +1,3 @@
-// Configurações globais
 const CONFIG = {
   API_BASE_URL: "https://tasky-api-lime.vercel.app",
   NOTIFICATION_CHECK_INTERVAL: 60000,
