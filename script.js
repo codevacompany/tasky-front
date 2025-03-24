@@ -589,7 +589,7 @@ class ChamadosSystem {
 
   async showNotifications() {
     try {
-      const notificacoes = await this.apiRequest("/notificacoes");
+      const notificacoes = await this.apiRequest("/notifications");
       this.updateNotificationsUI(notificacoes);
       document.getElementById("notificationModal").style.display = "block";
     } catch (error) {
@@ -608,8 +608,9 @@ class ChamadosSystem {
 
     notificacoes.forEach((n) => {
       const notificationDiv = document.createElement("div");
-      notificationDiv.className = `notification-item ${n.tipo} ${
-        n.lida === "0" ? "unread" : ""
+      console.log("Notifcations log:", n)
+      notificationDiv.className = `notification-item ${n.type} ${
+        n.read ? "" : "unread"
       }`;
       notificationDiv.innerHTML = this.getNotificationHTML(n);
       notificationList.appendChild(notificationDiv);
@@ -627,14 +628,14 @@ class ChamadosSystem {
   }
 
   getNotificationHTML(notification) {
-    const icon = this.getNotificationIcon(notification.tipo);
+    const icon = this.getNotificationIcon(notification.type);
     const message = this.formatNotificationMessage(notification);
 
     return `
       <i class="fas ${icon}"></i>
       <div class="notification-content">
         <div class="notification-message">${message}</div>
-        <div class="notification-timestamp">${notification.data_hora}</div>
+        <div class="notification-timestamp">${notification.createdAt}</div>
       </div>
     `;
   }
@@ -650,17 +651,17 @@ class ChamadosSystem {
   }
 
   formatNotificationMessage(notification) {
-    const message = notification.mensagem;
+    const message = notification.message;
     const tipos = {
       abertura: /Novo ticket #\d+ criado por/,
       comentario: /Novo comentário no ticket #\d+ por/,
       status: /Ticket #\d+ atualizado para/,
     };
 
-    if (tipos[notification.tipo]) {
+    if (tipos[notification.type]) {
       return message.replace(
-        tipos[notification.tipo],
-        this.getNotificationReplacement(notification.tipo)
+        tipos[notification.type],
+        this.getNotificationReplacement(notification.type)
       );
     }
 
