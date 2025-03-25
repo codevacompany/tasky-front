@@ -120,14 +120,14 @@ class ChamadosSystem {
 
   checkUserSession() {
     const userName = localStorage.getItem("user_nome");
-    const isAdmin = localStorage.getItem("is_admin");
+    const isAdmin = localStorage.getItem("is_admin") === "true";
 
     if (userName) {
       this.user = {
-        nome: userName,
+        firstName: userName,
         isAdmin: isAdmin,
         id: localStorage.getItem("user_id"),
-        setorId: localStorage.getItem("user_setor"),
+        departmentId: localStorage.getItem("user_setor"),
       };
       this.updateUIForLoggedUser();
     }
@@ -271,7 +271,7 @@ class ChamadosSystem {
 
     const [dia, mes, ano] = dataParte.split("/");
     const [hora, minuto] = horaParte.split(":");
-    
+
     return `${dia}/${mes}/${ano.slice(-2)} ${hora}:${minuto}`;
   }
 
@@ -322,7 +322,6 @@ class ChamadosSystem {
 
   async loadTicketsSolicitante() {
     try {
-      console.log("Iniciando carregamento de tickets do solicitante...");
       if (!this.user?.id) {
         console.error("ID do usuário não encontrado:", this.user);
         this.showAlert(
@@ -385,8 +384,6 @@ class ChamadosSystem {
       document.getElementById("pendingTickets").textContent = pendentes;
       document.getElementById("inProgressTickets").textContent = emAndamento;
       document.getElementById("resolvedTickets").textContent = resolvidos;
-
-      console.log("Carregamento de tickets concluído com sucesso");
     } catch (error) {
       console.error("Erro detalhado ao carregar tickets:", error);
       this.showAlert("Erro ao carregar tickets. Por favor, tente novamente.");
@@ -413,12 +410,20 @@ class ChamadosSystem {
     return `
       <td>${ticket.id}</td>
       <td>${ticket.name}</td>
-      <td><span class="priority-label priority-${ticket.priority}">${prioridade}</span></td>
-      <td><span class="status-label status-${ticket.status}">${status}</span></td>
+      <td><span class="priority-label priority-${
+        ticket.priority
+      }">${prioridade}</span></td>
+      <td><span class="status-label status-${
+        ticket.status
+      }">${status}</span></td>
       <td>${formatarData(ticket.createdAt)}</td>
-      <td>${ticket.completionDate ? formatarData(ticket.completionDate) : "-"}</td>
+      <td>${
+        ticket.completionDate ? formatarData(ticket.completionDate) : "-"
+      }</td>
       <td>
-        <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
+        <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${
+          ticket.id
+        })">
           <i class="fas fa-eye"></i>
         </button>
       </td>
@@ -427,7 +432,7 @@ class ChamadosSystem {
 
   async loadTicketsSetor() {
     try {
-      if (!this.user?.setorId) {
+      if (!this.user?.departmentId) {
         console.error("Setor não identificado para o usuário:", this.user);
         this.showAlert(
           "Erro: Setor não identificado. Por favor, faça login novamente."
@@ -435,9 +440,8 @@ class ChamadosSystem {
         return;
       }
 
-      console.log("Carregando tickets do setor:", this.user.setorId);
       const response = await this.apiRequest(
-        `/tickets/department/${this.user.setorId}`
+        `/tickets/department/${this.user.departmentId}`
       );
       console.log("Resposta do servidor:", response);
 
@@ -608,7 +612,7 @@ class ChamadosSystem {
 
     notificacoes.forEach((n) => {
       const notificationDiv = document.createElement("div");
-      console.log("Notifcations log:", n)
+
       notificationDiv.className = `notification-item ${n.type} ${
         n.read ? "" : "unread"
       }`;
@@ -902,7 +906,6 @@ class ChamadosSystem {
 
   getSetorNome(setorId) {
     const setor = this.setores.find((s) => s.id === setorId);
-    console.log(setor);
     return setor ? setor.name : "Desconhecido";
   }
 
@@ -1113,7 +1116,6 @@ class ChamadosSystem {
 
     switch (section) {
       case "meusTickets":
-        console.log("Carregando meus tickets...");
         carregarMeusTickets();
         break;
       case "ticketsSetor":
@@ -1125,14 +1127,14 @@ class ChamadosSystem {
         // Limpar o select de usuário destino
         const selectUsuario = document.getElementById("usuarioDestino");
         if (selectUsuario) {
-          selectUsuario.innerHTML = '<option value="">Selecione um usuário</option>';
+          selectUsuario.innerHTML =
+            '<option value="">Selecione um usuário</option>';
         }
         break;
     }
   }
 
   hideAllUserSections() {
-    console.log("Ocultando todas as seções do usuário");
     document.querySelectorAll(".user-section").forEach((el) => {
       el.style.display = "none";
     });
@@ -1246,27 +1248,31 @@ class ChamadosSystem {
         <p>
           <i class="fas fa-ticket-alt"></i>
           <strong>Assunto:</strong>
-          ${ticket.name || 'Sem título'}
+          ${ticket.name || "Sem título"}
         </p>
         <p>
           <i class="fas fa-exclamation-circle"></i>
           <strong>Prioridade:</strong>
-          <span class="priority-label priority-${ticket.priority?.toLowerCase() || 'baixa'}">${ticket.priority || 'Baixa'}</span>
+          <span class="priority-label priority-${
+            ticket.priority?.toLowerCase() || "baixa"
+          }">${ticket.priority || "Baixa"}</span>
         </p>
         <p>
           <i class="fas fa-tag"></i>
           <strong>Status:</strong>
-          <span class="status-label status-${(ticket.status || 'pendente').toLowerCase().replace(" ", "-")}">${ticket.status || 'Pendente'}</span>
+          <span class="status-label status-${(ticket.status || "pendente")
+            .toLowerCase()
+            .replace(" ", "-")}">${ticket.status || "Pendente"}</span>
         </p>
         <p>
           <i class="fas fa-building"></i>
           <strong>Setor:</strong>
-          ${ticket.department?.name || 'Não especificado'}
+          ${ticket.department?.name || "Não especificado"}
         </p>
         <p>
           <i class="fas fa-user"></i>
           <strong>Solicitante:</strong>
-          ${ticket.requester?.firstName || 'Não especificado'}
+          ${ticket.requester?.firstName || "Não especificado"}
         </p>
         <p>
           <i class="fas fa-calendar-alt"></i>
@@ -1276,19 +1282,27 @@ class ChamadosSystem {
         <p>
           <i class="fas fa-calendar-check"></i>
           <strong>Conclusão:</strong>
-          ${ticket.completionDate ? formatarData(ticket.completionDate) : "Não definida"}
+          ${
+            ticket.completionDate
+              ? formatarData(ticket.completionDate)
+              : "Não definida"
+          }
         </p>
         <p class="full-width">
           <i class="fas fa-align-left"></i>
           <strong>Descrição:</strong>
-          ${ticket.description || 'Sem descrição'}
+          ${ticket.description || "Sem descrição"}
         </p>
-        ${ticket.disapprovalReason ? `
+        ${
+          ticket.disapprovalReason
+            ? `
         <p class="full-width">
           <i class="fas fa-exclamation-triangle"></i>
           <strong>Motivo da Reprovação:</strong>
           ${ticket.disapprovalReason}
-        </p>` : ""}
+        </p>`
+            : ""
+        }
       </div>
     `;
   }
@@ -1385,17 +1399,15 @@ class ChamadosSystem {
 
   async showTicketDetails(ticketId) {
     try {
-      console.log('Carregando detalhes do ticket:', ticketId);
-      
       if (!ticketId) {
-        throw new Error('ID do ticket não fornecido');
+        throw new Error("ID do ticket não fornecido");
       }
 
       const ticket = await this.apiRequest(`/tickets/${ticketId}`);
-      console.log('Dados do ticket recebidos:', ticket);
+      console.log("Dados do ticket recebidos:", ticket);
 
       if (!ticket || !ticket.id) {
-        throw new Error('Dados do ticket inválidos');
+        throw new Error("Dados do ticket inválidos");
       }
 
       this.currentTicketId = ticketId;
@@ -1404,12 +1416,11 @@ class ChamadosSystem {
       const details = document.getElementById("ticketDetails");
 
       if (!modal || !details) {
-        throw new Error('Elementos do modal não encontrados');
+        throw new Error("Elementos do modal não encontrados");
       }
 
       // Renderizar detalhes do ticket
       details.innerHTML = this.getTicketDetailsHTML(ticket);
-      console.log('HTML dos detalhes renderizado');
 
       // Limpar e carregar comentários
       const atualizacoesContainer = document.getElementById("atualizacoes");
@@ -1424,7 +1435,6 @@ class ChamadosSystem {
 
       // Carregar atualizações
       await this.carregarAtualizacoes(ticketId);
-      console.log('Atualizações carregadas');
 
       // Exibir modal
       modal.style.display = "block";
@@ -1433,7 +1443,6 @@ class ChamadosSystem {
       if (comentarioInput) {
         comentarioInput.focus();
       }
-
     } catch (error) {
       console.error("Erro detalhado ao exibir detalhes do ticket:", error);
       this.showAlert(`Erro ao exibir detalhes do ticket: ${error.message}`);
@@ -1466,19 +1475,19 @@ class ChamadosSystem {
   }
 
   async carregarUltimosTickets() {
-    const ultimosTicketsList = document.querySelector('.ultimos-tickets-list');
+    const ultimosTicketsList = document.querySelector(".ultimos-tickets-list");
     if (!ultimosTicketsList) return;
 
     try {
       if (!this.user || !this.user.id) {
-        throw new Error('Usuário não identificado');
+        throw new Error("Usuário não identificado");
       }
 
       const userId = this.user.id;
       const tickets = await this.apiRequest(`/tickets/requester/${userId}`);
-      
+
       if (!tickets || !Array.isArray(tickets)) {
-        throw new Error('Dados inválidos recebidos do servidor');
+        throw new Error("Dados inválidos recebidos do servidor");
       }
 
       const ultimosTickets = tickets
@@ -1495,15 +1504,19 @@ class ChamadosSystem {
         return;
       }
 
-      ultimosTicketsList.innerHTML = ultimosTickets.map(ticket => `
+      ultimosTicketsList.innerHTML = ultimosTickets
+        .map(
+          (ticket) => `
         <div class="ticket-item" data-ticket-id="${ticket.id}">
           <div class="ticket-header">
             <div class="ticket-title">
               <i class="fas fa-ticket-alt"></i>
-              ${ticket.name || 'Sem título'}
+              ${ticket.name || "Sem título"}
             </div>
-            <span class="ticket-status status-${(ticket.status || 'pendente').toLowerCase().replace(' ', '_')}">
-              ${(ticket.status || 'Pendente').toUpperCase()}
+            <span class="ticket-status status-${(ticket.status || "pendente")
+              .toLowerCase()
+              .replace(" ", "_")}">
+              ${(ticket.status || "Pendente").toUpperCase()}
             </span>
           </div>
           <div class="ticket-info">
@@ -1514,21 +1527,26 @@ class ChamadosSystem {
               </span>
               <span>
                 <i class="fas fa-building"></i> 
-                ${(ticket.department && ticket.department.name) || 'Setor não especificado'}
+                ${
+                  (ticket.department && ticket.department.name) ||
+                  "Setor não especificado"
+                }
               </span>
             </div>
           </div>
         </div>
-      `).join('');
+      `
+        )
+        .join("");
 
-      document.querySelectorAll('.ticket-item').forEach(item => {
-        item.addEventListener('click', () => {
+      document.querySelectorAll(".ticket-item").forEach((item) => {
+        item.addEventListener("click", () => {
           const ticketId = item.dataset.ticketId;
           if (ticketId) this.showTicketDetails(ticketId);
         });
       });
     } catch (error) {
-      console.error('Erro ao carregar últimos tickets:', error);
+      console.error("Erro ao carregar últimos tickets:", error);
       ultimosTicketsList.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-exclamation-circle"></i>
@@ -1541,56 +1559,66 @@ class ChamadosSystem {
 }
 
 // Inicialização do sistema
+let chamadosSystem;
+
 document.addEventListener("DOMContentLoaded", () => {
   window.chamadosSystem = new ChamadosSystem();
+  chamadosSystem = window.chamadosSystem;
 });
 
 // Chamar a função quando a página carregar e quando um novo ticket for criado
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Chamadoss:", chamadosSystem);
   if (chamadosSystem && chamadosSystem.user) {
     chamadosSystem.carregarUltimosTickets();
   }
 });
 
 // Adicionar chamada após o login bem-sucedido
-const originalHandleSuccessfulLogin = chamadosSystem.handleSuccessfulLogin;
-chamadosSystem.handleSuccessfulLogin = function(data) {
-  originalHandleSuccessfulLogin.call(this, data);
-  chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após o login
-};
+if (chamadosSystem) {
+  const originalHandleSuccessfulLogin = chamadosSystem.handleSuccessfulLogin;
+  chamadosSystem.handleSuccessfulLogin = function (data) {
+    originalHandleSuccessfulLogin.call(this, data);
+    chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após o login
+  };
+}
 
 // Adicionar chamada após criar um novo ticket
 const originalHandleTicketSubmit = chamadosSystem.handleTicketSubmit;
-chamadosSystem.handleTicketSubmit = async function(e) {
+chamadosSystem.handleTicketSubmit = async function (e) {
   await originalHandleTicketSubmit.call(this, e);
   chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após criar um novo ticket
 };
 
 async function carregarMeusTickets() {
-  const ticketsCriadosContainer = document.getElementById('ticketsCriados');
-  const ticketsRecebidosContainer = document.getElementById('ticketsRecebidos');
-  
+  const ticketsCriadosContainer = document.getElementById("ticketsCriados");
+  const ticketsRecebidosContainer = document.getElementById("ticketsRecebidos");
+
   if (!ticketsCriadosContainer || !ticketsRecebidosContainer) return;
 
   try {
-    console.log('Iniciando carregamento de tickets...');
-    console.log('ID do usuário:', chamadosSystem.user.id);
-
     // Carregar tickets criados (onde o usuário é o requester)
-    const ticketsCriados = await chamadosSystem.apiRequest(`/tickets/requester/${chamadosSystem.user.id}`);
-    console.log('Tickets criados:', ticketsCriados);
-    
+    const ticketsCriados = await chamadosSystem.apiRequest(
+      `/tickets/requester/${chamadosSystem.user.id}`
+    );
+    console.log("Tickets criados:", ticketsCriados);
+
     // Carregar tickets recebidos (onde o usuário é o targetUser)
-    const ticketsRecebidos = await chamadosSystem.apiRequest(`/tickets/target-user/${chamadosSystem.user.id}`);
-    console.log('Tickets recebidos:', ticketsRecebidos);
-    
+    console.log("Target user:", chamadosSystem.user.id)
+    const ticketsRecebidos = await chamadosSystem.apiRequest(
+      `/tickets/target-user/${chamadosSystem.user.id}`
+    );
+    console.log("Tickets recebidos:", ticketsRecebidos);
+
     // Atualizar contadores
     atualizarContadores(ticketsCriados, ticketsRecebidos);
-    
+
     // Atualizar contadores específicos de cada seção
-    document.getElementById('ticketsRecebidosCount').textContent = ticketsRecebidos?.length || 0;
-    document.getElementById('ticketsCriadosCount').textContent = ticketsCriados?.length || 0;
-    
+    document.getElementById("ticketsRecebidosCount").textContent =
+      ticketsRecebidos?.length || 0;
+    document.getElementById("ticketsCriadosCount").textContent =
+      ticketsCriados?.length || 0;
+
     // Renderizar tickets criados
     if (ticketsCriados && Array.isArray(ticketsCriados)) {
       if (ticketsCriados.length === 0) {
@@ -1603,11 +1631,11 @@ async function carregarMeusTickets() {
       } else {
         ticketsCriadosContainer.innerHTML = ticketsCriados
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map(ticket => criarTicketHTML(ticket))
-          .join('');
+          .map((ticket) => criarTicketHTML(ticket))
+          .join("");
       }
     }
-    
+
     // Renderizar tickets recebidos
     if (ticketsRecebidos && Array.isArray(ticketsRecebidos)) {
       if (ticketsRecebidos.length === 0) {
@@ -1620,20 +1648,20 @@ async function carregarMeusTickets() {
       } else {
         ticketsRecebidosContainer.innerHTML = ticketsRecebidos
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map(ticket => criarTicketHTML(ticket))
-          .join('');
+          .map((ticket) => criarTicketHTML(ticket))
+          .join("");
       }
     }
-    
+
     // Adicionar eventos de clique
-    document.querySelectorAll('.ticket-item').forEach(item => {
-      item.addEventListener('click', () => {
+    document.querySelectorAll(".ticket-item").forEach((item) => {
+      item.addEventListener("click", () => {
         const ticketId = item.dataset.ticketId;
         if (ticketId) chamadosSystem.showTicketDetails(ticketId);
       });
     });
   } catch (error) {
-    console.error('Erro ao carregar tickets:', error);
+    console.error("Erro ao carregar tickets:", error);
     const errorMessage = `
       <div class="empty-state">
         <i class="fas fa-exclamation-circle"></i>
@@ -1647,19 +1675,19 @@ async function carregarMeusTickets() {
 }
 
 function formatarData(dataString) {
-  if (!dataString) return '-';
-  
+  if (!dataString) return "-";
+
   const data = new Date(dataString);
-  
+
   // Formatar dia, mês, ano
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, "0");
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
   const ano = data.getFullYear();
-  
+
   // Formatar hora e minuto
-  const hora = String(data.getHours()).padStart(2, '0');
-  const minuto = String(data.getMinutes()).padStart(2, '0');
-  
+  const hora = String(data.getHours()).padStart(2, "0");
+  const minuto = String(data.getMinutes()).padStart(2, "0");
+
   return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
 }
 
@@ -1669,10 +1697,12 @@ function criarTicketHTML(ticket) {
       <div class="ticket-header">
         <div class="ticket-title">
           <i class="fas fa-ticket-alt"></i>
-          ${ticket.name || 'Sem título'}
+          ${ticket.name || "Sem título"}
         </div>
-        <span class="ticket-status status-${(ticket.status || 'pendente').toLowerCase().replace(' ', '_')}">
-          ${(ticket.status || 'PENDENTE').toUpperCase()}
+        <span class="ticket-status status-${(ticket.status || "pendente")
+          .toLowerCase()
+          .replace(" ", "_")}">
+          ${(ticket.status || "PENDENTE").toUpperCase()}
         </span>
       </div>
       <div class="ticket-info">
@@ -1683,7 +1713,10 @@ function criarTicketHTML(ticket) {
           </span>
           <span>
             <i class="fas fa-building"></i>
-            ${(ticket.department && ticket.department.name) || 'Setor não especificado'}
+            ${
+              (ticket.department && ticket.department.name) ||
+              "Setor não especificado"
+            }
           </span>
         </div>
       </div>
@@ -1694,25 +1727,31 @@ function criarTicketHTML(ticket) {
 function atualizarContadores(ticketsCriados = [], ticketsRecebidos = []) {
   // Usar apenas tickets recebidos para o dashboard
   const total = ticketsRecebidos.length;
-  const pendentes = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'PENDENTE').length;
-  const emAndamento = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'EM_ANDAMENTO').length;
-  const resolvidos = ticketsRecebidos.filter(t => t.status.toUpperCase() === 'FINALIZADO').length;
-  
-  document.querySelectorAll('.summary-item').forEach(item => {
-    const label = item.querySelector('.stat-label').textContent.toLowerCase();
-    const numberElement = item.querySelector('.stat-number');
-    
-    switch(label) {
-      case 'total':
+  const pendentes = ticketsRecebidos.filter(
+    (t) => t.status.toUpperCase() === "PENDENTE"
+  ).length;
+  const emAndamento = ticketsRecebidos.filter(
+    (t) => t.status.toUpperCase() === "EM_ANDAMENTO"
+  ).length;
+  const resolvidos = ticketsRecebidos.filter(
+    (t) => t.status.toUpperCase() === "FINALIZADO"
+  ).length;
+
+  document.querySelectorAll(".summary-item").forEach((item) => {
+    const label = item.querySelector(".stat-label").textContent.toLowerCase();
+    const numberElement = item.querySelector(".stat-number");
+
+    switch (label) {
+      case "total":
         numberElement.textContent = total;
         break;
-      case 'pendentes':
+      case "pendentes":
         numberElement.textContent = pendentes;
         break;
-      case 'em andamento':
+      case "em andamento":
         numberElement.textContent = emAndamento;
         break;
-      case 'resolvidos':
+      case "resolvidos":
         numberElement.textContent = resolvidos;
         break;
     }
