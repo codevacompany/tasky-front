@@ -1,6 +1,6 @@
 const CONFIG = {
-  API_BASE_URL: "https://tasky-api-lime.vercel.app",
-  // API_BASE_URL: "http://localhost:4443",
+  // API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  API_BASE_URL: "http://localhost:4443",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
@@ -1443,7 +1443,7 @@ class ChamadosSystem {
 
       // Mostrar mensagem de sucesso
       this.showAlert(
-        `${data.atualizadas} notificações foram marcadas como lidas`
+        `Todas as notificações foram marcadas como lidas`
       );
 
       // Fechar o modal
@@ -1596,7 +1596,6 @@ class ChamadosSystem {
           `;
           
           ticketsCriadosContainer.innerHTML = ticketsHTML;
-          console.log('HTML dos tickets criados:', ticketsHTML);
         }
       }
       
@@ -1633,7 +1632,6 @@ class ChamadosSystem {
             </table>
           `;
           ticketsRecebidosContainer.innerHTML = ticketsHTML;
-          console.log('HTML dos tickets recebidos:', ticketsHTML);
           
           // Forçar a renderização do cabeçalho
           setTimeout(() => {
@@ -1723,6 +1721,8 @@ let chamadosSystem;
 
 document.addEventListener("DOMContentLoaded", () => {
   window.chamadosSystem = new ChamadosSystem();
+
+  chamadosSystem = window.chamadosSystem
   
   // Verificar e remover ícones duplicados quando a página carregar
   setTimeout(() => {
@@ -1763,6 +1763,8 @@ async function carregarMeusTickets() {
     return;
   }
 
+  console.log('ID do usuário aqui:', chamadosSystem);
+
   try {
     console.log('Iniciando carregamento de tickets...');
     
@@ -1770,7 +1772,7 @@ async function carregarMeusTickets() {
       throw new Error('Usuário não identificado');
     }
     
-    console.log('ID do usuário:', chamadosSystem.user.id);
+    
 
     // Carregar tickets criados (onde o usuário é o requester)
     const ticketsCriados = await chamadosSystem.apiRequest(
@@ -1821,7 +1823,6 @@ async function carregarMeusTickets() {
         `;
         
         ticketsCriadosContainer.innerHTML = ticketsHTML;
-        console.log('HTML dos tickets criados:', ticketsHTML);
       }
     }
 
@@ -1858,7 +1859,6 @@ async function carregarMeusTickets() {
           </table>
         `;
         ticketsRecebidosContainer.innerHTML = ticketsHTML;
-        console.log('HTML dos tickets recebidos:', ticketsHTML);
         
         // Forçar a renderização do cabeçalho
         setTimeout(() => {
