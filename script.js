@@ -1,6 +1,6 @@
 const CONFIG = {
-  // API_BASE_URL: "https://tasky-api-lime.vercel.app",
-  API_BASE_URL: "http://localhost:4443",
+  API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  // API_BASE_URL: "http://localhost:4443",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
@@ -1534,138 +1534,57 @@ class ChamadosSystem {
   }
 
   async carregarUltimosTickets() {
-    const ticketsCriadosContainer = document.getElementById('ticketsCriados');
-    const ticketsRecebidosContainer = document.getElementById('ticketsRecebidos');
-    
-    if (!ticketsCriadosContainer || !ticketsRecebidosContainer) {
-      console.error('Containers não encontrados');
-      return;
-    }
+    const container = document.querySelector('.ultimos-tickets-list');
+    if (!container) return;
 
     try {
-      console.log('Iniciando carregamento de tickets...');
-      
-      if (!this.user || !this.user.id) {
+      if (!this.user?.id) {
         throw new Error("Usuário não identificado");
       }
-      
-      console.log('ID do usuário:', this.user.id);
 
-      // Carregar tickets criados (onde o usuário é o requester)
-      const ticketsCriados = await this.apiRequest(`/tickets/requester/${this.user.id}`);
-      console.log('Tickets criados:', ticketsCriados);
+      // Carregar tickets criados pelo usuário
+      const tickets = await this.apiRequest(`/tickets/requester/${this.user.id}`);
       
-      // Carregar tickets recebidos (onde o usuário é o targetUser)
-      const ticketsRecebidos = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
-      console.log('Tickets recebidos:', ticketsRecebidos);
-      
-      // Atualizar contadores
-      atualizarContadores(ticketsCriados, ticketsRecebidos);
-      
-      // Renderizar tickets criados
-      if (Array.isArray(ticketsCriados)) {
-        if (ticketsCriados.length === 0) {
-          ticketsCriadosContainer.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-ticket-alt"></i>
-              <p>Você ainda não criou nenhum ticket</p>
-            </div>
-          `;
-        } else {
-          const ticketsHTML = `
-            <table class="tickets-table tickets-table-criados">
-              <thead class="table-header">
-                <tr>
-                  <th><i class="fas fa-hashtag"></i> ID</th>
-                  <th><i class="fas fa-tag"></i> ASSUNTO</th>
-                  <th><i class="fas fa-fire"></i> PRIORIDADE</th>
-                  <th><i class="fas fa-tasks"></i> STATUS</th>
-                  <th><i class="fas fa-calendar"></i> CRIADO EM</th>
-                  <th><i class="fas fa-hourglass-end"></i> PRAZO</th>
-                  <th><i class="fas fa-cog"></i> AÇÕES</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${ticketsCriados
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .map(ticket => criarTicketHTML(ticket, 'criado-tabela'))
-                  .join('')}
-              </tbody>
-            </table>
-          `;
-          
-          ticketsCriadosContainer.innerHTML = ticketsHTML;
-        }
+      if (!Array.isArray(tickets)) {
+        throw new Error("Formato de resposta inválido");
       }
-      
-      // Renderizar tickets recebidos
-      if (Array.isArray(ticketsRecebidos)) {
-        if (ticketsRecebidos.length === 0) {
-          ticketsRecebidosContainer.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-inbox"></i>
-              <p>Você não tem tickets atribuídos</p>
-            </div>
-          `;
-        } else {
-          const ticketsHTML = `
-            <table class="tickets-table tickets-table-recebidos">
-              <thead class="table-header">
-                <tr>
-                  <th><i class="fas fa-hashtag"></i> ID</th>
-                  <th><i class="fas fa-tag"></i> ASSUNTO</th>
-                  <th><i class="fas fa-fire"></i> PRIORIDADE</th>
-                  <th><i class="fas fa-tasks"></i> STATUS</th>
-                  <th><i class="fas fa-calendar"></i> CRIADO EM</th>
-                  <th><i class="fas fa-hourglass-end"></i> CONCLUIR ATÉ</th>
-                  <th><i class="fas fa-clock"></i> TEMPO RESTANTE</th>
-                  <th><i class="fas fa-cog"></i> AÇÕES</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${ticketsRecebidos
-                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                  .map(ticket => criarTicketHTML(ticket, 'recebido'))
-                  .join('')}
-              </tbody>
-            </table>
-          `;
-          ticketsRecebidosContainer.innerHTML = ticketsHTML;
-          
-          // Forçar a renderização do cabeçalho
-          setTimeout(() => {
-            const tableHeader = document.querySelector('.tickets-table-recebidos thead');
-            if (tableHeader) {
-              tableHeader.style.display = 'table-header-group';
-              console.log('Forçando exibição do cabeçalho da tabela');
-            }
-          }, 100);
-        }
+
+      // Ordenar por data de criação (mais recentes primeiro) e limitar a 5
+      const ultimosTickets = tickets
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
+
+      if (ultimosTickets.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <p>Nenhum ticket criado ainda</p>
+          </div>
+        `;
+        return;
       }
-      
+
+      container.innerHTML = ultimosTickets
+        .map(ticket => criarTicketHTML(ticket))
+        .join('');
+
       // Adicionar eventos de clique
-      document.querySelectorAll('.ticket-item, .ticket-row').forEach(item => {
+      container.querySelectorAll('.ticket-item').forEach(item => {
         item.addEventListener('click', () => {
           const ticketId = item.dataset.ticketId;
           if (ticketId) this.showTicketDetails(ticketId);
         });
       });
 
-      // Forçar a renderização do cabeçalho e aplicar estilos
-      setTimeout(() => {
-        aplicarEstilosCabecalho();
-      }, 100);
     } catch (error) {
-      console.error('Erro ao carregar tickets:', error);
-      const errorMessage = `
+      console.error('Erro ao carregar últimos tickets:', error);
+      container.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-exclamation-circle"></i>
-          <p>Não foi possível carregar os tickets</p>
+          <p>Erro ao carregar tickets</p>
           <small>${error.message}</small>
         </div>
       `;
-      ticketsCriadosContainer.innerHTML = errorMessage;
-      ticketsRecebidosContainer.innerHTML = errorMessage;
     }
   }
 
@@ -1712,6 +1631,108 @@ class ChamadosSystem {
 
   async solicitarMotivoRejeicao() {
     return prompt('Por favor, informe o motivo da rejeição:');
+  }
+
+  async handleTicketAction(ticketId, action) {
+    try {
+      const ticket = await this.getTicketById(ticketId);
+      const currentDate = new Date().toISOString();
+
+      let updateData = {};
+
+      switch (action) {
+        case 'accept':
+          if (!confirm('Deseja aceitar este ticket?')) return;
+          updateData = {
+            status: 'em_andamento',
+            acceptanceDate: currentDate
+          };
+          break;
+        
+        case 'review':
+          if (!confirm('Deseja enviar este ticket para revisão?')) return;
+          updateData = {
+            status: 'em_revisao'
+          };
+          break;
+        
+        case 'approve':
+          if (!confirm('Deseja aprovar este ticket?')) return;
+          updateData = {
+            status: 'aprovado'
+          };
+          break;
+        
+        case 'reject':
+          const motivo = await this.solicitarMotivoRejeicao();
+          if (!motivo) return;
+          
+          updateData = {
+            status: 'reprovado',
+            disapprovalReason: motivo
+          };
+          break;
+        
+        case 'finish':
+          if (!confirm('Deseja finalizar este ticket?')) return;
+          updateData = {
+            status: 'finalizado',
+            completionDate: currentDate
+          };
+          break;
+      }
+
+      const response = await this.apiRequest(`/tickets/${ticketId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response) {
+        throw new Error('Erro na resposta da API');
+      }
+
+      // Recarrega a tabela de tickets
+      await carregarMeusTickets();
+
+      // Mostra mensagem de sucesso específica para cada ação
+      let successMessage = '';
+      switch (action) {
+        case 'accept':
+          successMessage = 'Ticket aceito com sucesso!';
+          break;
+        case 'review':
+          successMessage = 'Ticket enviado para revisão!';
+          break;
+        case 'approve':
+          successMessage = 'Ticket aprovado com sucesso!';
+          break;
+        case 'reject':
+          successMessage = 'Ticket reprovado!';
+          break;
+        case 'finish':
+          successMessage = 'Ticket finalizado com sucesso!';
+          break;
+      }
+      
+      this.showAlert(successMessage);
+    } catch (error) {
+      console.error('Erro ao atualizar ticket:', error);
+      this.showAlert(`Erro ao atualizar o ticket: ${error.message}`);
+    }
+  }
+
+  async getTicketById(ticketId) {
+    try {
+      const response = await this.apiRequest(`/tickets/${ticketId}`);
+      return response;
+    } catch (error) {
+      console.error('Erro ao buscar ticket:', error);
+      throw error;
+    }
   }
 }
 
@@ -1904,7 +1925,7 @@ function formatarData(dataString) {
   // Formatar dia, mês, ano
   const dia = String(data.getDate()).padStart(2, "0");
   const mes = String(data.getMonth() + 1).padStart(2, "0");
-  const ano = data.getFullYear();
+  const ano = String(data.getFullYear()).slice(-2);
 
   // Formatar hora e minuto
   const hora = String(data.getHours()).padStart(2, "0");
@@ -1916,11 +1937,11 @@ function formatarData(dataString) {
 function criarTicketHTML(ticket, tipo = 'criado') {
   if (tipo === 'recebido') {
     const countdown = calcularTempoRestante(ticket.completionDate);
-    const statusClass = ticket.status.toLowerCase().replace(' ', '_');
+    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
     const priorityClass = ticket.priority?.toLowerCase() || 'baixa';
     
     return `
-      <tr class="ticket-row ${ticket.status.toLowerCase() === 'pendente' ? 'unread' : ''}" data-ticket-id="${ticket.id}">
+      <tr class="ticket-row ${statusClass === 'pendente' ? 'unread' : ''}" data-ticket-id="${ticket.id}">
         <td class="ticket-id">#${ticket.id}</td>
         <td class="ticket-subject">${ticket.name || 'Sem título'}</td>
         <td class="ticket-priority">
@@ -1930,24 +1951,17 @@ function criarTicketHTML(ticket, tipo = 'criado') {
         </td>
         <td class="ticket-status">
           <span class="status-label status-${statusClass}">
-            ${ticket.status.toUpperCase()}
+            ${formatStatus(ticket.status || 'pendente')}
           </span>
         </td>
         <td class="ticket-date">${formatarData(ticket.createdAt)}</td>
         <td class="ticket-completion">${ticket.completionDate ? formatarData(ticket.completionDate) : '-'}</td>
         <td class="ticket-countdown ${countdown.class}">${countdown.html}</td>
-        <td class="ticket-actions">
-          ${ticket.status.toLowerCase() === 'pendente' ? `
-            <button class="btn-accept" onclick="event.stopPropagation(); chamadosSystem.aceitarTicket(${ticket.id})">
-              <i class="fas fa-check"></i>ACEITAR
-            </button>
-          ` : ''}
-        </td>
+        <td class="ticket-actions">${getActionButton(ticket)}</td>
       </tr>
     `;
   } else if (tipo === 'criado-tabela') {
-    // Formato de tabela para tickets criados
-    const statusClass = ticket.status.toLowerCase().replace(' ', '_');
+    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
     const priorityClass = ticket.priority?.toLowerCase() || 'baixa';
     
     return `
@@ -1961,7 +1975,7 @@ function criarTicketHTML(ticket, tipo = 'criado') {
         </td>
         <td class="ticket-status">
           <span class="status-label status-${statusClass}">
-            ${ticket.status.toUpperCase()}
+            ${formatStatus(ticket.status || 'pendente')}
           </span>
         </td>
         <td class="ticket-date">${formatarData(ticket.createdAt)}</td>
@@ -1974,29 +1988,30 @@ function criarTicketHTML(ticket, tipo = 'criado') {
       </tr>
     `;
   } else {
-    // Formato de cartão para tickets criados (formato original)
+    const targetUserName = ticket.targetUser ? ticket.targetUser.name : 'Não atribuído';
+    const departmentName = ticket.department ? ticket.department.name : 'Não definido';
+    const tempoRestante = calcularTempoRestante(ticket.completionDate);
+    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
+    
     return `
       <div class="ticket-item" data-ticket-id="${ticket.id}">
         <div class="ticket-header">
           <div class="ticket-title">
-            <i class="fas fa-ticket-alt"></i>
-            ${ticket.name || 'Sem título'}
+            ${ticket.name.toUpperCase()}
           </div>
-          <span class="ticket-status status-${(ticket.status || 'pendente').toLowerCase().replace(' ', '_')}">
-            ${(ticket.status || 'PENDENTE').toUpperCase()}
+          <span class="status-label status-${statusClass}">
+            ${formatStatus(ticket.status || 'pendente')}
           </span>
         </div>
-        <div class="ticket-info">
-          <div class="ticket-meta">
-            <span>
-              <i class="fas fa-calendar-alt"></i>
-              ${formatarData(ticket.createdAt)}
-            </span>
-            <span>
-              <i class="fas fa-building"></i>
-              ${(ticket.department && ticket.department.name) || 'Setor não especificado'}
-            </span>
-          </div>
+        <div class="ticket-footer">
+          <i class="fas fa-user"></i>
+          ${targetUserName}
+          <span class="ticket-arrow">→</span>
+          <i class="fas fa-building"></i>
+          ${departmentName}
+          <span class="ticket-time">
+            ${tempoRestante.html}
+          </span>
         </div>
       </div>
     `;
@@ -2146,3 +2161,68 @@ document.addEventListener('DOMContentLoaded', () => {
     aplicarEstilosCabecalho();
   }, 500);
 });
+
+function getUserId() {
+  return localStorage.getItem('user_id');
+}
+
+function getActionButton(ticket) {
+  const userId = getUserId();
+  const isCreator = String(ticket.requesterId) === String(userId);
+  
+  switch (ticket.status?.toLowerCase()) {
+    case 'pendente':
+      return `<button class="btn-accept" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'accept')">
+                <i class="fas fa-check"></i> Aceitar
+              </button>`;
+    
+    case 'em_andamento':
+      return `<button class="btn-review" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'review')">
+                <i class="fas fa-clipboard-check"></i> Revisão
+              </button>`;
+    
+    case 'em_revisao':
+      if (isCreator) {
+        return `
+          <button class="btn-accept" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'approve')">
+            <i class="fas fa-check"></i> Aprovar
+          </button>
+          <button class="btn-reject" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'reject')">
+            <i class="fas fa-times"></i> Reprovar
+          </button>`;
+      }
+      return '<span>Aguardando revisão</span>';
+    
+    case 'aprovado':
+      return `<button class="btn-finish" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'finish')">
+                <i class="fas fa-flag-checkered"></i> Finalizar
+              </button>`;
+    
+    case 'reprovado':
+      return `<button class="btn-review" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'review')">
+                <i class="fas fa-sync-alt"></i> Revisar
+              </button>`;
+    
+    case 'finalizado':
+      return '<span>Concluído</span>';
+    
+    default:
+      return '';
+  }
+}
+
+function formatStatus(status) {
+  if (!status) return 'Pendente';
+  
+  const statusMap = {
+    'pendente': 'Pendente',
+    'em_andamento': 'Em Andamento',
+    'em_revisao': 'Em Revisão',
+    'aprovado': 'Aprovado',
+    'reprovado': 'Reprovado',
+    'finalizado': 'Finalizado'
+  };
+
+  const formattedStatus = statusMap[status.toLowerCase()];
+  return formattedStatus || status;
+}
