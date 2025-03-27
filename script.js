@@ -220,19 +220,41 @@ class ChamadosSystem {
     };
 
     try {
-      const data = await this.apiRequest("/auth/login", {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/auth/login`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(loginData),
       });
 
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.showAlert("Email ou senha incorretos", "error");
+          return;
+        }
+        if (response.status === 404) {
+          this.showAlert("Usuário não encontrado", "error");
+          return;
+        }
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
       if (data.error) {
-        this.showAlert(data.error);
+        this.showAlert(data.error, "error");
         return;
       }
 
       this.handleSuccessfulLogin(data);
     } catch (error) {
-      this.showAlert("Erro ao fazer login. Tente novamente.");
+      console.error("Erro detalhado:", error);
+      if (error.message.includes("Failed to fetch")) {
+        this.showAlert("Não foi possível conectar ao servidor. Verifique sua conexão com a internet.", "error");
+      } else {
+        this.showAlert(`Erro ao fazer login: ${error.message}`, "error");
+      }
     }
   }
 
@@ -303,11 +325,45 @@ class ChamadosSystem {
   }
 
   // Métodos de utilidade
-  showAlert(message) {
-    const alertElement = document.getElementById("customAlert");
-    const messageElement = alertElement.querySelector(".custom-alert-message");
+  showAlert(message, type = 'info') {
+    const alertOverlay = document.createElement('div');
+    alertOverlay.className = 'custom-alert-overlay';
+    document.body.appendChild(alertOverlay);
+
+    const alertBox = document.createElement('div');
+    alertBox.className = 'custom-alert';
+    
+    const icon = document.createElement('i');
+    icon.className = `custom-alert-icon fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`;
+    icon.style.color = type === 'success' ? '#10B981' : '#EF4444';
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = 'custom-alert-message';
     messageElement.textContent = message;
-    alertElement.style.display = "flex";
+    
+    const button = document.createElement('button');
+    button.className = `custom-alert-button ${type}`;
+    button.textContent = 'Entendi';
+    
+    button.onclick = () => {
+        alertBox.classList.remove('show');
+        alertOverlay.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(alertBox);
+            document.body.removeChild(alertOverlay);
+        }, 300);
+    };
+    
+    alertBox.appendChild(icon);
+    alertBox.appendChild(messageElement);
+    alertBox.appendChild(button);
+    document.body.appendChild(alertBox);
+    
+    // Adiciona as classes show com um pequeno delay para garantir a animação
+    setTimeout(() => {
+        alertOverlay.classList.add('show');
+        alertBox.classList.add('show');
+    }, 10);
   }
 
   formatDate(date) {
@@ -1132,11 +1188,37 @@ class ChamadosSystem {
   }
 
   // Navegação
-  showUserSection(section) {
+  async showUserSection(section) {
     console.log("Mostrando seção:", section);
-    this.hideAllUserSections();
+    
+    // Esconder todas as seções primeiro
+    const allSections = document.querySelectorAll('.user-section');
+    allSections.forEach(s => s.style.display = 'none');
 
-    // Atualizar item ativo no menu
+    // Mostrar a seção selecionada
+    const sectionElement = document.getElementById(`${section}Section`);
+    if (sectionElement) {
+      sectionElement.style.display = "block";
+      
+      // Carregar dados específicos da seção
+      if (section === "ticketsRecebidos") {
+        await this.carregarTicketsRecebidos();
+      } else if (section === "ticketsCriados") {
+        await this.carregarTicketsCriados();
+      } else if (section === "novoTicket") {
+        this.loadSetores();
+        this.loadColaboradores();
+        this.carregarUltimosTickets();
+        const selectUsuario = document.getElementById("usuarioDestino");
+        if (selectUsuario) {
+          selectUsuario.innerHTML = '<option value="">Selecione um usuário</option>';
+        }
+      }
+    } else {
+      console.error("Seção não encontrada:", section);
+    }
+
+    // Atualizar menu ativo
     document.querySelectorAll("#userMenu .menu-item, #userMenu .submenu li").forEach((item) => {
       const itemSection = item.getAttribute("data-section");
       if (itemSection === section) {
@@ -1146,45 +1228,10 @@ class ChamadosSystem {
           document.querySelector('[data-section="toggleSubmenu"]').classList.add("active");
           document.querySelector('.submenu').classList.add("active");
         }
-      } else {
+      } else if (itemSection !== "toggleSubmenu") {
         item.classList.remove("active");
       }
     });
-
-    // Mostrar a seção selecionada
-    const sectionElement = document.getElementById(`${section}Section`);
-    if (sectionElement) {
-      sectionElement.style.display = "block";
-    } else {
-      console.error("Seção não encontrada:", section);
-      return;
-    }
-
-    if (!this.user) {
-      console.error("Usuário não está logado");
-      return;
-    }
-
-    switch (section) {
-      case "ticketsRecebidos":
-      case "ticketsCriados":
-        console.log("Carregando tickets...");
-        carregarMeusTickets();
-        break;
-      case "ticketsSetor":
-        this.loadTicketsSetor();
-        break;
-      case "novoTicket":
-        this.loadSetores();
-        this.loadColaboradores();
-        this.carregarUltimosTickets();
-        const selectUsuario = document.getElementById("usuarioDestino");
-        if (selectUsuario) {
-          selectUsuario.innerHTML =
-            '<option value="">Selecione um usuário</option>';
-        }
-        break;
-    }
   }
 
   hideAllUserSections() {
@@ -1458,53 +1505,24 @@ class ChamadosSystem {
 
   async showTicketDetails(ticketId) {
     try {
-      if (!ticketId) {
-        throw new Error("ID do ticket não fornecido");
-      }
-
       const ticket = await this.apiRequest(`/tickets/${ticketId}`);
-      console.log("Dados do ticket recebidos:", ticket);
-
-      if (!ticket || !ticket.id) {
-        throw new Error("Dados do ticket inválidos");
+      const modal = document.getElementById('ticketModal');
+      const detailsContainer = document.getElementById('ticketDetails');
+      
+      if (!modal || !detailsContainer) {
+        console.error("Modal ou container de detalhes não encontrado");
+        return;
       }
 
-      this.currentTicketId = ticketId;
+      detailsContainer.innerHTML = this.getTicketDetailsHTML(ticket);
+      modal.classList.add('show');
 
-      const modal = document.getElementById("ticketModal");
-      const details = document.getElementById("ticketDetails");
-
-      if (!modal || !details) {
-        throw new Error("Elementos do modal não encontrados");
-      }
-
-      // Renderizar detalhes do ticket
-      details.innerHTML = this.getTicketDetailsHTML(ticket);
-
-      // Limpar e carregar comentários
-      const atualizacoesContainer = document.getElementById("atualizacoes");
-      if (atualizacoesContainer) {
-        atualizacoesContainer.innerHTML = "";
-      }
-
-      const comentarioInput = document.getElementById("novoComentario");
-      if (comentarioInput) {
-        comentarioInput.value = "";
-      }
-
-      // Carregar atualizações
+      // Carregar atualizações do ticket
       await this.carregarAtualizacoes(ticketId);
 
-      // Exibir modal
-      modal.style.display = "block";
-
-      // Focar no campo de comentário
-      if (comentarioInput) {
-        comentarioInput.focus();
-      }
     } catch (error) {
-      console.error("Erro detalhado ao exibir detalhes do ticket:", error);
-      this.showAlert(`Erro ao exibir detalhes do ticket: ${error.message}`);
+      console.error("Erro ao carregar detalhes do ticket:", error);
+      this.showAlert("Erro ao carregar detalhes do ticket", "error");
     }
   }
 
@@ -1590,21 +1608,23 @@ class ChamadosSystem {
 
   async aceitarTicket(ticketId) {
     try {
-      const dataAtual = new Date().toISOString();
-      
-      await this.apiRequest(`/tickets/${ticketId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          status: 'Em andamento',
-          acceptanceDate: dataAtual
-        })
-      });
-      
-      this.showAlert('Ticket aceito com sucesso!');
-      carregarMeusTickets(); // Recarregar a lista de tickets
+        const response = await fetch(`/tickets/${ticketId}/aceitar`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showAlert('Ticket aceito com sucesso!', 'success');
+            await carregarTicketsRecebidos();
+            await carregarUltimosTickets();
+        } else {
+            showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+        }
     } catch (error) {
-      console.error('Erro ao aceitar ticket:', error);
-      this.showAlert('Erro ao aceitar o ticket. Tente novamente.');
+        console.error('Erro ao aceitar ticket:', error);
+        showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
     }
   }
 
@@ -1613,616 +1633,236 @@ class ChamadosSystem {
     if (!motivo) return;
 
     try {
-      await this.apiRequest(`/tickets/${ticketId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          status: 'Rejeitado',
-          disapprovalReason: motivo
-        })
+      await this.apiRequest(`/tickets/${ticketId}/rejeitar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ motivo })
       });
-      
-      this.showAlert('Ticket rejeitado com sucesso!');
-      carregarMeusTickets(); // Recarregar a lista de tickets
+
+      this.showAlert('Ticket rejeitado com sucesso!', 'success');
+      await this.carregarTicketsRecebidos();
+      await this.carregarUltimosTickets();
     } catch (error) {
       console.error('Erro ao rejeitar ticket:', error);
-      this.showAlert('Erro ao rejeitar o ticket. Tente novamente.');
+      this.showAlert('Erro ao rejeitar o ticket. Por favor, tente novamente.', 'error');
     }
   }
 
-  async solicitarMotivoRejeicao() {
-    return prompt('Por favor, informe o motivo da rejeição:');
-  }
-
-  async handleTicketAction(ticketId, action) {
+  async carregarTicketsRecebidos() {
     try {
-      const ticket = await this.getTicketById(ticketId);
-      const currentDate = new Date().toISOString();
-
-      let updateData = {};
-
-      switch (action) {
-        case 'accept':
-          if (!confirm('Deseja aceitar este ticket?')) return;
-          updateData = {
-            status: 'em_andamento',
-            acceptanceDate: currentDate
-          };
-          break;
-        
-        case 'review':
-          if (!confirm('Deseja enviar este ticket para revisão?')) return;
-          updateData = {
-            status: 'em_revisao'
-          };
-          break;
-        
-        case 'approve':
-          if (!confirm('Deseja aprovar este ticket?')) return;
-          updateData = {
-            status: 'aprovado'
-          };
-          break;
-        
-        case 'reject':
-          const motivo = await this.solicitarMotivoRejeicao();
-          if (!motivo) return;
-          
-          updateData = {
-            status: 'reprovado',
-            disapprovalReason: motivo
-          };
-          break;
-        
-        case 'finish':
-          if (!confirm('Deseja finalizar este ticket?')) return;
-          updateData = {
-            status: 'finalizado',
-            completionDate: currentDate
-          };
-          break;
+      if (!this.user?.id) {
+        console.error("ID do usuário não encontrado");
+        return;
       }
 
-      const response = await this.apiRequest(`/tickets/${ticketId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response) {
-        throw new Error('Erro na resposta da API');
-      }
-
-      // Recarrega a tabela de tickets
-      await carregarMeusTickets();
-
-      // Mostra mensagem de sucesso específica para cada ação
-      let successMessage = '';
-      switch (action) {
-        case 'accept':
-          successMessage = 'Ticket aceito com sucesso!';
-          break;
-        case 'review':
-          successMessage = 'Ticket enviado para revisão!';
-          break;
-        case 'approve':
-          successMessage = 'Ticket aprovado com sucesso!';
-          break;
-        case 'reject':
-          successMessage = 'Ticket reprovado!';
-          break;
-        case 'finish':
-          successMessage = 'Ticket finalizado com sucesso!';
-          break;
-      }
+      const tickets = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
+      const ticketsContainer = document.getElementById("ticketsRecebidosLista");
       
-      this.showAlert(successMessage);
-    } catch (error) {
-      console.error('Erro ao atualizar ticket:', error);
-      this.showAlert(`Erro ao atualizar o ticket: ${error.message}`);
-    }
-  }
-
-  async getTicketById(ticketId) {
-    try {
-      const response = await this.apiRequest(`/tickets/${ticketId}`);
-      return response;
-    } catch (error) {
-      console.error('Erro ao buscar ticket:', error);
-      throw error;
-    }
-  }
-}
-
-// Inicialização do sistema
-let chamadosSystem;
-
-document.addEventListener("DOMContentLoaded", () => {
-  window.chamadosSystem = new ChamadosSystem();
-
-  chamadosSystem = window.chamadosSystem
-  
-  // Verificar e remover ícones duplicados quando a página carregar
-  setTimeout(() => {
-    aplicarEstilosCabecalho();
-  }, 1000);
-});
-
-// Chamar a função quando a página carregar e quando um novo ticket for criado
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Chamadoss:", chamadosSystem);
-  if (chamadosSystem && chamadosSystem.user) {
-    chamadosSystem.carregarUltimosTickets();
-  }
-});
-
-// Adicionar chamada após o login bem-sucedido
-if (chamadosSystem) {
-  const originalHandleSuccessfulLogin = chamadosSystem.handleSuccessfulLogin;
-  chamadosSystem.handleSuccessfulLogin = function (data) {
-    originalHandleSuccessfulLogin.call(this, data);
-    chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após o login
-  };
-}
-
-// Adicionar chamada após criar um novo ticket
-const originalHandleTicketSubmit = chamadosSystem.handleTicketSubmit;
-chamadosSystem.handleTicketSubmit = async function (e) {
-  await originalHandleTicketSubmit.call(this, e);
-  chamadosSystem.carregarUltimosTickets(); // Recarrega a lista após criar um novo ticket
-};
-
-async function carregarMeusTickets() {
-  const ticketsCriadosContainer = document.getElementById('ticketsCriados');
-  const ticketsRecebidosContainer = document.getElementById('ticketsRecebidos');
-  
-  if (!ticketsCriadosContainer || !ticketsRecebidosContainer) {
-    console.error('Containers não encontrados');
-    return;
-  }
-
-  console.log('ID do usuário aqui:', chamadosSystem);
-
-  try {
-    console.log('Iniciando carregamento de tickets...');
-    
-    if (!chamadosSystem.user || !chamadosSystem.user.id) {
-      throw new Error('Usuário não identificado');
-    }
-    
-    
-
-    // Carregar tickets criados (onde o usuário é o requester)
-    const ticketsCriados = await chamadosSystem.apiRequest(
-      `/tickets/requester/${chamadosSystem.user.id}`
-    );
-    console.log("Tickets criados:", ticketsCriados);
-
-    // Carregar tickets recebidos (onde o usuário é o targetUser)
-    console.log("Target user:", chamadosSystem.user.id)
-    const ticketsRecebidos = await chamadosSystem.apiRequest(
-      `/tickets/target-user/${chamadosSystem.user.id}`
-    );
-    console.log("Tickets recebidos:", ticketsRecebidos);
-
-    // Atualizar contadores
-    atualizarContadores(ticketsCriados, ticketsRecebidos);
-    
-    // Renderizar tickets criados
-    if (Array.isArray(ticketsCriados)) {
-      if (ticketsCriados.length === 0) {
-        ticketsCriadosContainer.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-ticket-alt"></i>
-            <p>Você ainda não criou nenhum ticket</p>
-          </div>
-        `;
-      } else {
-        const ticketsHTML = `
-          <table class="tickets-table tickets-table-criados">
-            <thead class="table-header">
-              <tr>
-                <th><i class="fas fa-hashtag"></i> ID</th>
-                <th><i class="fas fa-tag"></i> ASSUNTO</th>
-                <th><i class="fas fa-fire"></i> PRIORIDADE</th>
-                <th><i class="fas fa-tasks"></i> STATUS</th>
-                <th><i class="fas fa-calendar"></i> CRIADO EM</th>
-                <th><i class="fas fa-hourglass-end"></i> PRAZO</th>
-                <th><i class="fas fa-cog"></i> AÇÕES</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${ticketsCriados
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .map(ticket => criarTicketHTML(ticket, 'criado-tabela'))
-                .join('')}
-            </tbody>
-          </table>
-        `;
-        
-        ticketsCriadosContainer.innerHTML = ticketsHTML;
+      if (!ticketsContainer) {
+        console.error("Container de tickets recebidos não encontrado");
+        return;
       }
-    }
 
-    // Renderizar tickets recebidos
-    if (Array.isArray(ticketsRecebidos)) {
-      if (ticketsRecebidos.length === 0) {
-        ticketsRecebidosContainer.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <p>Você não tem tickets atribuídos</p>
-          </div>
-        `;
-      } else {
-        const ticketsHTML = `
-          <table class="tickets-table tickets-table-recebidos">
-            <thead class="table-header">
-              <tr>
-                <th><i class="fas fa-hashtag"></i> ID</th>
-                <th><i class="fas fa-tag"></i> ASSUNTO</th>
-                <th><i class="fas fa-fire"></i> PRIORIDADE</th>
-                <th><i class="fas fa-tasks"></i> STATUS</th>
-                <th><i class="fas fa-calendar"></i> CRIADO EM</th>
-                <th><i class="fas fa-hourglass-end"></i> CONCLUIR ATÉ</th>
-                <th><i class="fas fa-clock"></i> TEMPO RESTANTE</th>
-                <th><i class="fas fa-cog"></i> AÇÕES</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${ticketsRecebidos
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .map(ticket => criarTicketHTML(ticket, 'recebido'))
-                .join('')}
-            </tbody>
-          </table>
-        `;
-        ticketsRecebidosContainer.innerHTML = ticketsHTML;
-        
-        // Forçar a renderização do cabeçalho
-        setTimeout(() => {
-          const tableHeader = document.querySelector('.tickets-table-recebidos thead');
-          if (tableHeader) {
-            tableHeader.style.display = 'table-header-group';
-            console.log('Forçando exibição do cabeçalho da tabela');
-          }
-        }, 100);
+      if (!tickets || tickets.length === 0) {
+        ticketsContainer.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>Nenhum ticket recebido</p>
+            </td>
+          </tr>`;
+        return;
       }
-    }
 
-    // Adicionar eventos de clique
-    document.querySelectorAll('.ticket-item, .ticket-row').forEach(item => {
-      item.addEventListener('click', () => {
-        const ticketId = item.dataset.ticketId;
-        if (ticketId) chamadosSystem.showTicketDetails(ticketId);
+      // Atualizar os contadores
+      const total = tickets.length;
+      const pendentes = tickets.filter(t => t.status === 'Pendente').length;
+      const emAndamento = tickets.filter(t => t.status === 'Em Andamento').length;
+      const resolvidos = tickets.filter(t => t.status === 'Finalizado').length;
+
+      document.querySelectorAll('.tickets-summary .summary-item').forEach((item, index) => {
+        const number = item.querySelector('.stat-number');
+        if (index === 0) number.textContent = total;
+        if (index === 1) number.textContent = pendentes;
+        if (index === 2) number.textContent = emAndamento;
+        if (index === 3) number.textContent = resolvidos;
       });
-    });
 
-    // Forçar a renderização do cabeçalho e aplicar estilos
-    setTimeout(() => {
-      aplicarEstilosCabecalho();
-    }, 100);
-  } catch (error) {
-    console.error("Erro ao carregar tickets:", error);
-    const errorMessage = `
-      <div class="empty-state">
-        <i class="fas fa-exclamation-circle"></i>
-        <p>Não foi possível carregar os tickets</p>
-        <small>${error.message}</small>
-      </div>
-    `;
-    ticketsCriadosContainer.innerHTML = errorMessage;
-    ticketsRecebidosContainer.innerHTML = errorMessage;
+      // Renderizar os tickets em formato de tabela
+      ticketsContainer.innerHTML = tickets
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(ticket => {
+          const prazo = calcularTempoRestante(ticket.completionDate);
+          return `
+            <tr onclick="chamadosSystem.showTicketDetails(${ticket.id})" class="${ticket.id % 2 === 0 ? 'even' : ''}">
+              <td>${ticket.id}</td>
+              <td>${ticket.name.toUpperCase()}</td>
+              <td><span class="priority-label priority-${ticket.priority.toLowerCase()}">${ticket.priority}</span></td>
+              <td><span class="status-label status-${ticket.status.toLowerCase().replace(' ', '_')}">${ticket.status}</span></td>
+              <td>${ticket.requester ? ticket.requester.firstName : 'N/A'}</td>
+              <td>${ticket.department ? ticket.department.name : 'N/A'}</td>
+              <td>${formatarData(ticket.createdAt)}</td>
+              <td>${formatarData(ticket.completionDate)}</td>
+              <td class="prazo-col ${prazo.class}">${prazo.html}</td>
+              <td>
+                <button class="action-btn" onclick="event.stopPropagation(); chamadosSystem.showTicketDetails(${ticket.id})">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+    } catch (error) {
+      console.error("Erro ao carregar tickets recebidos:", error);
+      this.showAlert("Erro ao carregar tickets recebidos", "error");
+      
+      const ticketsContainer = document.getElementById("ticketsRecebidosLista");
+      if (ticketsContainer) {
+        ticketsContainer.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-state error-state">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>Erro ao carregar tickets</p>
+              <small>${error.message}</small>
+            </td>
+          </tr>`;
+      }
+    }
+  }
+
+  async carregarTicketsCriados() {
+    try {
+      if (!this.user?.id) {
+        console.error("ID do usuário não encontrado");
+        return;
+      }
+
+      const tickets = await this.apiRequest(`/tickets/requester/${this.user.id}`);
+      const ticketsContainer = document.getElementById("ticketsCriadosLista");
+      
+      if (!ticketsContainer) {
+        console.error("Container de tickets criados não encontrado");
+        return;
+      }
+
+      if (!tickets || tickets.length === 0) {
+        ticketsContainer.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum ticket criado</td></tr>';
+        return;
+      }
+
+      ticketsContainer.innerHTML = tickets
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map(ticket => `
+          <tr>
+            <td>${ticket.id}</td>
+            <td>${ticket.name}</td>
+            <td>${ticket.targetUser ? ticket.targetUser.firstName : 'N/A'}</td>
+            <td>${ticket.department ? ticket.department.name : 'N/A'}</td>
+            <td>${formatarData(ticket.createdAt)}</td>
+            <td>${formatarData(ticket.completionDate)}</td>
+            <td>
+              <button class="btn btn-info btn-sm" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+
+    } catch (error) {
+      console.error("Erro ao carregar tickets criados:", error);
+      this.showAlert("Erro ao carregar tickets criados", "error");
+    }
   }
 }
 
-function formatarData(dataString) {
-  if (!dataString) return "-";
+function criarTicketHTML(ticket) {
+  const tempoRestante = calcularTempoRestante(ticket.completionDate);
+  const targetUserName = ticket.targetUser ? ticket.targetUser.firstName : 'Não atribuído';
+  const departmentName = ticket.department ? ticket.department.name : 'Não definido';
 
-  const data = new Date(dataString);
-
-  // Formatar dia, mês, ano
-  const dia = String(data.getDate()).padStart(2, "0");
-  const mes = String(data.getMonth() + 1).padStart(2, "0");
-  const ano = String(data.getFullYear()).slice(-2);
-
-  // Formatar hora e minuto
-  const hora = String(data.getHours()).padStart(2, "0");
-  const minuto = String(data.getMinutes()).padStart(2, "0");
-
-  return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
-}
-
-function criarTicketHTML(ticket, tipo = 'criado') {
-  if (tipo === 'recebido') {
-    const countdown = calcularTempoRestante(ticket.completionDate);
-    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
-    const priorityClass = ticket.priority?.toLowerCase() || 'baixa';
-    
-    return `
-      <tr class="ticket-row ${statusClass === 'pendente' ? 'unread' : ''}" data-ticket-id="${ticket.id}">
-        <td class="ticket-id">#${ticket.id}</td>
-        <td class="ticket-subject">${ticket.name || 'Sem título'}</td>
-        <td class="ticket-priority">
-          <span class="priority-label priority-${priorityClass}">
-            ${ticket.priority?.toUpperCase() || 'BAIXA'}
-          </span>
-        </td>
-        <td class="ticket-status">
-          <span class="status-label status-${statusClass}">
-            ${formatStatus(ticket.status || 'pendente')}
-          </span>
-        </td>
-        <td class="ticket-date">${formatarData(ticket.createdAt)}</td>
-        <td class="ticket-completion">${ticket.completionDate ? formatarData(ticket.completionDate) : '-'}</td>
-        <td class="ticket-countdown ${countdown.class}">${countdown.html}</td>
-        <td class="ticket-actions">${getActionButton(ticket)}</td>
-      </tr>
-    `;
-  } else if (tipo === 'criado-tabela') {
-    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
-    const priorityClass = ticket.priority?.toLowerCase() || 'baixa';
-    
-    return `
-      <tr class="ticket-row" data-ticket-id="${ticket.id}">
-        <td class="ticket-id">#${ticket.id}</td>
-        <td class="ticket-subject">${ticket.name || 'Sem título'}</td>
-        <td class="ticket-priority">
-          <span class="priority-label priority-${priorityClass}">
-            ${ticket.priority?.toUpperCase() || 'BAIXA'}
-          </span>
-        </td>
-        <td class="ticket-status">
-          <span class="status-label status-${statusClass}">
-            ${formatStatus(ticket.status || 'pendente')}
-          </span>
-        </td>
-        <td class="ticket-date">${formatarData(ticket.createdAt)}</td>
-        <td class="ticket-completion">${ticket.completionDate ? formatarData(ticket.completionDate) : '-'}</td>
-        <td class="ticket-actions">
-          <button class="action-btn view-btn" onclick="event.stopPropagation(); chamadosSystem.showTicketDetails(${ticket.id})">
-            <i class="fas fa-eye"></i>
-          </button>
-        </td>
-      </tr>
-    `;
-  } else {
-    const targetUserName = ticket.targetUser ? ticket.targetUser.name : 'Não atribuído';
-    const departmentName = ticket.department ? ticket.department.name : 'Não definido';
-    const tempoRestante = calcularTempoRestante(ticket.completionDate);
-    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
-    
-    return `
-      <div class="ticket-item" data-ticket-id="${ticket.id}">
-        <div class="ticket-header">
-          <div class="ticket-title">
-            ${ticket.name.toUpperCase()}
-          </div>
-          <span class="status-label status-${statusClass}">
-            ${formatStatus(ticket.status || 'pendente')}
-          </span>
+  return `
+    <div class="ticket-item" data-ticket-id="${ticket.id}">
+      <div class="ticket-header">
+        <div class="ticket-title">
+          <i class="fas fa-ticket-alt"></i>
+          ${ticket.name.toUpperCase()}
         </div>
-        <div class="ticket-footer">
-          <i class="fas fa-user"></i>
-          ${targetUserName}
-          <span class="ticket-arrow">→</span>
-          <i class="fas fa-building"></i>
-          ${departmentName}
-          <span class="ticket-time">
-            ${tempoRestante.html}
+        <div class="ticket-status status-${ticket.status.toLowerCase()}">${ticket.status}</div>
+      </div>
+      <div class="ticket-footer">
+        <div class="ticket-info">
+          <i class="fas fa-user"></i> ${targetUserName} 
+          <i class="fas fa-building"></i> ${departmentName}
+          <span class="ticket-time ${tempoRestante.class}">
+            <i class="fas fa-clock"></i> ${tempoRestante.html}
           </span>
         </div>
       </div>
-    `;
-  }
+    </div>
+  `;
 }
 
 function calcularTempoRestante(dataFinal) {
   if (!dataFinal) {
-    return {
-      html: '-',
-      class: ''
-    };
+    return { html: '-', class: '' };
   }
 
   const agora = new Date();
-  const conclusao = new Date(dataFinal);
-  const diff = conclusao - agora;
-  
+  const final = new Date(dataFinal);
+  const diferenca = final - agora;
+
   // Se já passou do prazo
-  if (diff < 0) {
-    const diasAtrasados = Math.ceil(Math.abs(diff) / (1000 * 60 * 60 * 24));
+  if (diferenca < 0) {
     return {
-      html: `<i class="fas fa-exclamation-circle"></i> ${diasAtrasados} ${diasAtrasados === 1 ? 'dia atrasado' : 'dias atrasados'}`,
-      class: 'urgent'
+      html: '<i class="fas fa-exclamation-circle"></i> Atrasado',
+      class: 'prazo-urgente'
     };
   }
-  
-  // Se falta menos de 24 horas
-  if (diff < 24 * 60 * 60 * 1000) {
-    const horasRestantes = Math.ceil(diff / (1000 * 60 * 60));
-    return {
-      html: `<i class="fas fa-clock"></i> ${horasRestantes} ${horasRestantes === 1 ? 'hora restante' : 'horas restantes'}`,
-      class: 'urgent'
-    };
+
+  // Converter para dias, horas e minutos
+  const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+  const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+
+  let texto = '';
+  let classe = '';
+
+  if (dias > 0) {
+    texto = `${dias}d ${horas}h`;
+    classe = dias <= 2 ? 'prazo-proximo' : 'prazo-ok';
+  } else if (horas > 0) {
+    texto = `${horas}h ${minutos}m`;
+    classe = 'prazo-proximo';
+  } else {
+    texto = `${minutos}m`;
+    classe = 'prazo-urgente';
   }
-  
-  // Se falta menos de 3 dias
-  if (diff < 3 * 24 * 60 * 60 * 1000) {
-    const diasRestantes = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    return {
-      html: `<i class="fas fa-clock"></i> ${diasRestantes} ${diasRestantes === 1 ? 'dia restante' : 'dias restantes'}`,
-      class: 'warning'
-    };
-  }
-  
-  // Mais de 3 dias
-  const diasRestantes = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
   return {
-    html: `<i class="far fa-clock"></i> ${diasRestantes} dias restantes`,
-    class: ''
+    html: `<i class="fas fa-clock"></i> ${texto}`,
+    class: classe
   };
 }
 
-function atualizarContadores(ticketsCriados = [], ticketsRecebidos = []) {
-  // Usar apenas tickets recebidos para o dashboard
-  const total = ticketsRecebidos.length;
-  const pendentes = ticketsRecebidos.filter(
-    (t) => t.status.toUpperCase() === "PENDENTE"
-  ).length;
-  const emAndamento = ticketsRecebidos.filter(
-    (t) => t.status.toUpperCase() === "EM_ANDAMENTO"
-  ).length;
-  const resolvidos = ticketsRecebidos.filter(
-    (t) => t.status.toUpperCase() === "FINALIZADO"
-  ).length;
-
-  document.querySelectorAll(".summary-item").forEach((item) => {
-    const label = item.querySelector(".stat-label").textContent.toLowerCase();
-    const numberElement = item.querySelector(".stat-number");
-
-    switch (label) {
-      case "total":
-        numberElement.textContent = total;
-        break;
-      case "pendentes":
-        numberElement.textContent = pendentes;
-        break;
-      case "em andamento":
-        numberElement.textContent = emAndamento;
-        break;
-      case "resolvidos":
-        numberElement.textContent = resolvidos;
-        break;
-    }
-  });
-}
-
-// Adicionar função para aplicar estilos aos cabeçalhos após o carregamento
-function aplicarEstilosCabecalho() {
-  // Remover ícones duplicados se existirem
-  document.querySelectorAll('.tickets-table th').forEach(th => {
-    const icons = th.querySelectorAll('i');
-    // Se houver mais de um ícone, manter apenas o primeiro
-    if (icons.length > 1) {
-      for (let i = 1; i < icons.length; i++) {
-        icons[i].remove();
-      }
-    }
-  });
+function formatarData(data) {
+  if (!data) return '-';
   
-  // Aplicar estilos aos cabeçalhos das tabelas de tickets recebidos
-  const cabecalhosRecebidos = document.querySelectorAll('#ticketsRecebidos .tickets-table thead, .tickets-table-recebidos thead');
-  cabecalhosRecebidos.forEach(cabecalho => {
-    cabecalho.style.backgroundColor = '#2c3e50';
-    cabecalho.style.color = '#ffffff';
-    cabecalho.style.display = 'table-header-group';
-    cabecalho.style.visibility = 'visible';
+  try {
+    const date = new Date(data);
+    if (isNaN(date.getTime())) return '-';
     
-    const celulas = cabecalho.querySelectorAll('th');
-    celulas.forEach(celula => {
-      celula.style.color = '#ffffff';
-      celula.style.backgroundColor = '#2c3e50';
-      // Não vamos alterar o conteúdo para preservar os ícones
-    });
-  });
-  
-  // Aplicar estilos aos cabeçalhos das tabelas de tickets criados
-  const cabecalhosCriados = document.querySelectorAll('#ticketsCriados .tickets-table thead, .tickets-table-criados thead');
-  cabecalhosCriados.forEach(cabecalho => {
-    cabecalho.style.backgroundColor = '#27ae60';
-    cabecalho.style.color = '#ffffff';
-    cabecalho.style.display = 'table-header-group';
-    cabecalho.style.visibility = 'visible';
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const ano = String(date.getFullYear()).slice(-2);
+    const hora = String(date.getHours()).padStart(2, '0');
+    const minuto = String(date.getMinutes()).padStart(2, '0');
     
-    const celulas = cabecalho.querySelectorAll('th');
-    celulas.forEach(celula => {
-      celula.style.color = '#ffffff';
-      celula.style.backgroundColor = '#27ae60';
-      // Não vamos alterar o conteúdo para preservar os ícones
-    });
-  });
-  
-  console.log('Estilos aplicados aos cabeçalhos das tabelas e ícones verificados');
-}
-
-// Modificar o final da função carregarMeusTickets para chamar a função de estilo
-// Na função carregarMeusTickets, depois de renderizar as tabelas:
-
-// Forçar a renderização do cabeçalho e aplicar estilos
-setTimeout(() => {
-  aplicarEstilosCabecalho();
-}, 100);
-
-// Também adicionar ao carregamento da página
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    aplicarEstilosCabecalho();
-  }, 500);
-});
-
-function getUserId() {
-  return localStorage.getItem('user_id');
-}
-
-function getActionButton(ticket) {
-  const userId = getUserId();
-  const isCreator = String(ticket.requesterId) === String(userId);
-  
-  switch (ticket.status?.toLowerCase()) {
-    case 'pendente':
-      return `<button class="btn-accept" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'accept')">
-                <i class="fas fa-check"></i> Aceitar
-              </button>`;
-    
-    case 'em_andamento':
-      return `<button class="btn-review" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'review')">
-                <i class="fas fa-clipboard-check"></i> Revisão
-              </button>`;
-    
-    case 'em_revisao':
-      if (isCreator) {
-        return `
-          <button class="btn-accept" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'approve')">
-            <i class="fas fa-check"></i> Aprovar
-          </button>
-          <button class="btn-reject" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'reject')">
-            <i class="fas fa-times"></i> Reprovar
-          </button>`;
-      }
-      return '<span>Aguardando revisão</span>';
-    
-    case 'aprovado':
-      return `<button class="btn-finish" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'finish')">
-                <i class="fas fa-flag-checkered"></i> Finalizar
-              </button>`;
-    
-    case 'reprovado':
-      return `<button class="btn-review" onclick="event.stopPropagation(); window.chamadosSystem.handleTicketAction(${ticket.id}, 'review')">
-                <i class="fas fa-sync-alt"></i> Revisar
-              </button>`;
-    
-    case 'finalizado':
-      return '<span>Concluído</span>';
-    
-    default:
-      return '';
+    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return '-';
   }
 }
 
-function formatStatus(status) {
-  if (!status) return 'Pendente';
-  
-  const statusMap = {
-    'pendente': 'Pendente',
-    'em_andamento': 'Em Andamento',
-    'em_revisao': 'Em Revisão',
-    'aprovado': 'Aprovado',
-    'reprovado': 'Reprovado',
-    'finalizado': 'Finalizado'
-  };
-
-  const formattedStatus = statusMap[status.toLowerCase()];
-  return formattedStatus || status;
-}
+// Inicializar o sistema
+const chamadosSystem = new ChamadosSystem();

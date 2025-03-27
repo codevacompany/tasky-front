@@ -342,44 +342,385 @@ button:hover {
 .table-container {
   width: 100%;
   overflow-x: auto;
-  margin-top: 20px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin: 20px 0;
 }
 
-table {
+#ticketsRecebidosTable {
   width: 100%;
   border-collapse: collapse;
+  font-size: 12px;
   min-width: 800px;
 }
 
-th {
-  background: #f8fafc;
-  padding: 12px 15px;
+#ticketsRecebidosTable th {
+  background-color: #2c3e50;
+  padding: 12px 8px;
   text-align: left;
+  color: #ffffff;
   font-weight: 500;
-  font-size: 13px;
-  color: #64748b;
-  border-bottom: 1px solid #e2e8f0;
+  font-size: 11px;
   white-space: nowrap;
+  border-bottom: none;
 }
 
-td {
-  padding: 12px 15px;
-  font-size: 13px;
-  color: #1e293b;
+#ticketsRecebidosTable td {
+  padding: 8px;
   border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  vertical-align: middle;
+  font-size: 12px;
 }
 
-tr:hover {
-  background-color: #f8fafc;
+/* Ajuste das larguras das colunas */
+#ticketsRecebidosTable th:nth-child(1), /* ID */
+#ticketsRecebidosTable td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+  text-align: center;
+}
+
+#ticketsRecebidosTable th:nth-child(2), /* Assunto */
+#ticketsRecebidosTable td:nth-child(2) {
+  min-width: 200px;
+}
+
+#ticketsRecebidosTable th:nth-child(3), /* Prioridade */
+#ticketsRecebidosTable td:nth-child(3),
+#ticketsRecebidosTable th:nth-child(4), /* Status */
+#ticketsRecebidosTable td:nth-child(4) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+#ticketsRecebidosTable th:nth-child(5), /* Solicitante */
+#ticketsRecebidosTable td:nth-child(5),
+#ticketsRecebidosTable th:nth-child(6), /* Setor */
+#ticketsRecebidosTable td:nth-child(6) {
+  min-width: 120px;
+  max-width: 150px;
+  text-align: left;
+}
+
+#ticketsRecebidosTable th:nth-child(7), /* Criação */
+#ticketsRecebidosTable td:nth-child(7),
+#ticketsRecebidosTable th:nth-child(8), /* Conclusão */
+#ticketsRecebidosTable td:nth-child(8) {
+  width: 110px;
+  min-width: 110px;
+  text-align: center;
+}
+
+#ticketsRecebidosTable th:nth-child(9), /* Prazo */
+#ticketsRecebidosTable td:nth-child(9) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+#ticketsRecebidosTable th:nth-child(10), /* Ações */
+#ticketsRecebidosTable td:nth-child(10) {
+  width: 60px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.status-label, .priority-label {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  min-width: 85px;
+}
+
+.prazo-col {
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.prazo-col i {
+  margin-right: 4px;
+  font-size: 11px;
+}
+
+.action-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  color: #1e40af;
+}
+
+/* Truncar texto longo */
+#ticketsRecebidosTable td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
+/* Responsividade */
+@media (max-width: 1600px) {
+  #ticketsRecebidosTable {
+    font-size: 11px;
+  }
+  
+  #ticketsRecebidosTable th {
+    padding: 10px 6px;
+    font-size: 10px;
+  }
+  
+  #ticketsRecebidosTable td {
+    padding: 6px;
+  }
+  
+  .status-label, .priority-label {
+    padding: 3px 6px;
+    font-size: 10px;
+    min-width: 75px;
+  }
+}
+
+@media (max-width: 1366px) {
+  #ticketsRecebidosTable {
+    font-size: 10px;
+  }
+  
+  #ticketsRecebidosTable th {
+    padding: 8px 4px;
+    font-size: 10px;
+  }
+  
+  #ticketsRecebidosTable td {
+    padding: 4px;
+  }
+  
+  .status-label, .priority-label {
+    padding: 2px 4px;
+    font-size: 10px;
+    min-width: 70px;
+  }
+
+  .prazo-col {
+    font-size: 10px;
+  }
+
+  .prazo-col i {
+    font-size: 10px;
+  }
+
+  .action-btn {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .table-container {
+    margin: 10px 0;
+  }
+
+  #ticketsRecebidosTable {
+    min-width: 900px;
+  }
+
+  #ticketsRecebidosTable th:nth-child(2), /* Assunto */
+  #ticketsRecebidosTable td:nth-child(2) {
+    min-width: 180px;
+  }
+
+  #ticketsRecebidosTable th:nth-child(5), /* Solicitante */
+  #ticketsRecebidosTable td:nth-child(5),
+  #ticketsRecebidosTable th:nth-child(6), /* Setor */
+  #ticketsRecebidosTable td:nth-child(6) {
+    min-width: 100px;
+  }
+}
+
+#ticketsRecebidosTable tbody tr {
+  transition: background-color 0.2s;
   cursor: pointer;
 }
 
-th i {
-  margin-right: 6px;
-  font-size: 14px;
+#ticketsRecebidosTable tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+#ticketsRecebidosTable tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+#ticketsRecebidosTable tr:nth-child(even):hover {
+  background-color: #f1f5f9;
+}
+
+#ticketsRecebidosTable .titulo-col {
+  min-width: 200px;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+#ticketsRecebidosTable tr.highlight {
+  background-color: #1e40af;
+}
+
+#ticketsRecebidosTable tr.highlight td {
+  color: white;
+}
+
+#ticketsRecebidosTable tr.highlight:hover {
+  background-color: #1e3a8a;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: white;
+}
+
+.status-label, .priority-label {
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  min-width: 70px;
+}
+
+.prazo-col {
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.prazo-col i {
+  margin-right: 3px;
+  font-size: 10px;
+}
+
+.action-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-size: 11px;
+}
+
+.action-btn:hover {
+  color: #1e40af;
+}
+
+@media (max-width: 1366px) {
+  #ticketsRecebidosTable {
+    font-size: 10px;
+  }
+  
+  #ticketsRecebidosTable th {
+    padding: 6px 4px;
+    font-size: 9px;
+  }
+  
+  #ticketsRecebidosTable td {
+    padding: 4px;
+    font-size: 10px;
+  }
+  
+  .status-label, .priority-label {
+    font-size: 9px;
+    padding: 2px 4px;
+    min-width: 60px;
+  }
+
+  .prazo-col {
+    font-size: 9px;
+  }
+
+  .prazo-col i {
+    font-size: 9px;
+  }
+
+  .action-btn {
+    font-size: 10px;
+  }
+}
+
+#ticketsRecebidosTable td:nth-child(2) {
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.status-label {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pendente {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-em_andamento {
+  background-color: #e0f2fe;
+  color: #075985;
+}
+
+.status-finalizado {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.priority-label {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.priority-baixa {
+  background-color: #e0f2fe;
+  color: #075985;
+}
+
+.priority-media {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.priority-alta {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.action-btn:hover {
+  color: #1e40af;
 }
 
 /* Status e Prioridade */
@@ -2736,134 +3077,129 @@ table tbody {
   table-layout: fixed;
 }
 
-/* Estilo do cabeçalho para a tabela de tickets recebidos */
-#ticketsRecebidos .tickets-table thead {
-  background: #2980b9; /* Azul escuro */
-  color: #fff;
-  border: none;
-  height: 50px;
-  display: table-header-group;
-  visibility: visible !important;
-}
-
-/* Estilo do cabeçalho para a tabela de tickets criados */
-#ticketsCriados .tickets-table thead {
-  background: #27ae60; /* Verde para tickets criados */
-  color: #fff;
-  border: none;
-  height: 50px;
-  display: table-header-group;
-  visibility: visible !important;
-}
-
-.tickets-table thead tr {
-  height: 50px;
-  display: table-row;
-  visibility: visible !important;
-}
-
-.tickets-table th {
-  padding: 10px 15px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: none;
-  white-space: nowrap;
-  color: white;
-  display: table-cell;
-  vertical-align: middle;
-  position: relative;
-  visibility: visible !important;
-}
-
-.tickets-table thead th {
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
-
-/* Definição do tamanho das colunas */
-.tickets-table th:nth-child(1) { /* ID */
-  width: 60px;
+/* Ajuste das larguras das colunas */
+.tickets-table th:nth-child(1), /* ID */
+.tickets-table td:nth-child(1) {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
   text-align: center;
 }
 
-.tickets-table th:nth-child(2) { /* Assunto */
-  width: 25%;
-  text-align: left;
+.tickets-table th:nth-child(2), /* Assunto */
+.tickets-table td:nth-child(2) {
+  width: auto;
+  min-width: 180px;
+  max-width: 250px;
 }
 
 .tickets-table th:nth-child(3), /* Prioridade */
-.tickets-table th:nth-child(4) { /* Status */
-  width: 110px;
+.tickets-table td:nth-child(3),
+.tickets-table th:nth-child(4), /* Status */
+.tickets-table td:nth-child(4) {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
   text-align: center;
 }
 
 .tickets-table th:nth-child(5), /* Criado Em */
-.tickets-table th:nth-child(6) { /* Prazo de Conclusão */
-  width: 130px;
+.tickets-table td:nth-child(5),
+.tickets-table th:nth-child(6), /* Prazo */
+.tickets-table td:nth-child(6) {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
   text-align: center;
 }
 
-.tickets-table th:nth-child(7) { /* Tempo Restante */
-  width: 120px;
+.tickets-table th:nth-child(7), /* Tempo Restante */
+.tickets-table td:nth-child(7) {
+  width: 95px;
+  min-width: 95px;
+  max-width: 95px;
   text-align: center;
 }
 
-.tickets-table th:nth-child(8) { /* Ações */
-  width: 90px;
+.tickets-table th:nth-child(8), /* Ações */
+.tickets-table td:nth-child(8) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
   text-align: center;
 }
 
-.tickets-table tbody {
-  display: table-row-group;
-}
-
-.tickets-table tr {
-  height: 55px;
-  display: table-row;
-}
-
-.tickets-table td {
-  padding: 12px 15px;
-  font-size: 13px;
-  color: #1e293b;
-  border-bottom: 1px solid #e2e8f0;
-  vertical-align: middle;
-  display: table-cell;
-}
-
-.tickets-table td:first-child {
-  text-align: center;
-}
-
-.tickets-table td:nth-child(3), /* Prioridade */
-.tickets-table td:nth-child(4), /* Status */
-.tickets-table td:nth-child(5), /* Criado Em */
-.tickets-table td:nth-child(6), /* Prazo de Conclusão */
-.tickets-table td:nth-child(7) { /* Tempo Restante */
-  text-align: center;
-}
-
-.tickets-table td:nth-child(8) { /* Ações */
-  text-align: center;
-}
-
-.tickets-table tr:last-child td {
+/* Ajuste do cabeçalho */
+.tickets-table thead th {
+  padding: 10px 8px;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  background-color: #2c3e50 !important;
   border-bottom: none;
 }
 
-.tickets-table tr:nth-child(odd) {
-  background-color: #ffffff;
+/* Ajuste das células */
+.tickets-table td {
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
-.tickets-table tr:nth-child(even) {
-  background-color: #f8fafc;
+/* Labels de status e prioridade mais compactas */
+.priority-label, .status-label {
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  min-width: 65px;
+  max-width: 80px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
+/* Ajuste do texto nas células */
+.tickets-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tickets-table .ticket-subject {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: #1e40af;
+}
+
+/* Ajuste do botão de ação */
+.action-btn.view-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+
+/* Ajuste do tempo restante */
+.ticket-countdown {
+  font-size: 11px;
+  gap: 3px;
+}
+
+.ticket-countdown i {
+  font-size: 11px;
+}
+
+/* Hover mais suave */
 .tickets-table tr:hover {
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
+  transition: background-color 0.2s ease;
+}
+
+/* Linhas alternadas mais suaves */
+.tickets-table tr:nth-child(even) {
+  background-color: #fafafa;
 }
 
 .tickets-table .ticket-id {
@@ -2871,13 +3207,6 @@ table tbody {
   color: #64748b;
   font-family: monospace;
   font-size: 14px;
-}
-
-.tickets-table .ticket-subject {
-  font-weight: 500;
-  color: #1e293b;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tickets-table .ticket-priority,
@@ -3303,4 +3632,112 @@ table tbody {
 .ticket-subject {
   font-size: 12px !important;
   text-align: left !important;
+}
+
+/* Estilos para os modais de alerta e confirmação */
+.custom-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  width: 320px;
+  height: 200px;
+  text-align: center;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-alert-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.custom-alert-message {
+  font-size: 14px;
+  color: #1F2937;
+  margin-bottom: 16px;
+  line-height: 1.4;
+  padding: 0 16px;
+}
+
+.custom-alert-button {
+  background: #3B82F6;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: absolute;
+  bottom: 20px;
+}
+
+.custom-alert-button:hover {
+  background: #2563EB;
+  transform: translateY(-1px);
+}
+
+.custom-alert-button.error {
+  background: #EF4444;
+}
+
+.custom-alert-button.error:hover {
+  background: #DC2626;
+}
+
+.custom-alert-button.success {
+  background: #10B981;
+}
+
+.custom-alert-button.success:hover {
+  background: #059669;
+}
+
+/* Animações para os modais */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to { 
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.custom-alert.show {
+  display: flex;
+  animation: slideIn 0.3s ease forwards;
+}
+
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+.custom-alert-overlay.show {
+  display: block;
+  animation: fadeIn 0.3s ease forwards;
 }

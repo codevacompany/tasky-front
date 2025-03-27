@@ -483,7 +483,27 @@
                 </div>
               </div>
 
-              <div id="ticketsRecebidos"></div>
+              <div class="table-container">
+                <table id="ticketsRecebidosTable">
+                  <thead>
+                    <tr>
+                      <th><i class="fas fa-hashtag"></i> ID</th>
+                      <th class="titulo-col"><i class="fas fa-ticket-alt"></i> ASSUNTO</th>
+                      <th><i class="fas fa-exclamation-circle"></i> PRIORIDADE</th>
+                      <th><i class="fas fa-tag"></i> STATUS</th>
+                      <th><i class="fas fa-user"></i> SOLICITANTE</th>
+                      <th><i class="fas fa-building"></i> SETOR</th>
+                      <th><i class="fas fa-calendar-alt"></i> CRIAÇÃO</th>
+                      <th><i class="fas fa-calendar-check"></i> CONCLUSÃO</th>
+                      <th><i class="fas fa-clock"></i> PRAZO</th>
+                      <th><i class="fas fa-cog"></i> AÇÕES</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketsRecebidosLista">
+                    <!-- Os tickets serão inseridos aqui dinamicamente -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -708,19 +728,15 @@
       </div>
     </div>
 
-    <script src="/script.js"></script>
-
-    <!-- Alerta Personalizado -->
-    <div id="customAlert" class="custom-alert modal">
-      <div class="custom-alert-content">
-        <div class="custom-alert-icon">
-          <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <div class="custom-alert-title">Erro</div>
-        <div class="custom-alert-message"></div>
-        <button class="close">Entendi</button>
-      </div>
+    <!-- Modal de Alerta -->
+    <div id="customAlertOverlay" class="custom-alert-overlay"></div>
+    <div id="customAlert" class="custom-alert">
+      <i class="custom-alert-icon fas fa-info-circle"></i>
+      <div class="custom-alert-message"></div>
+      <button class="custom-alert-button">ENTENDI</button>
     </div>
+
+    <script src="/script.js"></script>
 
     <style>
       .ultimos-tickets-container {
