@@ -1,6 +1,6 @@
 const CONFIG = {
-  API_BASE_URL: "https://tasky-api-lime.vercel.app",
-  // API_BASE_URL: "http://localhost:4443",
+  // API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  API_BASE_URL: "http://localhost:4443",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
@@ -334,7 +334,6 @@ class ChamadosSystem {
 
       this.showAlert("Ticket enviado com sucesso!");
       document.getElementById("ticketForm").reset();
-      this.updateNotificationCount(1);
       this.carregarUltimosTickets();
     } catch (error) {
       this.showAlert("Erro ao enviar ticket. Tente novamente.");
@@ -623,7 +622,7 @@ class ChamadosSystem {
 
   async checkNewNotifications() {
     try {
-      const notificacoes = await this.apiRequest("/notifications");
+      const notificacoes = await this.apiRequest(`/notifications/target-user/${this.user.id}`);
       const unreadCount = notificacoes.filter((n) => n.read === false).length;
       this.updateNotificationCount(unreadCount);
     } catch (error) {
@@ -639,7 +638,7 @@ class ChamadosSystem {
 
   async showNotifications() {
     try {
-      const notificacoes = await this.apiRequest("/notifications");
+      const notificacoes = await this.apiRequest(`/notifications/target-user/${this.user.id}`);
       this.updateNotificationsUI(notificacoes);
       document.getElementById("notificationModal").style.display = "block";
     } catch (error) {
