@@ -1,6 +1,6 @@
 const CONFIG = {
-  API_BASE_URL: "https://tasky-api-lime.vercel.app",
-  // API_BASE_URL: "http://localhost:4443",
+  // API_BASE_URL: "https://tasky-api-lime.vercel.app",
+  API_BASE_URL: "http://localhost:4443",
   NOTIFICATION_CHECK_INTERVAL: 60000,
   DATE_FORMAT: "pt-BR",
 };
