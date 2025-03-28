@@ -355,7 +355,7 @@
       <div id="userContent">
         <!-- Menu Lateral -->
         <nav id="userMenu">
-          <p class="user-greeting" id="userGreeting">Olá, Junior!</p>
+          <p class="user-greeting" id="userGreeting">Olá!</p>
           <ul>
             <li class="menu-item active" data-section="novoTicket">
               <i class="fas fa-plus-circle"></i>
@@ -387,10 +387,41 @@
         <div id="userMainContent">
           <!-- Seção Novo Ticket -->
           <div id="novoTicketSection" class="user-section">
-            <div class="novo-ticket-header">
-              <i class="fas fa-plus-circle"></i>
-              <h2>Criar Novo Ticket</h2>
-              <p>Preencha os detalhes abaixo para criar um novo ticket de suporte</p>
+            <div class="welcome-card">
+              <i class="fas fa-plus-circle fa-3x"></i>
+              <h2>Novo Ticket</h2>
+              <p>Crie um novo ticket de suporte para sua solicitação</p>
+            </div>
+
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <i class="fas fa-ticket-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-clock"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Pendentes</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-sync-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Em Andamento</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Resolvidos</span>
+                </div>
+              </div>
             </div>
 
             <div class="novo-ticket-container">
@@ -444,141 +475,159 @@
           </div>
 
           <!-- Seção Tickets Recebidos -->
-          <div id="ticketsRecebidosSection" class="user-section">
-            <div class="meus-tickets-container">
-              <div class="welcome-card">
-                <i class="fas fa-inbox fa-3x"></i>
-                <h2>Tickets Recebidos</h2>
-                <p>Gerencie os tickets atribuídos a você</p>
-              </div>
+          <div id="ticketsRecebidosSection" class="user-section" style="display: none;">
+            <div class="welcome-card">
+              <i class="fas fa-inbox fa-3x"></i>
+              <h2>Tickets Recebidos</h2>
+              <p>Visualize e gerencie os tickets atribuídos a você</p>
+            </div>
 
-              <div class="tickets-summary">
-                <div class="summary-item">
-                  <i class="fas fa-inbox"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Total</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-clock"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Pendentes</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-sync-alt"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Em Andamento</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-check-circle"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Resolvidos</span>
-                  </div>
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <i class="fas fa-ticket-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Total</span>
                 </div>
               </div>
+              <div class="summary-item">
+                <i class="fas fa-clock"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Pendentes</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-sync-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Em Andamento</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Resolvidos</span>
+                </div>
+              </div>
+            </div>
 
-              <div class="table-container">
-                <table id="ticketsRecebidosTable">
-                  <thead>
-                    <tr>
-                      <th><i class="fas fa-hashtag"></i> ID</th>
-                      <th class="titulo-col"><i class="fas fa-ticket-alt"></i> ASSUNTO</th>
-                      <th><i class="fas fa-exclamation-circle"></i> PRIORIDADE</th>
-                      <th><i class="fas fa-tag"></i> STATUS</th>
-                      <th><i class="fas fa-user"></i> SOLICITANTE</th>
-                      <th><i class="fas fa-building"></i> SETOR</th>
-                      <th><i class="fas fa-calendar-alt"></i> CRIAÇÃO</th>
-                      <th><i class="fas fa-calendar-check"></i> CONCLUSÃO</th>
-                      <th><i class="fas fa-clock"></i> PRAZO</th>
-                      <th><i class="fas fa-cog"></i> AÇÕES</th>
-                    </tr>
-                  </thead>
-                  <tbody id="ticketsRecebidosLista">
-                    <!-- Os tickets serão inseridos aqui dinamicamente -->
-                  </tbody>
-                </table>
-              </div>
+            <div class="table-container">
+              <table id="ticketsRecebidosTable">
+                <thead>
+                  <tr>
+                    <th><i class="fas fa-hashtag"></i>ID</th>
+                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
+                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
+                    <th><i class="fas fa-tag"></i>Status</th>
+                    <th><i class="fas fa-user"></i>Solicitante</th>
+                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
+                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
+                    <th><i class="fas fa-clock"></i>Prazo</th>
+                    <th><i class="fas fa-cog"></i>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
 
           <!-- Seção Tickets Criados -->
-          <div id="ticketsCriadosSection" class="user-section">
-            <div class="meus-tickets-container">
-              <div class="welcome-card">
-                <i class="fas fa-paper-plane fa-3x"></i>
-                <h2>Tickets Criados</h2>
-                <p>Acompanhe os tickets que você criou</p>
-              </div>
+          <div id="ticketsCriadosSection" class="user-section" style="display: none;">
+            <div class="welcome-card">
+              <i class="fas fa-paper-plane fa-3x"></i>
+              <h2>Tickets Criados</h2>
+              <p>Acompanhe os tickets que você criou</p>
+            </div>
 
-              <div class="tickets-summary">
-                <div class="summary-item">
-                  <i class="fas fa-ticket-alt"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Total</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-clock"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Pendentes</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-sync-alt"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Em Andamento</span>
-                  </div>
-                </div>
-                <div class="summary-item">
-                  <i class="fas fa-check-circle"></i>
-                  <div class="summary-info">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Resolvidos</span>
-                  </div>
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <i class="fas fa-ticket-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Total</span>
                 </div>
               </div>
+              <div class="summary-item">
+                <i class="fas fa-clock"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Pendentes</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-sync-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Em Andamento</span>
+                </div>
+              </div>
+              <div class="summary-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Resolvidos</span>
+                </div>
+              </div>
+            </div>
 
-              <div id="ticketsCriados"></div>
+            <div class="table-container">
+              <table id="ticketsCriadosTable">
+                <thead>
+                  <tr>
+                    <th><i class="fas fa-hashtag"></i>ID</th>
+                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
+                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
+                    <th><i class="fas fa-tag"></i>Status</th>
+                    <th><i class="fas fa-user"></i>Atribuído/Setor</th>
+                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
+                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
+                    <th><i class="fas fa-clock"></i>Prazo</th>
+                    <th><i class="fas fa-cog"></i>Ações</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
 
           <!-- Seção Tickets do Setor -->
-          <div id="ticketsSetorSection" class="user-section">
+          <div id="ticketsSetorSection" class="user-section" style="display: none;">
             <div class="welcome-card">
               <i class="fas fa-building fa-3x"></i>
               <h2>Tickets do Setor</h2>
               <p>Visualize e gerencie os tickets do seu setor</p>
             </div>
 
-            <div class="dashboard-grid">
-              <div class="stat-card">
-                <i class="fas fa-ticket-alt fa-2x"></i>
-                <h3>Total</h3>
-                <p id="totalTicketsSetor" class="stat-number">0</p>
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <i class="fas fa-ticket-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
               </div>
-              <div class="stat-card">
-                <i class="fas fa-clock fa-2x"></i>
-                <h3>Pendentes</h3>
-                <p id="pendingTicketsSetor" class="stat-number">0</p>
+              <div class="summary-item">
+                <i class="fas fa-clock"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Pendentes</span>
+                </div>
               </div>
-              <div class="stat-card">
-                <i class="fas fa-sync-alt fa-2x"></i>
-                <h3>Em Andamento</h3>
-                <p id="inProgressTicketsSetor" class="stat-number">0</p>
+              <div class="summary-item">
+                <i class="fas fa-sync-alt"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Em Andamento</span>
+                </div>
               </div>
-              <div class="stat-card">
-                <i class="fas fa-check-circle fa-2x"></i>
-                <h3>Resolvidos</h3>
-                <p id="resolvedTicketsSetor" class="stat-number">0</p>
+              <div class="summary-item">
+                <i class="fas fa-check-circle"></i>
+                <div class="summary-info">
+                  <span class="stat-number">0</span>
+                  <span class="stat-label">Resolvidos</span>
+                </div>
               </div>
             </div>
 
@@ -590,8 +639,10 @@
                     <th><i class="fas fa-ticket-alt"></i>Assunto</th>
                     <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
                     <th><i class="fas fa-tag"></i>Status</th>
+                    <th><i class="fas fa-user"></i>Solicitante</th>
                     <th><i class="fas fa-calendar-alt"></i>Criação</th>
                     <th><i class="fas fa-calendar-check"></i>Conclusão</th>
+                    <th><i class="fas fa-clock"></i>Prazo</th>
                     <th><i class="fas fa-cog"></i>Ações</th>
                   </tr>
                 </thead>

@@ -81,13 +81,6 @@ class ChamadosSystem {
           const submenu = document.querySelector("#userMenu .submenu");
           submenu.classList.toggle("active");
           item.classList.toggle("active");
-          
-          // Se estiver fechando o submenu, remove a classe active de todos os itens do submenu
-          if (!submenu.classList.contains("active")) {
-            document.querySelectorAll("#userMenu .submenu li").forEach(subItem => {
-              subItem.classList.remove("active");
-            });
-          }
           return;
         }
         
@@ -104,7 +97,7 @@ class ChamadosSystem {
     userSubmenuItems.forEach((item) => {
       item.addEventListener("click", (e) => {
         e.preventDefault();
-        e.stopPropagation(); // Impede que o evento se propague para o menu pai
+        e.stopPropagation();
         
         const section = item.getAttribute("data-section");
         if (section) {
@@ -165,17 +158,29 @@ class ChamadosSystem {
   }
 
   checkUserSession() {
+    const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("user_nome");
     const isAdmin = localStorage.getItem("is_admin") === "true";
+    const userSetor = localStorage.getItem("user_setor");
 
-    if (userName) {
-      this.user = {
-        firstName: userName,
-        isAdmin: isAdmin,
-        id: localStorage.getItem("user_id"),
-        departmentId: localStorage.getItem("user_setor"),
-      };
-      this.updateUIForLoggedUser();
+    console.log("Verificando sessão do usuário:", {
+        userId,
+        userName,
+        isAdmin,
+        userSetor
+    });
+
+    if (userId && userName) {
+        this.user = {
+            id: userId,
+            firstName: userName,
+            isAdmin: isAdmin,
+            departmentId: userSetor,
+        };
+        console.log("Usuário recuperado da sessão:", this.user);
+        this.updateUIForLoggedUser();
+    } else {
+        console.log("Nenhuma sessão de usuário encontrada");
     }
   }
 
@@ -187,27 +192,43 @@ class ChamadosSystem {
 
   // Métodos de API
   async apiRequest(endpoint, options = {}) {
-    const baseUrl = CONFIG.API_BASE_URL || "";
+    const baseUrl = CONFIG.API_BASE_URL;
     const url = `${baseUrl}${endpoint}`;
 
-    try {
-      const response = await fetch(url, {
+    console.log(`Fazendo requisição para: ${url}`, {
         ...options,
         headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-      });
+            "Content-Type": "application/json",
+            ...options.headers,
+        }
+    });
 
-      if (!response.ok) {
-        throw new Error(`Erro na requisição: ${response.status}`);
-      }
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+        });
 
-      const text = await response.text();
-      return text ? JSON.parse(text) : null;
+        console.log(`Resposta recebida de ${url}:`, {
+            status: response.status,
+            ok: response.ok
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erro na requisição: ${response.status}`);
+        }
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        
+        console.log(`Dados recebidos de ${url}:`, data);
+        return data;
     } catch (error) {
-      console.error(`Erro na requisição para ${endpoint}:`, error);
-      throw error;
+        console.error(`Erro na requisição para ${endpoint}:`, error);
+        throw error;
     }
   }
 
@@ -265,10 +286,10 @@ class ChamadosSystem {
     const userId = String(data.user.id);
 
     this.user = {
-      id: userId,
-      isAdmin: data.user.isAdmin,
-      firstName: data.user.firstName,
-      departmentId: data.user.departmentId,
+        id: userId,
+        isAdmin: data.user.isAdmin,
+        firstName: data.user.firstName,
+        departmentId: data.user.departmentId,
     };
 
     console.log("Dados do usuário processados:", this.user);
@@ -280,15 +301,19 @@ class ChamadosSystem {
     localStorage.setItem("user_setor", data.user.departmentId);
 
     console.log("Dados salvos na sessão:", {
-      id: localStorage.getItem("user_id"),
-      is_admin: localStorage.getItem("is_admin"),
-      nome: localStorage.getItem("user_nome"),
-      setor: localStorage.getItem("user_setor"),
+        id: localStorage.getItem("user_id"),
+        is_admin: localStorage.getItem("is_admin"),
+        nome: localStorage.getItem("user_nome"),
+        setor: localStorage.getItem("user_setor"),
     });
 
     this.updateUIForLoggedUser();
     this.startNotificationCheck();
     this.carregarUltimosTickets();
+    
+    // Carregar tickets iniciais
+    this.carregarTicketsRecebidos();
+    this.carregarTicketsCriados();
   }
 
   // Métodos de UI
@@ -505,29 +530,35 @@ class ChamadosSystem {
   }
 
   getTicketRowHTML(ticket) {
-    const prioridade = ticket.priority.toUpperCase();
-    const status = ticket.status.toUpperCase();
-
+    const departmentName = ticket.department ? ticket.department.name : '-';
+    const requesterName = ticket.requester ? ticket.requester.firstName : ticket.solicitante || '-';
+    const isAccepted = ticket.status === 'Em andamento' || ticket.status === 'Finalizado';
+    
     return `
-      <td>${ticket.id}</td>
-      <td>${ticket.name}</td>
-      <td><span class="priority-label priority-${
-        ticket.priority
-      }">${prioridade}</span></td>
-      <td><span class="status-label status-${
-        ticket.status
-      }">${status}</span></td>
-      <td>${formatarData(ticket.createdAt)}</td>
-      <td>${
-        ticket.completionDate ? formatarData(ticket.completionDate) : "-"
-      }</td>
-      <td>
-        <button class="action-btn" onclick="chamadosSystem.showTicketDetails(${
-          ticket.id
-        })">
-          <i class="fas fa-eye"></i>
-        </button>
-      </td>
+      <tr>
+        <td class="col-id">${ticket.id}</td>
+        <td class="col-titulo titulo-col">${ticket.title || ticket.name}</td>
+        <td class="col-prioridade">
+          <span class="priority-flag ${ticket.priority.toLowerCase()}">${ticket.priority}</span>
+        </td>
+        <td class="col-status">
+          <span class="status-flag ${ticket.status.toLowerCase().replace(' ', '_')}">${ticket.status}</span>
+        </td>
+        <td class="col-solicitante">${requesterName}<br/><small>${departmentName}</small></td>
+        <td class="col-criacao">${this.formatarData(ticket.createdAt)}</td>
+        <td class="col-conclusao">${ticket.completionDate ? this.formatarData(ticket.completionDate) : "-"}</td>
+        <td class="col-prazo">${this.formatarPrazo(ticket.deadline || ticket.completionDate)}</td>
+        <td class="col-acoes">
+          ${isAccepted ? 
+            `<button class="action-btn revisar" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
+              Revisar
+            </button>` :
+            `<button class="action-btn aceitar" onclick="chamadosSystem.aceitarTicket(${ticket.id})">
+              Aceitar
+            </button>`
+          }
+        </td>
+      </tr>
     `;
   }
 
@@ -544,50 +575,25 @@ class ChamadosSystem {
       const response = await this.apiRequest(
         `/tickets/department/${this.user.departmentId}`
       );
-      console.log("Resposta do servidor:", response);
-
-      if (!response) {
-        console.error("Resposta vazia do servidor");
-        this.showAlert("Erro: Nenhum dado recebido do servidor.");
+      const tbody = document.querySelector("#ticketsSetor tbody");
+      
+      if (!response || response.length === 0) {
+        tbody.innerHTML = this.getEmptyStateHTML();
+        this.atualizarContadores(0, 0, 0, 0, 'ticketsSetor');
         return;
       }
 
-      // Se a resposta for um array, atualiza a tabela
-      if (Array.isArray(response)) {
-        this.updateTicketsTable("ticketsSetor", response);
+      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      
+      const total = response.length;
+      const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
+      const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
+      const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
-        // Atualizar contadores específicos do setor
-        const total = response.length;
-        const pendentes = response.filter(
-          (t) => t.status === "Pendente"
-        ).length;
-        const emAndamento = response.filter(
-          (t) => t.status === "Em andamento"
-        ).length;
-        const resolvidos = response.filter(
-          (t) => t.status === "Finalizado"
-        ).length;
-
-        // Atualizar os contadores com os IDs corretos
-        document.getElementById("totalTicketsSetor").textContent = total;
-        document.getElementById("pendingTicketsSetor").textContent = pendentes;
-        document.getElementById("inProgressTicketsSetor").textContent =
-          emAndamento;
-        document.getElementById("resolvedTicketsSetor").textContent =
-          resolvidos;
-      } else {
-        console.error("Formato de resposta inválido:", response);
-        this.showAlert("Erro: Formato de resposta inválido do servidor.");
-      }
+      this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsSetor');
     } catch (error) {
       console.error("Erro ao carregar tickets do setor:", error);
-      // Só mostra o alerta se não houver tickets carregados
-      const tbody = document.querySelector("#ticketsSetor tbody");
-      if (!tbody || !tbody.children.length) {
-        this.showAlert(
-          "Erro ao carregar tickets do setor. Por favor, tente novamente."
-        );
-      }
+      this.showAlert("Erro ao carregar tickets do setor. Por favor, tente novamente.");
     }
   }
 
@@ -733,14 +739,17 @@ class ChamadosSystem {
   }
 
   getNotificationHTML(notification) {
-    const icon = this.getNotificationIcon(notification.type);
-    const message = this.formatNotificationMessage(notification);
-
     return `
-      <i class="fas ${icon}"></i>
-      <div class="notification-content">
-        <div class="notification-message">${message}</div>
-        <div class="notification-timestamp">${notification.createdAt}</div>
+      <div class="notification-item">
+        <i class="${this.getNotificationIcon(notification.type)}"></i>
+        <div class="notification-content">
+          <div class="notification-title">${this.formatNotificationMessage(notification)}</div>
+          <div class="notification-message">${notification.mensagem}</div>
+          <div class="notification-time">
+            <i class="far fa-clock"></i>
+            ${this.formatarData(notification.dataHora)}
+          </div>
+        </div>
       </div>
     `;
   }
@@ -1198,39 +1207,53 @@ class ChamadosSystem {
     // Mostrar a seção selecionada
     const sectionElement = document.getElementById(`${section}Section`);
     if (sectionElement) {
-      sectionElement.style.display = "block";
-      
-      // Carregar dados específicos da seção
-      if (section === "ticketsRecebidos") {
-        await this.carregarTicketsRecebidos();
-      } else if (section === "ticketsCriados") {
-        await this.carregarTicketsCriados();
-      } else if (section === "novoTicket") {
-        this.loadSetores();
-        this.loadColaboradores();
-        this.carregarUltimosTickets();
-        const selectUsuario = document.getElementById("usuarioDestino");
-        if (selectUsuario) {
-          selectUsuario.innerHTML = '<option value="">Selecione um usuário</option>';
+        sectionElement.style.display = "block";
+        
+        // Carregar dados específicos da seção
+        try {
+            switch(section) {
+                case "ticketsRecebidos":
+                    console.log("Carregando tickets recebidos...");
+                    await this.carregarTicketsRecebidos();
+                    break;
+                case "ticketsCriados":
+                    console.log("Carregando tickets criados...");
+                    await this.carregarTicketsCriados();
+                    break;
+                case "ticketsSetor":
+                    console.log("Carregando tickets do setor...");
+                    await this.carregarTicketsSetor();
+                    break;
+                case "novoTicket":
+                    console.log("Carregando dados para novo ticket...");
+                    await this.loadSetores();
+                    await this.loadColaboradores();
+                    await this.carregarUltimosTickets();
+                    const selectUsuario = document.getElementById("usuarioDestino");
+                    if (selectUsuario) {
+                        selectUsuario.innerHTML = '<option value="">Selecione um usuário</option>';
+                    }
+                    break;
+            }
+        } catch (error) {
+            console.error(`Erro ao carregar dados da seção ${section}:`, error);
+            this.showAlert(`Erro ao carregar dados da seção ${section}`, "error");
         }
-      }
-    } else {
-      console.error("Seção não encontrada:", section);
     }
 
     // Atualizar menu ativo
     document.querySelectorAll("#userMenu .menu-item, #userMenu .submenu li").forEach((item) => {
-      const itemSection = item.getAttribute("data-section");
-      if (itemSection === section) {
-        item.classList.add("active");
-        // Se for um item do submenu, também ativa o menu pai
-        if (item.closest('.submenu')) {
-          document.querySelector('[data-section="toggleSubmenu"]').classList.add("active");
-          document.querySelector('.submenu').classList.add("active");
+        const itemSection = item.getAttribute("data-section");
+        if (itemSection === section) {
+            item.classList.add("active");
+            // Se for um item do submenu, também ativa o menu pai
+            if (item.closest('.submenu')) {
+                document.querySelector('[data-section="toggleSubmenu"]').classList.add("active");
+                document.querySelector('.submenu').classList.add("active");
+            }
+        } else if (itemSection !== "toggleSubmenu") {
+            item.classList.remove("active");
         }
-      } else if (itemSection !== "toggleSubmenu") {
-        item.classList.remove("active");
-      }
     });
   }
 
@@ -1340,75 +1363,16 @@ class ChamadosSystem {
   getTicketDetailsHTML(ticket) {
     return `
       <div class="ticket-details">
-        <p>
-          <i class="fas fa-hashtag"></i>
-          <strong>ID:</strong>
-          ${ticket.id}
-        </p>
-        <p>
-          <i class="fas fa-ticket-alt"></i>
-          <strong>Assunto:</strong>
-          ${ticket.name || "Sem título"}
-        </p>
-        <p>
-          <i class="fas fa-exclamation-circle"></i>
-          <strong>Prioridade:</strong>
-          <span class="priority-label priority-${
-            ticket.priority?.toLowerCase() || "baixa"
-          }">${ticket.priority || "Baixa"}</span>
-        </p>
-        <p>
-          <i class="fas fa-tag"></i>
-          <strong>Status:</strong>
-          <span class="status-label status-${(ticket.status || "pendente")
-            .toLowerCase()
-            .replace(" ", "-")}">${ticket.status || "Pendente"}</span>
-        </p>
-        <p>
-          <i class="fas fa-building"></i>
-          <strong>Setor:</strong>
-          ${ticket.department?.name || "Não especificado"}
-        </p>
-        <p>
-          <i class="fas fa-user"></i>
-          <strong>Solicitante:</strong>
-          ${ticket.requester?.firstName || "Não especificado"}
-        </p>
-        <p>
-          <i class="fas fa-calendar-alt"></i>
-          <strong>Criado em:</strong>
-          ${formatarData(ticket.createdAt)}
-        </p>
-        ${ticket.acceptanceDate ? `
-        <p>
-          <i class="fas fa-clock"></i>
-          <strong>Aceito em:</strong>
-          ${formatarData(ticket.acceptanceDate)}
-        </p>` : ''}
-        <p>
-          <i class="fas fa-calendar-check"></i>
-          <strong>Conclusão:</strong>
-          ${
-            ticket.completionDate
-              ? formatarData(ticket.completionDate)
-              : "Não definida"
-          }
-        </p>
-        <p class="full-width">
-          <i class="fas fa-align-left"></i>
-          <strong>Descrição:</strong>
-          ${ticket.description || "Sem descrição"}
-        </p>
-        ${
-          ticket.disapprovalReason
-            ? `
-        <p class="full-width">
-          <i class="fas fa-exclamation-triangle"></i>
-          <strong>Motivo da Reprovação:</strong>
-          ${ticket.disapprovalReason}
-        </p>`
-            : ""
-        }
+        <p><strong>ID:</strong> ${ticket.id}</p>
+        <p><strong>Assunto:</strong> ${ticket.title}</p>
+        <p><strong>Prioridade:</strong> ${this.getPriorityIcon(ticket.priority)} ${ticket.priority}</p>
+        <p><strong>Status:</strong> ${this.getStatusIcon(ticket.status)} ${ticket.status}</p>
+        <p><strong>Solicitante:</strong> ${ticket.solicitante}</p>
+        <p><strong>Data de Criação:</strong> ${this.formatarData(ticket.createdAt)}</p>
+        <p><strong>Data de Aceitação:</strong> ${this.formatarData(ticket.acceptanceDate)}</p>
+        <p><strong>Data de Conclusão:</strong> ${ticket.completionDate ? this.formatarData(ticket.completionDate) : "-"}</p>
+        <p><strong>Prazo:</strong> ${this.formatarPrazo(ticket.deadline)}</p>
+        <p class="full-width"><strong>Descrição:</strong> ${ticket.description}</p>
       </div>
     `;
   }
@@ -1515,6 +1479,7 @@ class ChamadosSystem {
       }
 
       detailsContainer.innerHTML = this.getTicketDetailsHTML(ticket);
+      modal.style.display = 'block';
       modal.classList.add('show');
 
       // Carregar atualizações do ticket
@@ -1608,7 +1573,7 @@ class ChamadosSystem {
 
   async aceitarTicket(ticketId) {
     try {
-        const response = await fetch(`/tickets/${ticketId}/aceitar`, {
+        const response = await this.apiRequest(`/tickets/${ticketId}/accept`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -1616,15 +1581,15 @@ class ChamadosSystem {
         });
 
         if (response.ok) {
-            showAlert('Ticket aceito com sucesso!', 'success');
-            await carregarTicketsRecebidos();
-            await carregarUltimosTickets();
+            this.showAlert('Ticket aceito com sucesso!', 'success');
+            await this.carregarTicketsRecebidos();
+            await this.carregarUltimosTickets();
         } else {
-            showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+            this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
         }
     } catch (error) {
         console.error('Erro ao aceitar ticket:', error);
-        showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+        this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
     }
   }
 
@@ -1649,128 +1614,185 @@ class ChamadosSystem {
 
   async carregarTicketsRecebidos() {
     try {
-      if (!this.user?.id) {
-        console.error("ID do usuário não encontrado");
-        return;
-      }
+        const response = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
+        console.log('Tickets recebidos:', response);
+        
+        const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+        
+        if (!response || response.length === 0) {
+            tbody.innerHTML = this.getEmptyStateHTML();
+            this.atualizarContadores(0, 0, 0, 0, 'ticketsRecebidos');
+            return;
+        }
 
-      const tickets = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
-      const ticketsContainer = document.getElementById("ticketsRecebidosLista");
-      
-      if (!ticketsContainer) {
-        console.error("Container de tickets recebidos não encontrado");
-        return;
-      }
+        tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+        
+        const total = response.length;
+        const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
+        const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
+        const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
-      if (!tickets || tickets.length === 0) {
-        ticketsContainer.innerHTML = `
-          <tr>
-            <td colspan="10" class="empty-state">
-              <i class="fas fa-inbox"></i>
-              <p>Nenhum ticket recebido</p>
-            </td>
-          </tr>`;
-        return;
-      }
-
-      // Atualizar os contadores
-      const total = tickets.length;
-      const pendentes = tickets.filter(t => t.status === 'Pendente').length;
-      const emAndamento = tickets.filter(t => t.status === 'Em Andamento').length;
-      const resolvidos = tickets.filter(t => t.status === 'Finalizado').length;
-
-      document.querySelectorAll('.tickets-summary .summary-item').forEach((item, index) => {
-        const number = item.querySelector('.stat-number');
-        if (index === 0) number.textContent = total;
-        if (index === 1) number.textContent = pendentes;
-        if (index === 2) number.textContent = emAndamento;
-        if (index === 3) number.textContent = resolvidos;
-      });
-
-      // Renderizar os tickets em formato de tabela
-      ticketsContainer.innerHTML = tickets
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .map(ticket => {
-          const prazo = calcularTempoRestante(ticket.completionDate);
-          return `
-            <tr onclick="chamadosSystem.showTicketDetails(${ticket.id})" class="${ticket.id % 2 === 0 ? 'even' : ''}">
-              <td>${ticket.id}</td>
-              <td>${ticket.name.toUpperCase()}</td>
-              <td><span class="priority-label priority-${ticket.priority.toLowerCase()}">${ticket.priority}</span></td>
-              <td><span class="status-label status-${ticket.status.toLowerCase().replace(' ', '_')}">${ticket.status}</span></td>
-              <td>${ticket.requester ? ticket.requester.firstName : 'N/A'}</td>
-              <td>${ticket.department ? ticket.department.name : 'N/A'}</td>
-              <td>${formatarData(ticket.createdAt)}</td>
-              <td>${formatarData(ticket.completionDate)}</td>
-              <td class="prazo-col ${prazo.class}">${prazo.html}</td>
-              <td>
-                <button class="action-btn" onclick="event.stopPropagation(); chamadosSystem.showTicketDetails(${ticket.id})">
-                  <i class="fas fa-eye"></i>
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-
+        this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsRecebidos');
     } catch (error) {
-      console.error("Erro ao carregar tickets recebidos:", error);
-      this.showAlert("Erro ao carregar tickets recebidos", "error");
-      
-      const ticketsContainer = document.getElementById("ticketsRecebidosLista");
-      if (ticketsContainer) {
-        ticketsContainer.innerHTML = `
-          <tr>
-            <td colspan="10" class="empty-state error-state">
-              <i class="fas fa-exclamation-circle"></i>
-              <p>Erro ao carregar tickets</p>
-              <small>${error.message}</small>
-            </td>
-          </tr>`;
-      }
+        console.error('Erro ao carregar tickets recebidos:', error);
+        this.showAlert('Erro ao carregar tickets recebidos: ' + error.message, 'error');
     }
+  }
+
+  atualizarContadores(total, pendentes, emAndamento, resolvidos, section) {
+    // Selecionar os contadores da seção específica
+    const summaryItems = document.querySelector(`#${section}Section .tickets-summary`);
+    if (!summaryItems) {
+        console.error(`Elemento .tickets-summary não encontrado na seção ${section}`);
+        return;
+    }
+
+    const statNumbers = summaryItems.querySelectorAll('.summary-item .stat-number');
+    
+    if (statNumbers.length >= 4) {
+        statNumbers[0].textContent = total;
+        statNumbers[1].textContent = pendentes;
+        statNumbers[2].textContent = emAndamento;
+        statNumbers[3].textContent = resolvidos;
+    }
+
+    console.log(`Atualizando contadores da seção ${section}:`, {
+        total,
+        pendentes,
+        emAndamento,
+        resolvidos,
+        elementosEncontrados: statNumbers.length
+    });
   }
 
   async carregarTicketsCriados() {
     try {
-      if (!this.user?.id) {
-        console.error("ID do usuário não encontrado");
-        return;
-      }
+        const response = await this.apiRequest(`/tickets/requester/${this.user.id}`);
+        const tbody = document.querySelector("#ticketsCriadosTable tbody");
+        
+        if (!response || response.length === 0) {
+            tbody.innerHTML = this.getEmptyStateHTML();
+            this.atualizarContadores(0, 0, 0, 0, 'ticketsCriados');
+            return;
+        }
 
-      const tickets = await this.apiRequest(`/tickets/requester/${this.user.id}`);
-      const ticketsContainer = document.getElementById("ticketsCriadosLista");
-      
-      if (!ticketsContainer) {
-        console.error("Container de tickets criados não encontrado");
-        return;
-      }
+        tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+        
+        const total = response.length;
+        const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
+        const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
+        const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
-      if (!tickets || tickets.length === 0) {
-        ticketsContainer.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum ticket criado</td></tr>';
-        return;
-      }
-
-      ticketsContainer.innerHTML = tickets
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .map(ticket => `
-          <tr>
-            <td>${ticket.id}</td>
-            <td>${ticket.name}</td>
-            <td>${ticket.targetUser ? ticket.targetUser.firstName : 'N/A'}</td>
-            <td>${ticket.department ? ticket.department.name : 'N/A'}</td>
-            <td>${formatarData(ticket.createdAt)}</td>
-            <td>${formatarData(ticket.completionDate)}</td>
-            <td>
-              <button class="btn btn-info btn-sm" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
-                <i class="fas fa-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `).join('');
-
+        this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsCriados');
     } catch (error) {
-      console.error("Erro ao carregar tickets criados:", error);
-      this.showAlert("Erro ao carregar tickets criados", "error");
+        console.error('Erro ao carregar tickets criados:', error);
+        this.showAlert('Erro ao carregar tickets criados: ' + error.message, 'error');
+    }
+  }
+
+  async carregarTicketsSetor() {
+    try {
+        if (!this.user?.departmentId) {
+            throw new Error("ID do setor não encontrado");
+        }
+
+        const response = await this.apiRequest(`/tickets/department/${this.user.departmentId}`);
+        const tbody = document.querySelector("#ticketsSetor tbody");
+        
+        if (!response || response.length === 0) {
+            tbody.innerHTML = this.getEmptyStateHTML();
+            this.atualizarContadores(0, 0, 0, 0, 'ticketsSetor');
+            return;
+        }
+
+        tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+        
+        const total = response.length;
+        const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
+        const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
+        const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
+
+        this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsSetor');
+    } catch (error) {
+        console.error('Erro ao carregar tickets do setor:', error);
+        this.showAlert('Erro ao carregar tickets do setor: ' + error.message, 'error');
+    }
+  }
+
+  // Função para formatar data e hora de forma mais legível e compacta
+  formatarDataHora(dataString) {
+    if (!dataString) return '-';
+    const data = new Date(dataString);
+    return data.toLocaleString('pt-BR');
+  }
+
+  formatarData(data) {
+    if (!data) return '-';
+    
+    try {
+      const date = new Date(data);
+      if (isNaN(date.getTime())) return '-';
+      
+      const dia = String(date.getDate()).padStart(2, '0');
+      const mes = String(date.getMonth() + 1).padStart(2, '0');
+      const ano = date.getFullYear();
+      const hora = String(date.getHours()).padStart(2, '0');
+      const minuto = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return '-';
+    }
+  }
+
+  // Formatar prazo para melhor visualização
+  formatarPrazo(deadline) {
+    if (!deadline) return '-';
+    
+    const hoje = new Date();
+    const prazo = new Date(deadline);
+    const diffDias = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
+    
+    let classe = 'prazo-ok';
+    let icone = 'check-circle';
+    
+    if (diffDias < 0) {
+        classe = 'prazo-atrasado';
+        icone = 'exclamation-circle';
+    } else if (diffDias <= 3) {
+        classe = 'prazo-proximo';
+        icone = 'clock';
+    }
+    
+    return `<span class="prazo-col ${classe}"><i class="fas fa-${icone}"></i> ${diffDias}d</span>`;
+  }
+
+  // Obter ícone baseado na prioridade
+  getPriorityIcon(priority) {
+    const lowerPriority = priority.toLowerCase();
+    if (lowerPriority === 'alta') {
+      return '<i class="fas fa-fire-alt"></i>';
+    } else if (lowerPriority === 'media') {
+      return '<i class="fas fa-arrow-circle-up"></i>';
+    } else {
+      return '<i class="fas fa-arrow-circle-down"></i>';
+    }
+  }
+
+  // Obter ícone baseado no status
+  getStatusIcon(status) {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus === 'pendente') {
+      return '<i class="fas fa-hourglass-half"></i>';
+    } else if (lowerStatus === 'em andamento') {
+      return '<i class="fas fa-sync-alt"></i>';
+    } else if (lowerStatus === 'resolvido' || lowerStatus === 'finalizado') {
+      return '<i class="fas fa-check-circle"></i>';
+    } else if (lowerStatus === 'cancelado') {
+      return '<i class="fas fa-ban"></i>';
+    } else {
+      return '<i class="fas fa-info-circle"></i>';
     }
   }
 }
@@ -1842,26 +1864,6 @@ function calcularTempoRestante(dataFinal) {
     html: `<i class="fas fa-clock"></i> ${texto}`,
     class: classe
   };
-}
-
-function formatarData(data) {
-  if (!data) return '-';
-  
-  try {
-    const date = new Date(data);
-    if (isNaN(date.getTime())) return '-';
-    
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const ano = String(date.getFullYear()).slice(-2);
-    const hora = String(date.getHours()).padStart(2, '0');
-    const minuto = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
-  } catch (error) {
-    console.error('Erro ao formatar data:', error);
-    return '-';
-  }
 }
 
 // Inicializar o sistema
