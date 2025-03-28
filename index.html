@@ -393,37 +393,6 @@
               <p>Crie um novo ticket de suporte para sua solicitação</p>
             </div>
 
-            <div class="tickets-summary">
-              <div class="summary-item">
-                <i class="fas fa-ticket-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Total</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-clock"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Pendentes</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-sync-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Em Andamento</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-check-circle"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Resolvidos</span>
-                </div>
-              </div>
-            </div>
-
             <div class="novo-ticket-container">
               <div class="ticket-form-container">
                 <form id="ticketForm">
@@ -466,7 +435,9 @@
                 </form>
               </div>
               <div class="ultimos-tickets-container">
-                <h2><i class="fas fa-history"></i> Últimos Tickets Criados</h2>
+                <div class="ultimos-tickets-header">
+                  <h2>Últimos Tickets Criados</h2>
+                </div>
                 <div class="ultimos-tickets-list">
                   <!-- Os tickets serão inseridos aqui dinamicamente -->
                 </div>
@@ -791,13 +762,10 @@
 
     <style>
       .ultimos-tickets-container {
-        flex: 1;
         background: #fff;
         padding: 15px;
         border-radius: 8px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        min-width: 250px;
-        max-width: 350px;
       }
 
       .ultimos-tickets-container h2 {

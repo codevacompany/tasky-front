@@ -402,6 +402,33 @@ class ChamadosSystem {
     return `${dia}/${mes}/${ano.slice(-2)} ${hora}:${minuto}`;
   }
 
+  // Função para formatar data e hora de forma mais legível e compacta
+  formatarDataHora(dataString) {
+    if (!dataString) return '-';
+    const data = new Date(dataString);
+    return data.toLocaleString('pt-BR');
+  }
+
+  formatarData(data) {
+    if (!data) return '-';
+    
+    try {
+      const date = new Date(data);
+      if (isNaN(date.getTime())) return '-';
+      
+      const dia = String(date.getDate()).padStart(2, '0');
+      const mes = String(date.getMonth() + 1).padStart(2, '0');
+      const ano = date.getFullYear();
+      const hora = String(date.getHours()).padStart(2, '0');
+      const minuto = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return '-';
+    }
+  }
+
   // Gerenciamento de Tickets
   async handleTicketSubmit(e) {
     e.preventDefault();
@@ -533,6 +560,28 @@ class ChamadosSystem {
     const departmentName = ticket.department ? ticket.department.name : '-';
     const requesterName = ticket.requester ? ticket.requester.firstName : ticket.solicitante || '-';
     const isAccepted = ticket.status === 'Em andamento' || ticket.status === 'Finalizado';
+    const currentSection = document.querySelector('.user-section[style*="display: block"]')?.id;
+    
+    let actionButton = '';
+    
+    // Se for seção de tickets recebidos
+    if (currentSection === 'ticketsRecebidosSection') {
+      if (isAccepted) {
+        actionButton = `<button class="action-btn revisar" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
+          Revisar
+        </button>`;
+      } else {
+        actionButton = `<button class="action-btn aceitar" onclick="chamadosSystem.aceitarTicket(${ticket.id})">
+          Aceitar
+        </button>`;
+      }
+    }
+    // Se for seção de tickets criados ou do setor
+    else if (currentSection === 'ticketsCriadosSection' || currentSection === 'ticketsSetorSection') {
+      actionButton = `<button class="action-btn revisar" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
+        Revisar
+      </button>`;
+    }
     
     return `
       <tr>
@@ -549,14 +598,7 @@ class ChamadosSystem {
         <td class="col-conclusao">${ticket.completionDate ? this.formatarData(ticket.completionDate) : "-"}</td>
         <td class="col-prazo">${this.formatarPrazo(ticket.deadline || ticket.completionDate)}</td>
         <td class="col-acoes">
-          ${isAccepted ? 
-            `<button class="action-btn revisar" onclick="chamadosSystem.showTicketDetails(${ticket.id})">
-              Revisar
-            </button>` :
-            `<button class="action-btn aceitar" onclick="chamadosSystem.aceitarTicket(${ticket.id})">
-              Aceitar
-            </button>`
-          }
+          ${actionButton}
         </td>
       </tr>
     `;
@@ -1392,7 +1434,7 @@ class ChamadosSystem {
         commentDiv.innerHTML = `
           <div class="comment-header">
             <span class="comment-author">${a.user.name}</span>
-            <span class="comment-timestamp">${formatarData(a.dateTime)}</span>
+            <span class="comment-timestamp">${this.formatarData(a.dateTime)}</span>
           </div>
           <div class="comment-text">${a.comment}</div>
         `;
@@ -1548,7 +1590,7 @@ class ChamadosSystem {
       }
 
       container.innerHTML = ultimosTickets
-        .map(ticket => criarTicketHTML(ticket))
+        .map(ticket => this.criarTicketHTML(ticket))
         .join('');
 
       // Adicionar eventos de clique
@@ -1571,25 +1613,208 @@ class ChamadosSystem {
     }
   }
 
+  criarTicketHTML(ticket) {
+    const tempoRestante = this.calcularTempoRestante(ticket.completionDate);
+    const targetUserName = ticket.targetUser ? ticket.targetUser.firstName : 'Não atribuído';
+    const departmentName = ticket.department ? ticket.department.name : 'Não definido';
+    const status = ticket.status || 'Pendente';
+    const prazoClass = tempoRestante.text === 'Atrasado' ? 'prazo-atrasado' : 'prazo-ok';
+
+    return `
+      <div class="ticket-item" data-ticket-id="${ticket.id}">
+        <div class="ticket-content">
+          <div class="ticket-title">${ticket.name.toUpperCase()}</div>
+          <div class="ticket-info">
+            <span class="${prazoClass}">${targetUserName} → ${departmentName} | ${tempoRestante.text}</span>
+          </div>
+        </div>
+        <div class="ticket-status">
+          <span class="status-flag ${status.toLowerCase().replace(' ', '_')}">${status}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  calcularTempoRestante(dataFinal) {
+    if (!dataFinal) {
+      return { text: 'Sem prazo', class: '' };
+    }
+
+    const agora = new Date();
+    const final = new Date(dataFinal);
+    const diferenca = final - agora;
+
+    // Se já passou do prazo
+    if (diferenca < 0) {
+      return {
+        text: 'Atrasado',
+        class: 'prazo-urgente'
+      };
+    }
+
+    // Converter para dias, horas e minutos
+    const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+
+    let texto = '';
+    let classe = '';
+
+    if (dias > 0) {
+      texto = `${dias}d ${horas}h`;
+      classe = dias <= 2 ? 'prazo-proximo' : 'prazo-ok';
+    } else if (horas > 0) {
+      texto = `${horas}h ${minutos}m`;
+      classe = 'prazo-proximo';
+    } else {
+      texto = `${minutos}m`;
+      classe = 'prazo-urgente';
+    }
+
+    return {
+      text: texto,
+      class: classe
+    };
+  }
+
   async aceitarTicket(ticketId) {
     try {
-        const response = await this.apiRequest(`/tickets/${ticketId}/accept`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
+        // Criar modal de confirmação
+        const confirmModal = document.createElement('div');
+        confirmModal.className = 'modal';
+        confirmModal.style.display = 'block';
+        confirmModal.innerHTML = `
+            <div class="modal-content confirmation-modal">
+                <div class="modal-header">
+                    <h2>Confirmar Aceitação</h2>
+                </div>
+                <div class="modal-body">
+                    <p class="confirmation-message">Tem certeza que deseja aceitar este ticket?</p>
+                    <p class="confirmation-description">Ao aceitar, você será responsável pelo atendimento desta solicitação.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="this.closest('.modal').remove()">
+                        <i class="fas fa-times"></i> CANCELAR
+                    </button>
+                    <button class="btn-primary" id="confirmAccept">
+                        <i class="fas fa-check"></i> CONFIRMAR
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Adicionar estilos específicos para este modal
+        const style = document.createElement('style');
+        style.textContent = `
+            .confirmation-modal {
+                max-width: 400px !important;
+                text-align: center;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            .confirmation-modal .modal-header {
+                border-bottom: none;
+                padding-bottom: 10px;
+                text-align: center;
+            }
+            .confirmation-modal .modal-header h2 {
+                color: #2c3e50;
+                font-size: 1.5rem;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                text-align: center;
+            }
+            .confirmation-modal .modal-body {
+                padding: 20px 0;
+            }
+            .confirmation-message {
+                font-size: 1.1rem;
+                color: #2c3e50;
+                margin-bottom: 10px;
+            }
+            .confirmation-description {
+                color: #666;
+                font-size: 0.9rem;
+            }
+            .modal-footer {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                border-top: none;
+                padding-top: 0;
+            }
+            .modal-footer button {
+                padding: 8px 20px;
+                border-radius: 4px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 0.9rem;
+            }
+            .btn-primary {
+                background-color: #3498db;
+                color: white;
+                border: none;
+            }
+            .btn-primary:hover {
+                background-color: #2980b9;
+            }
+            .btn-secondary {
+                background-color: #f5f6fa;
+                color: #666;
+                border: 1px solid #ddd;
+            }
+            .btn-secondary:hover {
+                background-color: #eceef5;
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(confirmModal);
+
+        // Adicionar evento de fechar ao clicar fora do modal
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.remove();
+                style.remove();
             }
         });
 
-        if (response.ok) {
-            this.showAlert('Ticket aceito com sucesso!', 'success');
-            await this.carregarTicketsRecebidos();
-            await this.carregarUltimosTickets();
-        } else {
-            this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
-        }
+        // Adicionar evento de confirmação
+        confirmModal.querySelector('#confirmAccept').addEventListener('click', async () => {
+            try {
+                const response = await this.apiRequest(`/tickets/${ticketId}/accept`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'Em andamento',
+                        acceptanceDate: new Date().toISOString()
+                    })
+                });
+
+                if (response) {
+                    this.showAlert('Ticket aceito com sucesso! O status foi alterado para "Em andamento" e a data de aceitação foi registrada.', 'success');
+                    await this.carregarTicketsRecebidos();
+                    await this.carregarUltimosTickets();
+                } else {
+                    this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao aceitar ticket:', error);
+                this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+            } finally {
+                confirmModal.remove();
+                style.remove();
+            }
+        });
+
     } catch (error) {
-        console.error('Erro ao aceitar ticket:', error);
-        this.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
+        console.error('Erro ao criar modal de confirmação:', error);
+        this.showAlert('Erro ao processar a solicitação. Por favor, tente novamente.', 'error');
     }
   }
 
@@ -1614,28 +1839,28 @@ class ChamadosSystem {
 
   async carregarTicketsRecebidos() {
     try {
-        const response = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
+      const response = await this.apiRequest(`/tickets/target-user/${this.user.id}`);
         console.log('Tickets recebidos:', response);
         
-        const tbody = document.querySelector("#ticketsRecebidosTable tbody");
-        
-        if (!response || response.length === 0) {
-            tbody.innerHTML = this.getEmptyStateHTML();
+      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+      
+      if (!response || response.length === 0) {
+        tbody.innerHTML = this.getEmptyStateHTML();
             this.atualizarContadores(0, 0, 0, 0, 'ticketsRecebidos');
-            return;
-        }
+        return;
+      }
 
-        tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
-        
-        const total = response.length;
+      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      
+      const total = response.length;
         const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
         const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
         const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
         this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsRecebidos');
     } catch (error) {
-        console.error('Erro ao carregar tickets recebidos:', error);
-        this.showAlert('Erro ao carregar tickets recebidos: ' + error.message, 'error');
+      console.error('Erro ao carregar tickets recebidos:', error);
+      this.showAlert('Erro ao carregar tickets recebidos: ' + error.message, 'error');
     }
   }
 
@@ -1667,26 +1892,26 @@ class ChamadosSystem {
 
   async carregarTicketsCriados() {
     try {
-        const response = await this.apiRequest(`/tickets/requester/${this.user.id}`);
-        const tbody = document.querySelector("#ticketsCriadosTable tbody");
-        
-        if (!response || response.length === 0) {
-            tbody.innerHTML = this.getEmptyStateHTML();
+      const response = await this.apiRequest(`/tickets/requester/${this.user.id}`);
+      const tbody = document.querySelector("#ticketsCriadosTable tbody");
+      
+      if (!response || response.length === 0) {
+        tbody.innerHTML = this.getEmptyStateHTML();
             this.atualizarContadores(0, 0, 0, 0, 'ticketsCriados');
-            return;
-        }
+        return;
+      }
 
-        tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
-        
-        const total = response.length;
+      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      
+      const total = response.length;
         const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
         const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
         const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
         this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsCriados');
     } catch (error) {
-        console.error('Erro ao carregar tickets criados:', error);
-        this.showAlert('Erro ao carregar tickets criados: ' + error.message, 'error');
+      console.error('Erro ao carregar tickets criados:', error);
+      this.showAlert('Erro ao carregar tickets criados: ' + error.message, 'error');
     }
   }
 
@@ -1716,33 +1941,6 @@ class ChamadosSystem {
     } catch (error) {
         console.error('Erro ao carregar tickets do setor:', error);
         this.showAlert('Erro ao carregar tickets do setor: ' + error.message, 'error');
-    }
-  }
-
-  // Função para formatar data e hora de forma mais legível e compacta
-  formatarDataHora(dataString) {
-    if (!dataString) return '-';
-    const data = new Date(dataString);
-    return data.toLocaleString('pt-BR');
-  }
-
-  formatarData(data) {
-    if (!data) return '-';
-    
-    try {
-      const date = new Date(data);
-      if (isNaN(date.getTime())) return '-';
-      
-      const dia = String(date.getDate()).padStart(2, '0');
-      const mes = String(date.getMonth() + 1).padStart(2, '0');
-      const ano = date.getFullYear();
-      const hora = String(date.getHours()).padStart(2, '0');
-      const minuto = String(date.getMinutes()).padStart(2, '0');
-      
-      return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
-    } catch (error) {
-      console.error('Erro ao formatar data:', error);
-      return '-';
     }
   }
 
@@ -1795,75 +1993,6 @@ class ChamadosSystem {
       return '<i class="fas fa-info-circle"></i>';
     }
   }
-}
-
-function criarTicketHTML(ticket) {
-  const tempoRestante = calcularTempoRestante(ticket.completionDate);
-  const targetUserName = ticket.targetUser ? ticket.targetUser.firstName : 'Não atribuído';
-  const departmentName = ticket.department ? ticket.department.name : 'Não definido';
-
-  return `
-    <div class="ticket-item" data-ticket-id="${ticket.id}">
-      <div class="ticket-header">
-        <div class="ticket-title">
-          <i class="fas fa-ticket-alt"></i>
-          ${ticket.name.toUpperCase()}
-        </div>
-        <div class="ticket-status status-${ticket.status.toLowerCase()}">${ticket.status}</div>
-      </div>
-      <div class="ticket-footer">
-        <div class="ticket-info">
-          <i class="fas fa-user"></i> ${targetUserName} 
-          <i class="fas fa-building"></i> ${departmentName}
-          <span class="ticket-time ${tempoRestante.class}">
-            <i class="fas fa-clock"></i> ${tempoRestante.html}
-          </span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function calcularTempoRestante(dataFinal) {
-  if (!dataFinal) {
-    return { html: '-', class: '' };
-  }
-
-  const agora = new Date();
-  const final = new Date(dataFinal);
-  const diferenca = final - agora;
-
-  // Se já passou do prazo
-  if (diferenca < 0) {
-    return {
-      html: '<i class="fas fa-exclamation-circle"></i> Atrasado',
-      class: 'prazo-urgente'
-    };
-  }
-
-  // Converter para dias, horas e minutos
-  const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
-  const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
-
-  let texto = '';
-  let classe = '';
-
-  if (dias > 0) {
-    texto = `${dias}d ${horas}h`;
-    classe = dias <= 2 ? 'prazo-proximo' : 'prazo-ok';
-  } else if (horas > 0) {
-    texto = `${horas}h ${minutos}m`;
-    classe = 'prazo-proximo';
-  } else {
-    texto = `${minutos}m`;
-    classe = 'prazo-urgente';
-  }
-
-  return {
-    html: `<i class="fas fa-clock"></i> ${texto}`,
-    class: classe
-  };
 }
 
 // Inicializar o sistema
