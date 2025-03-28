@@ -1786,14 +1786,10 @@ class ChamadosSystem {
         confirmModal.querySelector('#confirmAccept').addEventListener('click', async () => {
             try {
                 const response = await this.apiRequest(`/tickets/${ticketId}/accept`, {
-                    method: 'PATCH',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        status: 'Em andamento',
-                        acceptanceDate: new Date().toISOString()
-                    })
                 });
 
                 if (response) {
