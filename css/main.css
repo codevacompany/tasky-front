@@ -679,4 +679,283 @@ body.dark-mode .header-logo .logo-text {
 
 body.dark-mode .section-content h1 {
   color: var(--text-color-dark);
+}
+
+/* Estados da tabela (vazio, carregando, erro) */
+.empty-state,
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.empty-state i,
+.error-state i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.empty-state p,
+.loading-state p,
+.error-state p {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.sub-message {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Estado de erro específico */
+.error-state {
+  color: var(--danger);
+}
+
+.error-state i {
+  color: var(--danger);
+}
+
+.error-state .retry-btn {
+  margin-top: 1rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.error-state .retry-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 1rem;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Tabela de tickets */
+.tickets-table-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tickets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.tickets-table th,
+.tickets-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tickets-table th {
+  background-color: var(--background-light);
+  color: var(--text-medium);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tickets-table tr:hover {
+  background-color: var(--hover-bg);
+}
+
+.tickets-table .col-id {
+  width: 60px;
+}
+
+.tickets-table .col-titulo {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tickets-table .col-prioridade,
+.tickets-table .col-status {
+  width: 120px;
+}
+
+.tickets-table .col-acoes {
+  width: 100px;
+  text-align: center;
+}
+
+/* Badges de prioridade e status */
+.priority-flag,
+.status-flag {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.priority-flag.alta {
+  background-color: rgba(245, 54, 54, 0.15);
+  color: #f53636;
+}
+
+.priority-flag.media {
+  background-color: rgba(255, 165, 0, 0.15);
+  color: #ffa500;
+}
+
+.priority-flag.baixa {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-flag.pendente {
+  background-color: rgba(250, 140, 22, 0.15);
+  color: #fa8c16;
+}
+
+.status-flag.em_andamento {
+  background-color: rgba(93, 120, 255, 0.15);
+  color: #5d78ff;
+}
+
+.status-flag.finalizado {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-flag.cancelado {
+  background-color: rgba(158, 158, 158, 0.15);
+  color: #9e9e9e;
+}
+
+/* Botões de ação na tabela */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-medium);
+  font-size: 0.9rem;
+  margin: 0 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: var(--background-light);
+  color: var(--primary);
+}
+
+.action-btn.aceitar:hover {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.action-btn.revisar:hover {
+  background-color: rgba(245, 54, 54, 0.15);
+  color: #f53636;
+}
+
+/* Formatação de data e hora */
+.data-hora {
+  display: flex;
+  flex-direction: column;
+}
+
+.data-hora .data {
+  font-weight: 500;
+}
+
+.data-hora .hora {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* Sumário de tickets */
+.tickets-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  margin-top: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--card-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  min-width: 120px;
+  flex-grow: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.summary-item:nth-child(1) .stat-number {
+  color: var(--primary);
+}
+
+.summary-item:nth-child(2) .stat-number {
+  color: #fa8c16; /* Pendentes - laranja */
+}
+
+.summary-item:nth-child(3) .stat-number {
+  color: #5d78ff; /* Em andamento - azul */
+}
+
+.summary-item:nth-child(4) .stat-number {
+  color: #4caf50; /* Resolvidos - verde */
 } 

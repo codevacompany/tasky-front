@@ -96,6 +96,24 @@ function setupGlobalEvents() {
     });
   }
   
+  // Botão para fechar o modal de notificações
+  const closeNotificationsBtn = document.querySelector('[data-close-modal="notificationsModal"]');
+  if (closeNotificationsBtn) {
+    closeNotificationsBtn.addEventListener('click', function() {
+      console.log('Fechando modal de notificações via botão close');
+      uiService.closeNotificationModal();
+    });
+  }
+  
+  // Botão para marcar todas as notificações como lidas
+  const markAllReadButton = document.getElementById('markAllReadButton');
+  if (markAllReadButton) {
+    markAllReadButton.addEventListener('click', function() {
+      console.log('Marcando todas as notificações como lidas');
+      notificationModule.marcarTodasNotificacoesLidas();
+    });
+  }
+  
   // Botão de novo ticket
   const newTicketButton = document.getElementById('newTicketButton');
   if (newTicketButton) {

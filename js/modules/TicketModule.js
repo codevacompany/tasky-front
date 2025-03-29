@@ -16,18 +16,126 @@ class TicketModule {
    * Inicializa o módulo de tickets
    */
   init() {
-    this.loadSetores();
+    console.log('Inicializando TicketModule');
+    this.loadSetores()
+      .then(() => {
+        // Carregar tickets iniciais
+        this.carregarTicketsIniciais();
+        
+        // Configurar eventos
+        this.setupTicketEvents();
+      })
+      .catch(error => {
+        console.error('Erro ao inicializar TicketModule:', error);
+      });
   }
 
   /**
    * Carrega os setores para uso no módulo
+   * @returns {Promise} - Promise resolvida quando os setores forem carregados
    */
   async loadSetores() {
     try {
       this.setores = await apiService.getDepartments();
+      console.log('Setores carregados:', this.setores.length);
+      return this.setores;
     } catch (error) {
       console.error("Erro ao carregar setores:", error);
       uiService.showAlert("Erro ao carregar setores. Tente novamente.", "error");
+      throw error;
+    }
+  }
+
+  /**
+   * Carrega os tickets iniciais após o login do usuário
+   */
+  carregarTicketsIniciais() {
+    // Determinar qual aba está ativa e carregar seus tickets
+    const activeTab = document.querySelector('.tab-btn[data-tab].active');
+    if (activeTab) {
+      const tabId = activeTab.getAttribute('data-tab');
+      this.carregarTicketsPorTab(tabId);
+    } else {
+      // Padrão: carregar tickets recebidos
+      this.carregarTicketsRecebidos();
+    }
+  }
+
+  /**
+   * Configura todos os eventos relacionados aos tickets
+   */
+  setupTicketEvents() {
+    // Configurar eventos de tabs
+    const tabButtons = document.querySelectorAll('.tab-btn[data-tab]');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Remover active de todos os tabs
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Adicionar active ao tab clicado
+        button.classList.add('active');
+        
+        // Carregar tickets correspondentes
+        const tabId = button.getAttribute('data-tab');
+        this.carregarTicketsPorTab(tabId);
+      });
+    });
+
+    // Configurar eventos de filtros
+    const filtros = document.querySelectorAll('.ticket-filters select, .ticket-filters input');
+    filtros.forEach(filtro => {
+      filtro.addEventListener('change', () => {
+        // Recarregar tickets com os filtros aplicados
+        const activeTab = document.querySelector('.tab-btn[data-tab].active');
+        if (activeTab) {
+          const tabId = activeTab.getAttribute('data-tab');
+          this.carregarTicketsPorTab(tabId);
+        }
+      });
+    });
+
+    // Configurar botão de busca
+    const searchBtn = document.querySelector('.search-group .btn-icon');
+    if (searchBtn) {
+      searchBtn.addEventListener('click', () => {
+        const activeTab = document.querySelector('.tab-btn[data-tab].active');
+        if (activeTab) {
+          const tabId = activeTab.getAttribute('data-tab');
+          this.carregarTicketsPorTab(tabId);
+        }
+      });
+    }
+  }
+
+  /**
+   * Carrega tickets com base na tab selecionada
+   * @param {string} tabId - ID da tab: recebidos, criados ou departamento
+   */
+  carregarTicketsPorTab(tabId) {
+    // Mostrar a tab correspondente
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabPanes.forEach(pane => pane.classList.remove('active'));
+    
+    const tabPane = document.getElementById(`${tabId}Tab`);
+    if (tabPane) {
+      tabPane.classList.add('active');
+    }
+    
+    // Carregar os tickets correspondentes
+    switch (tabId) {
+      case 'recebidos':
+        this.carregarTicketsRecebidos();
+        break;
+      case 'criados':
+        this.carregarTicketsCriados();
+        break;
+      case 'departamento':
+        this.carregarTicketsSetor();
+        break;
+      default:
+        console.error('Tab desconhecida:', tabId);
     }
   }
 
@@ -52,29 +160,121 @@ class TicketModule {
         return;
       }
 
+      // Selecionar tbody e mostrar estado de carregamento
+      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+      if (!tbody) {
+        console.error("Elemento tbody para tickets recebidos não encontrado");
+        return;
+      }
+      
+      // Mostrar indicador de carregamento
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Carregando tickets recebidos...</p>
+          </td>
+        </tr>
+      `;
+
+      // Carregar tickets da API
       const response = await apiService.getTicketsByTargetUser(userId);
       console.log('Tickets recebidos:', response);
         
-      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
-      
+      // Verificar se não há tickets
       if (!response || response.length === 0) {
         tbody.innerHTML = this.getEmptyStateHTML();
         this.atualizarContadores(0, 0, 0, 0, 'ticketsRecebidos');
+        
+        // Mostrar mensagem de nenhum ticket encontrado
+        const noTicketsMsg = document.getElementById('noTicketsRecebidos');
+        if (noTicketsMsg) {
+          noTicketsMsg.style.display = 'flex';
+        }
         return;
       }
 
-      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      // Ocultar mensagem de nenhum ticket se estiver visível
+      const noTicketsMsg = document.getElementById('noTicketsRecebidos');
+      if (noTicketsMsg) {
+        noTicketsMsg.style.display = 'none';
+      }
+
+      // Ordenar tickets por data de criação (mais recentes primeiro)
+      const sortedTickets = [...response].sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      // Renderizar tickets na tabela
+      tbody.innerHTML = sortedTickets.map(ticket => this.getTicketRowHTML(ticket)).join('');
       
+      // Calcular estatísticas
       const total = response.length;
       const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
       const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
       const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
+      // Atualizar contadores
       this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsRecebidos');
+      
+      // Adicionar event listeners para botões de ação
+      this.setupTicketActionButtons();
     } catch (error) {
       console.error('Erro ao carregar tickets recebidos:', error);
+      
+      // Mostrar mensagem de erro na tabela
+      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="error-state">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
+              <button class="btn btn-small retry-btn" onclick="ticketModule.carregarTicketsRecebidos()">
+                <i class="fas fa-sync-alt"></i> Tentar novamente
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+      
       uiService.showAlert('Erro ao carregar tickets recebidos: ' + error.message, 'error');
     }
+  }
+
+  /**
+   * Configura listeners para botões de ação dos tickets
+   */
+  setupTicketActionButtons() {
+    // Usando delegação de eventos para manipular botões de ação
+    const tables = document.querySelectorAll('.tickets-table');
+    tables.forEach(table => {
+      if (!table.getAttribute('data-listeners-configured')) {
+        table.setAttribute('data-listeners-configured', 'true');
+        table.addEventListener('click', (e) => {
+          const actionBtn = e.target.closest('.action-btn');
+          if (actionBtn) {
+            e.stopPropagation();
+            
+            // Recuperar o ID do ticket do elemento pai mais próximo com data-ticket-id
+            const row = actionBtn.closest('tr[data-ticket-id]');
+            if (row) {
+              const ticketId = row.getAttribute('data-ticket-id');
+              
+              // Determinar qual ação executar com base na classe do botão
+              if (actionBtn.classList.contains('aceitar')) {
+                this.aceitarTicket(ticketId);
+              } else if (actionBtn.classList.contains('revisar')) {
+                this.rejectTicket(ticketId);
+              } else {
+                // Botão de visualização
+                this.showTicketDetails(ticketId);
+              }
+            }
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -117,25 +317,81 @@ class TicketModule {
         return;
       }
 
-      const response = await apiService.getTicketsByRequester(userId);
+      // Selecionar tbody e mostrar estado de carregamento
       const tbody = document.querySelector("#ticketsCriadosTable tbody");
+      if (!tbody) {
+        console.error("Elemento tbody para tickets criados não encontrado");
+        return;
+      }
       
+      // Mostrar indicador de carregamento
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Carregando tickets criados...</p>
+          </td>
+        </tr>
+      `;
+
+      // Carregar tickets da API
+      const response = await apiService.getTicketsByRequester(userId);
+      console.log('Tickets criados:', response);
+      
+      // Verificar se não há tickets
       if (!response || response.length === 0) {
         tbody.innerHTML = this.getEmptyStateHTML();
         this.atualizarContadores(0, 0, 0, 0, 'ticketsCriados');
+        
+        // Mostrar mensagem de nenhum ticket encontrado
+        const noTicketsMsg = document.getElementById('noTicketsCriados');
+        if (noTicketsMsg) {
+          noTicketsMsg.style.display = 'flex';
+        }
         return;
       }
 
-      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      // Ocultar mensagem de nenhum ticket se estiver visível
+      const noTicketsMsg = document.getElementById('noTicketsCriados');
+      if (noTicketsMsg) {
+        noTicketsMsg.style.display = 'none';
+      }
+
+      // Ordenar tickets por data de criação (mais recentes primeiro)
+      const sortedTickets = [...response].sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      // Renderizar tickets na tabela
+      tbody.innerHTML = sortedTickets.map(ticket => this.getTicketRowHTML(ticket)).join('');
       
+      // Calcular estatísticas
       const total = response.length;
       const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
       const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
       const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
+      // Atualizar contadores
       this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsCriados');
     } catch (error) {
       console.error('Erro ao carregar tickets criados:', error);
+      
+      // Mostrar mensagem de erro na tabela
+      const tbody = document.querySelector("#ticketsCriadosTable tbody");
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="error-state">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
+              <button class="btn btn-small retry-btn" onclick="ticketModule.carregarTicketsCriados()">
+                <i class="fas fa-sync-alt"></i> Tentar novamente
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+      
       uiService.showAlert('Erro ao carregar tickets criados: ' + error.message, 'error');
     }
   }
@@ -150,25 +406,81 @@ class TicketModule {
         throw new Error("ID do setor não encontrado");
       }
 
-      const response = await apiService.getTicketsByDepartment(departmentId);
+      // Selecionar tbody e mostrar estado de carregamento
       const tbody = document.querySelector("#ticketsSetor tbody");
+      if (!tbody) {
+        console.error("Elemento tbody para tickets do setor não encontrado");
+        return;
+      }
       
+      // Mostrar indicador de carregamento
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Carregando tickets do setor...</p>
+          </td>
+        </tr>
+      `;
+
+      // Carregar tickets da API
+      const response = await apiService.getTicketsByDepartment(departmentId);
+      console.log('Tickets do setor:', response);
+      
+      // Verificar se não há tickets
       if (!response || response.length === 0) {
         tbody.innerHTML = this.getEmptyStateHTML();
         this.atualizarContadores(0, 0, 0, 0, 'ticketsSetor');
+        
+        // Mostrar mensagem de nenhum ticket encontrado
+        const noTicketsMsg = document.getElementById('noTicketsSetor');
+        if (noTicketsMsg) {
+          noTicketsMsg.style.display = 'flex';
+        }
         return;
       }
 
-      tbody.innerHTML = response.map(ticket => this.getTicketRowHTML(ticket)).join('');
+      // Ocultar mensagem de nenhum ticket se estiver visível
+      const noTicketsMsg = document.getElementById('noTicketsSetor');
+      if (noTicketsMsg) {
+        noTicketsMsg.style.display = 'none';
+      }
+
+      // Ordenar tickets por data de criação (mais recentes primeiro)
+      const sortedTickets = [...response].sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      // Renderizar tickets na tabela
+      tbody.innerHTML = sortedTickets.map(ticket => this.getTicketRowHTML(ticket)).join('');
       
+      // Calcular estatísticas
       const total = response.length;
       const pendentes = response.filter(t => t.status.toLowerCase().includes("pendente")).length;
       const emAndamento = response.filter(t => t.status.toLowerCase().includes("andamento")).length;
       const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
+      // Atualizar contadores
       this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsSetor');
     } catch (error) {
       console.error('Erro ao carregar tickets do setor:', error);
+      
+      // Mostrar mensagem de erro na tabela
+      const tbody = document.querySelector("#ticketsSetor tbody");
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="error-state">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
+              <button class="btn btn-small retry-btn" onclick="ticketModule.carregarTicketsSetor()">
+                <i class="fas fa-sync-alt"></i> Tentar novamente
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+      
       uiService.showAlert('Erro ao carregar tickets do setor: ' + error.message, 'error');
     }
   }
@@ -192,22 +504,26 @@ class TicketModule {
     const prazoHTML = formatUtils.formatarPrazo(ticket.deadline);
     
     // Botões de ação conforme status
-    let acoesHTML = `<button class="action-btn" onclick="chamadosSystem.showTicketDetails(${ticket.id})"><i class="fas fa-eye"></i></button>`;
+    let acoesHTML = `<button class="action-btn" title="Ver detalhes"><i class="fas fa-eye"></i></button>`;
     
     if (ticket.status === 'Pendente') {
-      acoesHTML += `<button class="action-btn aceitar" onclick="chamadosSystem.aceitarTicket(${ticket.id})"><i class="fas fa-check"></i></button>`;
-      acoesHTML += `<button class="action-btn revisar" onclick="chamadosSystem.rejectTicket(${ticket.id})"><i class="fas fa-times"></i></button>`;
+      acoesHTML += `<button class="action-btn aceitar" title="Aceitar ticket"><i class="fas fa-check"></i></button>`;
+      acoesHTML += `<button class="action-btn revisar" title="Rejeitar ticket"><i class="fas fa-times"></i></button>`;
     }
     
+    // Determinar classe de prioridade e status para estilização
+    const prioridadeClass = (ticket.priority || 'media').toLowerCase();
+    const statusClass = (ticket.status || 'pendente').toLowerCase().replace(' ', '_');
+    
     return `
-      <tr>
+      <tr data-ticket-id="${ticket.id}">
         <td class="col-id">${ticket.id}</td>
         <td class="col-titulo" title="${ticket.title}">${ticket.title}</td>
         <td class="col-prioridade">
-          <span class="priority-flag ${ticket.priority.toLowerCase()}">${ticket.priority}</span>
+          <span class="priority-flag ${prioridadeClass}">${ticket.priority || 'Média'}</span>
         </td>
         <td class="col-status">
-          <span class="status-flag ${ticket.status.toLowerCase().replace(' ', '_')}">${ticket.status}</span>
+          <span class="status-flag ${statusClass}">${ticket.status || 'Pendente'}</span>
         </td>
         <td class="col-solicitante">${solicitanteNome}</td>
         <td class="col-criacao">
@@ -231,16 +547,14 @@ class TicketModule {
   }
 
   /**
-   * Cria HTML para estado vazio nas tabelas
-   * @returns {string} - HTML para estado vazio
+   * Retorna HTML para estado vazio (nenhum ticket)
    */
   getEmptyStateHTML() {
     return `
       <tr>
         <td colspan="9" class="empty-state">
           <i class="fas fa-ticket-alt"></i>
-          <p>Nenhum ticket disponível</p>
-          <span class="sub-message">Não há tickets para exibir nesta lista</span>
+          <p>Nenhum ticket encontrado</p>
         </td>
       </tr>
     `;

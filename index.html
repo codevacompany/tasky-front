@@ -222,6 +222,25 @@
               </div>
             </div>
             
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <span class="summary-label">Total</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Pendentes</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Em Andamento</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Resolvidos</span>
+                <span class="stat-number">0</span>
+              </div>
+            </div>
+            
             <div class="tickets-table-container">
               <table class="tickets-table">
                 <thead>
@@ -259,16 +278,174 @@
           </div>
           
           <div class="tab-pane" id="criadosTab">
-            <!-- Conteúdo similar ao tab de recebidos, mas para tickets criados pelo usuário -->
-            <div id="ticketsCriadosTable">
-              <!-- Os tickets serão inseridos aqui via JavaScript -->
+            <div class="ticket-filters">
+              <div class="filter-group">
+                <label for="statusFilterCriados">Status:</label>
+                <select id="statusFilterCriados">
+                  <option value="all">Todos</option>
+                  <option value="pendente">Pendentes</option>
+                  <option value="em_andamento">Em Andamento</option>
+                  <option value="resolvido">Resolvidos</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="priorityFilterCriados">Prioridade:</label>
+                <select id="priorityFilterCriados">
+                  <option value="all">Todas</option>
+                  <option value="baixa">Baixa</option>
+                  <option value="media">Média</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+              
+              <div class="search-group">
+                <input type="text" id="searchTicketsCriados" placeholder="Buscar tickets...">
+                <button class="btn-icon">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <span class="summary-label">Total</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Pendentes</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Em Andamento</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Resolvidos</span>
+                <span class="stat-number">0</span>
+              </div>
+            </div>
+            
+            <div class="tickets-table-container">
+              <table class="tickets-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                    <th>Departamento</th>
+                    <th>Data Criação</th>
+                    <th>Conclusão</th>
+                    <th>Prazo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsCriadosTable">
+                  <!-- Os tickets serão inseridos aqui via JavaScript -->
+                </tbody>
+              </table>
+              <div id="noTicketsCriados" class="no-tickets-message" style="display: none;">
+                <i class="fas fa-ticket-alt"></i>
+                <p>Nenhum ticket encontrado</p>
+              </div>
+            </div>
+            
+            <div class="pagination">
+              <button class="pagination-btn" id="prevPageCriados">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span id="paginationInfoCriados">Página 1 de 1</span>
+              <button class="pagination-btn" id="nextPageCriados">
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
           </div>
           
           <div class="tab-pane" id="departamentoTab">
-            <!-- Conteúdo similar ao tab de recebidos, mas para tickets do departamento -->
-            <div id="ticketsDepartamentoTable">
-              <!-- Os tickets serão inseridos aqui via JavaScript -->
+            <div class="ticket-filters">
+              <div class="filter-group">
+                <label for="statusFilterSetor">Status:</label>
+                <select id="statusFilterSetor">
+                  <option value="all">Todos</option>
+                  <option value="pendente">Pendentes</option>
+                  <option value="em_andamento">Em Andamento</option>
+                  <option value="resolvido">Resolvidos</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="priorityFilterSetor">Prioridade:</label>
+                <select id="priorityFilterSetor">
+                  <option value="all">Todas</option>
+                  <option value="baixa">Baixa</option>
+                  <option value="media">Média</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+              
+              <div class="search-group">
+                <input type="text" id="searchTicketsSetor" placeholder="Buscar tickets...">
+                <button class="btn-icon">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="tickets-summary">
+              <div class="summary-item">
+                <span class="summary-label">Total</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Pendentes</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Em Andamento</span>
+                <span class="stat-number">0</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Resolvidos</span>
+                <span class="stat-number">0</span>
+              </div>
+            </div>
+            
+            <div class="tickets-table-container">
+              <table class="tickets-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                    <th>Solicitante</th>
+                    <th>Data Criação</th>
+                    <th>Conclusão</th>
+                    <th>Prazo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsSetor">
+                  <!-- Os tickets serão inseridos aqui via JavaScript -->
+                </tbody>
+              </table>
+              <div id="noTicketsSetor" class="no-tickets-message" style="display: none;">
+                <i class="fas fa-ticket-alt"></i>
+                <p>Nenhum ticket encontrado</p>
+              </div>
+            </div>
+            
+            <div class="pagination">
+              <button class="pagination-btn" id="prevPageSetor">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span id="paginationInfoSetor">Página 1 de 1</span>
+              <button class="pagination-btn" id="nextPageSetor">
+                <i class="fas fa-chevron-right"></i>
+              </button>
             </div>
           </div>
         </div>

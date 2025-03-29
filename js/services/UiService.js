@@ -360,14 +360,27 @@ class UiService {
    * Mostra o modal de notificações
    */
   showNotifications() {
-    this.showModal('notificationsModal');
+    console.log('Mostrando modal de notificações');
+    const modal = document.getElementById('notificationsModal');
+    if (modal) {
+      modal.classList.add('show');
+      // Não adicionamos a classe modal-open ao body para evitar overflow:hidden
+      // que impediria a rolagem da página enquanto o dropdown de notificações está aberto
+    } else {
+      console.error('Modal de notificações não encontrado!');
+    }
   }
 
   /**
    * Fecha o modal de notificações
    */
   closeNotificationModal() {
-    this.closeModal('notificationsModal');
+    console.log('Fechando modal de notificações');
+    const modal = document.getElementById('notificationsModal');
+    if (modal) {
+      modal.classList.remove('show');
+      // Não removemos a classe modal-open do body, pois não a adicionamos
+    }
   }
 
   /**
