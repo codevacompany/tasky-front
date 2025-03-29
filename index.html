@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="css/main.css">
   
   <!-- Favicon -->
-  <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon">
 </head>
 <body>
 
   <!-- Header -->
   <header class="main-header" id="mainHeader" style="display: none;">
     <div class="header-logo">
-      <img src="./img/tasky.png" alt="Tasky Logo" class="logo">
+      <img src="./images/tasky.png" alt="Tasky Logo" class="logo" id="headerLogo">
     </div>
     
     <div class="header-nav">
@@ -46,8 +46,12 @@
         <span class="notification-badge" id="notificationBadge">0</span>
       </div>
       
+      <div class="theme-toggle" id="darkModeToggle">
+        <i class="fas fa-moon"></i>
+      </div>
+      
       <div class="user-profile" id="profileButton">
-        <img src="./img/user-placeholder.jpg" alt="Perfil" class="user-avatar" id="userAvatar">
+        <img src="./images/user-placeholder.jpg" alt="Perfil" class="user-avatar" id="userAvatar">
         <span class="user-name" id="userName">Usuário</span>
         <i class="fas fa-chevron-down"></i>
       </div>
@@ -58,7 +62,7 @@
   <section id="loginSection" class="login-section">
     <div class="login-container">
       <div class="login-header">
-        <img src="./img/tasky.png" alt="Tasky Logo" class="login-logo">
+        <img src="./images/tasky.png" alt="Tasky Logo" class="login-logo" id="loginLogo">
       </div>
       
       <div class="login-form-container">
@@ -776,7 +780,7 @@
       <div class="modal-body">
         <div class="profile-header">
           <div class="profile-avatar">
-            <img src="./img/user-placeholder.jpg" alt="Avatar" id="profileAvatar">
+            <img src="./images/user-placeholder.jpg" alt="Avatar" id="profileAvatar">
             <div class="avatar-upload">
               <i class="fas fa-camera"></i>
             </div>

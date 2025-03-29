@@ -487,6 +487,17 @@ body.dark-mode .dropdown-menu a:hover {
   color: #ffffff;
 }
 
+/* Estilo do botão no modo escuro */
+body.dark-mode .btn-primary {
+  background-color: #f8f9fa;
+  color: #1a2233;
+}
+
+body.dark-mode .btn-primary:hover {
+  background-color: #e8eaed;
+  color: #1a2233;
+}
+
 /* Ajuste específico para o botão do novo ticket - mais compacto */
 #newTicketButton {
   padding: 0.5rem 1rem;
@@ -508,20 +519,10 @@ body.dark-mode .dropdown-menu a:hover {
   font-size: 0.85rem;
 }
 
-/* Dark Mode - mantém o header igual em ambos os modos */
-body.dark-mode .main-header {
-  background-color: #f8f9fa;
-  border-bottom-color: #e0e0e0;
-}
-
-body.dark-mode .main-nav ul li a {
+/* Ajuste para o botão de novo ticket no modo escuro */
+body.dark-mode #newTicketButton .btn-text,
+body.dark-mode #newTicketButton i {
   color: #1a2233;
-}
-
-body.dark-mode .main-nav ul li a:hover,
-body.dark-mode .main-nav ul li a.active {
-  background-color: #1a2233;
-  color: #f8f9fa;
 }
 
 /* Ajustes para elementos no header */
@@ -570,13 +571,14 @@ body.dark-mode .main-nav ul li a.active {
   font-size: 1.2rem;
 }
 
-/* Mesmas cores no modo escuro */
+/* Cores invertidas para o modo escuro */
 body.dark-mode .notification-icon i,
 body.dark-mode .user-profile,
 body.dark-mode .user-profile .user-name,
 body.dark-mode .user-profile i,
-body.dark-mode .dark-mode-toggle {
-  color: #1a2233;
+body.dark-mode .dark-mode-toggle,
+body.dark-mode .theme-toggle {
+  color: #f8f9fa;
 }
 
 /* Ajustes para o logo no header */
@@ -606,9 +608,13 @@ body.dark-mode .dark-mode-toggle {
   color: #1a2233;
 }
 
-/* Mesmas cores no modo escuro */
+/* Cores inversas para o modo escuro */
+body.dark-mode .header-logo {
+  background-color: #2d3446;
+}
+
 body.dark-mode .header-logo .logo-text {
-  color: #1a2233;
+  color: #f8f9fa;
 }
 
 /* Ajustes para usar todo o espaço disponível na tela */
@@ -958,4 +964,75 @@ body.dark-mode .section-content h1 {
 
 .summary-item:nth-child(4) .stat-number {
   color: #4caf50; /* Resolvidos - verde */
+}
+
+/* Adicionar estilos para o botão de tema */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  margin: 0 8px;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Tema escuro vs. claro */
+body {
+  --bg-color: #f5f7fa;
+  --card-bg: #ffffff;
+  --header-bg: #ffffff;
+  --text-color: #333;
+  --text-secondary: #666;
+  --border-color: #e8e8e8;
+  --hover-bg: #f1f1f1;
+  
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+body.dark-mode {
+  --bg-color: #1e2130;
+  --card-bg: #272b3a;
+  --header-bg: #272b3a;
+  --text-color: #e2e2e2;
+  --text-secondary: #aaaaaa;
+  --border-color: #34394d;
+  --hover-bg: #32374b;
+}
+
+/* Corrigir referências de imagens */
+.login-section {
+  background-image: url('../images/login-bg.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Adicionar transição para a imagem para suavizar a troca de logo */
+.logo, .login-logo {
+  transition: all 0.3s ease;
+}
+
+/* Dark Mode - inverter cores do header */
+body.dark-mode .main-header {
+  background-color: #1a2233;
+  border-bottom-color: #34394d;
+}
+
+body.dark-mode .main-nav ul li a {
+  color: #f8f9fa;
+}
+
+body.dark-mode .main-nav ul li a:hover,
+body.dark-mode .main-nav ul li a.active {
+  background-color: #f8f9fa;
+  color: #1a2233;
 } 

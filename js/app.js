@@ -28,8 +28,34 @@ async function checkServerConnection() {
 
 // Configurar eventos globais
 function setupGlobalEvents() {
-  // Forçar modo escuro
-  document.body.classList.add('dark-mode');
+  // Configurar alternância do modo escuro/claro
+  document.getElementById('darkModeToggle').addEventListener('click', function() {
+    document.body.classList.toggle('dark-mode');
+    updateLogoBasedOnTheme();
+  });
+  
+  // Configurar logo inicial baseada no tema atual
+  updateLogoBasedOnTheme();
+  
+  // Função para atualizar a logo baseada no tema
+  function updateLogoBasedOnTheme() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const headerLogo = document.getElementById('headerLogo');
+    const loginLogo = document.getElementById('loginLogo');
+    const themeToggleIcon = document.querySelector('#darkModeToggle i');
+    
+    if (headerLogo) {
+      headerLogo.src = isDarkMode ? './images/tasky-white.png' : './images/tasky.png';
+    }
+    
+    if (loginLogo) {
+      loginLogo.src = isDarkMode ? './images/tasky-white.png' : './images/tasky.png';
+    }
+    
+    if (themeToggleIcon) {
+      themeToggleIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+    }
+  }
   
   // Dropdowns
   document.addEventListener('click', function(e) {
