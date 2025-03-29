@@ -88,8 +88,8 @@ class ApiService {
    */
   async login(loginData) {
     try {
-      // Usar endpoint sem o prefixo /api já que está no CONFIG.API_URL
-      const url = `${CONFIG.API_URL.replace('/api', '')}/auth/login`;
+      // URL direto para autenticação
+      const url = `${CONFIG.API_URL}/auth/login`;
       console.log(`Tentando login em: ${url}`);
       
       const response = await fetch(url, {
@@ -220,7 +220,7 @@ class ApiService {
    * @returns {Promise<Object>} Resultado da operação
    */
   async rejectTicket(ticketId) {
-    return this.request(`/tickets/${ticketId}/rejeitar`, {
+    return this.request(`/tickets/${ticketId}/reject`, {
       method: "POST",
     });
   }
@@ -330,8 +330,8 @@ class ApiService {
    * @returns {Promise<Object>} Resultado da operação
    */
   async markAllNotificationsAsRead() {
-    return this.request("/notifications/mark-as-read", {
-      method: "POST",
+    return this.request("/notifications/mark-all-read", {
+      method: "PUT",
     });
   }
 
@@ -342,7 +342,7 @@ class ApiService {
    * @returns {Promise<Array>} Lista de atualizações
    */
   async getReportUpdates() {
-    return this.request("/relatorio/ultimas_atualizacoes");
+    return this.request("/report/latest-updates");
   }
 
   // Endpoints para Autenticação
@@ -384,24 +384,14 @@ class ApiService {
   }
 
   /**
-   * Marca todas as notificações do usuário como lidas
-   * @returns {Promise<Object>} Resultado da operação
-   */
-  async markAllNotificationsAsRead() {
-    return this.request(`/notifications/mark-all-read`, {
-      method: "PUT"
-    });
-  }
-
-  /**
    * Verifica a saúde do servidor
    * @returns {Promise<Object>} Informações sobre a saúde do servidor
    */
   async checkHealth() {
     try {
       console.log("Verificando saúde do servidor...");
-      // Usar endpoint sem o prefixo /api já que está no CONFIG.API_URL
-      const url = `${CONFIG.API_URL.replace('/api', '')}/health`;
+      // URL direto para verificação de saúde
+      const url = `${CONFIG.API_URL}/health`;
       console.log(`URL de verificação de saúde: ${url}`);
       
       const response = await fetch(url, {

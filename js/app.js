@@ -8,6 +8,7 @@ import { uiService } from './services/UiService.js';
 import { userModule } from './modules/UserModule.js';
 import { ticketModule } from './modules/TicketModule.js';
 import { notificationModule } from './modules/NotificationModule.js';
+import { adminModule } from './modules/AdminModule.js';
 
 // Verificar conexão com o servidor
 async function checkServerConnection() {
@@ -25,64 +26,84 @@ async function checkServerConnection() {
   }
 }
 
-// Configurar listeners de eventos globais
-function setupGlobalEventListeners() {
-  // Tema escuro/claro
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', toggleDarkMode);
+// Configurar eventos globais
+function setupGlobalEvents() {
+  // Forçar modo escuro
+  document.body.classList.add('dark-mode');
+  
+  // Dropdowns
+  document.addEventListener('click', function(e) {
+    const dropdown = e.target.closest('.dropdown-toggle');
     
-    // Aplicar tema salvo
-    const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-    if (savedTheme === CONFIG.THEMES.DARK) {
-      document.body.classList.add('dark-mode');
+    if (dropdown) {
+      e.preventDefault();
+      
+      // Fechar outros dropdowns
+      document.querySelectorAll('.dropdown-toggle.active').forEach(item => {
+        if (item !== dropdown) {
+          item.classList.remove('active');
+          const dropdownMenu = item.nextElementSibling;
+          if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+            dropdownMenu.classList.remove('show');
+          }
+        }
+      });
+      
+      // Toggle dropdown atual
+      dropdown.classList.toggle('active');
+      const menu = dropdown.nextElementSibling;
+      if (menu && menu.classList.contains('dropdown-menu')) {
+        menu.classList.toggle('show');
+      }
+    } else if (!e.target.closest('.dropdown-menu')) {
+      // Fechar todos os dropdowns se clicar fora
+      document.querySelectorAll('.dropdown-toggle.active').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+      });
     }
-  }
+  });
   
   // Botão de perfil
   const profileButton = document.getElementById('profileButton');
   if (profileButton) {
-    profileButton.addEventListener('click', () => {
-      userModule.loadProfileForm();
-      uiService.showProfileModal();
+    profileButton.addEventListener('click', function() {
+      console.log('Perfil clicado');
+      
+      if (userModule) {
+        // Primeiro carregar os dados do perfil
+        userModule.loadProfileForm();
+        
+        // Depois mostrar o modal
+        setTimeout(() => {
+          uiService.showProfileModal();
+        }, 100);
+      } else {
+        console.error('Módulo de usuário não disponível');
+      }
     });
   }
   
   // Botão de notificações
   const notificationButton = document.getElementById('notificationButton');
   if (notificationButton) {
-    notificationButton.addEventListener('click', () => {
+    notificationButton.addEventListener('click', function() {
+      console.log('Notificações clicadas');
       notificationModule.showNotifications();
-    });
-  }
-  
-  // Marcar todas as notificações como lidas
-  const markAllReadButton = document.getElementById('markAllReadButton');
-  if (markAllReadButton) {
-    markAllReadButton.addEventListener('click', () => {
-      notificationModule.marcarTodasNotificacoesLidas();
     });
   }
   
   // Botão de novo ticket
   const newTicketButton = document.getElementById('newTicketButton');
   if (newTicketButton) {
-    newTicketButton.addEventListener('click', () => {
+    newTicketButton.addEventListener('click', function() {
+      console.log('Novo ticket clicado');
       uiService.showNewTicketModal();
     });
   }
-}
-
-// Alternar entre tema claro e escuro
-function toggleDarkMode() {
-  document.body.classList.toggle('dark-mode');
-  
-  // Salvar preferência
-  const isDarkMode = document.body.classList.contains('dark-mode');
-  localStorage.setItem(
-    CONFIG.STORAGE_KEYS.THEME, 
-    isDarkMode ? CONFIG.THEMES.DARK : CONFIG.THEMES.LIGHT
-  );
 }
 
 // Verificação periódica de conectividade
@@ -137,18 +158,22 @@ async function initApp() {
   userModule.init();
   
   // Configurar eventos globais
-  setupGlobalEventListeners();
+  setupGlobalEvents();
   
   // Verificar autenticação
   if (userModule.isAuthenticated()) {
     console.log('Usuário já autenticado, carregando interface principal');
     
+    // Atualizar a interface com os dados do usuário
+    userModule.updateUserInterface();
+    
     // Inicializar módulos que dependem de autenticação
     ticketModule.init();
     notificationModule.init();
     
-    // Mostrar interface com base no perfil
+    // Inicializar módulo de administrador se o usuário for admin
     if (userModule.isAdmin()) {
+      adminModule.init();
       uiService.showAdminInterface();
     } else {
       uiService.showUserInterface();
@@ -163,4 +188,4 @@ async function initApp() {
 document.addEventListener('DOMContentLoaded', initApp);
 
 // Exportar para possível uso em testes ou desenvolvimento
-export { initApp, checkServerConnection, toggleDarkMode, startConnectionCheck }; 
+export { initApp, checkServerConnection, startConnectionCheck }; 

@@ -196,7 +196,7 @@ class TicketModule {
     
     if (ticket.status === 'Pendente') {
       acoesHTML += `<button class="action-btn aceitar" onclick="chamadosSystem.aceitarTicket(${ticket.id})"><i class="fas fa-check"></i></button>`;
-      acoesHTML += `<button class="action-btn revisar" onclick="chamadosSystem.rejeitarTicket(${ticket.id})"><i class="fas fa-times"></i></button>`;
+      acoesHTML += `<button class="action-btn revisar" onclick="chamadosSystem.rejectTicket(${ticket.id})"><i class="fas fa-times"></i></button>`;
     }
     
     return `
@@ -461,17 +461,17 @@ class TicketModule {
   }
 
   /**
-   * Rejeita um ticket pendente
+   * Rejeita um ticket
    * @param {number} ticketId - ID do ticket
    */
-  async rejeitarTicket(ticketId) {
+  async rejectTicket(ticketId) {
     try {
       const confirmacao = confirm("Tem certeza que deseja rejeitar este ticket?");
-      if (!confirmacao) return;
-
-      await apiService.rejectTicket(ticketId);
-      uiService.showAlert('Ticket rejeitado com sucesso!', 'success');
-      await this.carregarTicketsRecebidos();
+      if (confirmacao) {
+        await apiService.rejectTicket(ticketId);
+        uiService.showAlert('Ticket rejeitado com sucesso.', 'success');
+        this.refreshTickets();
+      }
     } catch (error) {
       console.error('Erro ao rejeitar ticket:', error);
       uiService.showAlert('Erro ao rejeitar o ticket. Por favor, tente novamente.', 'error');

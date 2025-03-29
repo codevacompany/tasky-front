@@ -1,9 +1,5 @@
-const CONFIG = {
-  API_BASE_URL: "https://tasky-api-lime.vercel.app",
-  // API_BASE_URL: "http://localhost:4443",
-  NOTIFICATION_CHECK_INTERVAL: 60000,
-  DATE_FORMAT: "pt-BR",
-};
+// Importar configurações globais
+import { CONFIG } from './js/config.js';
 
 // Classe principal do sistema
 class ChamadosSystem {
@@ -1167,13 +1163,12 @@ class ChamadosSystem {
   }
 
   // Gerenciamento de Relatórios
-  //TODO: check this later
   async loadRelatorio() {
     try {
-      const updates = await this.apiRequest("/relatorio/ultimas_atualizacoes");
+      const updates = await this.apiRequest("/report/latest-updates");
       this.updateRelatorioUI(updates);
     } catch (error) {
-      this.showAlert("Erro ao carregar relatório. Tente novamente.");
+      console.error("Erro ao carregar relatório:", error);
     }
   }
 
@@ -1815,18 +1810,15 @@ class ChamadosSystem {
   }
 
   async rejeitarTicket(ticketId) {
-    const motivo = await this.solicitarMotivoRejeicao();
-    if (!motivo) return;
-
     try {
-      await this.apiRequest(`/tickets/${ticketId}/rejeitar`, {
-        method: 'PATCH',
-        body: JSON.stringify({ motivo })
+      if (!confirm("Tem certeza que deseja rejeitar este ticket?")) return;
+      
+      await this.apiRequest(`/tickets/${ticketId}/reject`, {
+        method: "POST"
       });
-
-      this.showAlert('Ticket rejeitado com sucesso!', 'success');
-      await this.carregarTicketsRecebidos();
-      await this.carregarUltimosTickets();
+      
+      this.showAlert("Ticket rejeitado com sucesso!", "success");
+      this.loadTickets();
     } catch (error) {
       console.error('Erro ao rejeitar ticket:', error);
       this.showAlert('Erro ao rejeitar o ticket. Por favor, tente novamente.', 'error');

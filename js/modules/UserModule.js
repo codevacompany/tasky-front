@@ -92,11 +92,21 @@ class UserModule {
         throw new Error(data.error);
       }
       
+      // Definir o usuário atual e salvar no localStorage
       this.setCurrentUser(data.user, data.token);
+      
+      // Garantir que o nome do usuário seja atualizado na interface
+      console.log('Login bem-sucedido, atualizando UI');
+      setTimeout(() => {
+        this.updateUserInterface();
+      }, 300);
+      
       uiService.showAlert("Login realizado com sucesso!");
       
-      // Redirecionar para a página principal com base no perfil do usuário
+      // Importar o adminModule apenas quando necessário
       if (this.isAdmin()) {
+        const { adminModule } = await import('./AdminModule.js');
+        adminModule.init();
         uiService.showAdminInterface();
       } else {
         uiService.showUserInterface();
@@ -115,6 +125,16 @@ class UserModule {
    * @param {string} token - Token de autenticação
    */
   setCurrentUser(user, token) {
+    console.log('Definindo usuário atual:', user);
+    
+    // Verificar se o objeto user contém o campo nome
+    if (!user.nome) {
+      console.warn('O objeto de usuário não possui um campo nome válido:', user);
+      // Tentar encontrar o nome em outra propriedade
+      user.nome = user.name || user.fullName || user.username || 'Usuário';
+      console.log('Nome ajustado para:', user.nome);
+    }
+    
     this.currentUser = user;
     localStorage.setItem(CONFIG.STORAGE_KEYS.USER_DATA, JSON.stringify(user));
     localStorage.setItem(CONFIG.STORAGE_KEYS.AUTH_TOKEN, token);
@@ -131,19 +151,28 @@ class UserModule {
    */
   updateUserInterface() {
     if (!this.currentUser) {
+      console.warn('Tentativa de atualizar interface sem usuário logado');
       return;
     }
+    
+    console.log('Atualizando interface para o usuário:', this.currentUser);
     
     // Atualizar nome do usuário no cabeçalho
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
-      userNameElement.textContent = this.currentUser.nome;
+      const nomeUsuario = this.currentUser.nome || 'Usuário';
+      console.log('Atualizando nome no header para:', nomeUsuario);
+      userNameElement.textContent = nomeUsuario;
+    } else {
+      console.warn('Elemento userName não encontrado no DOM');
     }
     
     // Atualizar avatar
     const userAvatarElement = document.getElementById('userAvatar');
     if (userAvatarElement) {
       userAvatarElement.src = this.getUserAvatar();
+    } else {
+      console.warn('Elemento userAvatar não encontrado no DOM');
     }
     
     // Mostrar/ocultar elementos baseados no perfil
@@ -190,7 +219,7 @@ class UserModule {
    * @returns {boolean}
    */
   isAdmin() {
-    return this.currentUser?.tipo === 'admin';
+    return this.currentUser?.isAdmin === true || this.currentUser?.tipo === 'admin';
   }
 
   /**
@@ -315,6 +344,27 @@ class UserModule {
       return;
     }
     
+    console.log('Carregando perfil do usuário:', this.currentUser);
+    
+    // Atualizar nome no cabeçalho do perfil
+    const profileNameElement = document.getElementById('profileName');
+    if (profileNameElement) {
+      profileNameElement.textContent = this.currentUser.nome || '';
+    }
+    
+    // Atualizar cargo/departamento no cabeçalho do perfil
+    const profileRoleElement = document.getElementById('profileRole');
+    if (profileRoleElement) {
+      profileRoleElement.textContent = this.currentUser.setor || 'Sem departamento';
+    }
+    
+    // Atualizar avatar no perfil
+    const profileAvatarElement = document.getElementById('profileAvatar');
+    if (profileAvatarElement) {
+      profileAvatarElement.src = this.getUserAvatar();
+    }
+    
+    // Preencher campos do formulário
     const nameField = document.getElementById('profileNome');
     const emailField = document.getElementById('profileEmail');
     const telefoneField = document.getElementById('profileTelefone');

@@ -156,4 +156,527 @@
 /* Utilitários de alinhamento de texto */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
-.text-right { text-align: right; } 
+.text-right { text-align: right; }
+
+/* Ajustes para o menu principal com mais itens */
+.main-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.main-nav ul li a {
+  white-space: nowrap;
+  padding: 0.75rem 1rem;
+}
+
+/* Dropdown Menu */
+.dropdown-toggle {
+  position: relative;
+  padding-right: 1.5rem !important;
+}
+
+.dropdown-toggle .fa-chevron-down {
+  position: absolute;
+  right: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.active .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  display: none;
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  min-width: 160px;
+  z-index: 10;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-menu li {
+  display: block;
+  width: 100%;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.dropdown-menu a:hover {
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+/* Estilos para as seções administrativas */
+.admin-section {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Formulários compactos */
+.compact-form {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 2rem;
+  max-width: 500px;
+}
+
+/* Tabelas de dados */
+.table-container {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.data-table tbody tr {
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Barra de ações */
+.action-bar {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Abas */
+.tab-buttons {
+  display: flex;
+  list-style: none;
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-light);
+  position: relative;
+  transition: var(--transition);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Formulário em grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.form-grid .form-actions {
+  grid-column: span 2;
+  text-align: right;
+}
+
+/* Relatório */
+.report-container {
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.5rem;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.report-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.report-table-container {
+  overflow-x: auto;
+}
+
+/* Estados vazios */
+.empty-state {
+  padding: 3rem 2rem;
+  text-align: center;
+  width: 100%;
+}
+
+.empty-state i {
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state small {
+  font-size: 0.9rem;
+}
+
+/* Detalhes */
+.details-container {
+  margin-bottom: 1.5rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.details-grid .detail-item {
+  background-color: rgba(var(--primary-rgb), 0.05);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.details-grid .detail-item p {
+  margin: 0;
+}
+
+.details-grid .full-width {
+  grid-column: span 2;
+}
+
+/* Modal actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Estilo para modo escuro */
+body.dark-mode .data-table th {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .details-grid .detail-item {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .dropdown-menu {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-color-dark);
+}
+
+body.dark-mode .dropdown-menu a {
+  color: var(--text-color-dark);
+}
+
+body.dark-mode .dropdown-menu a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Header */
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  height: 65px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-nav {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+/* Ajustes de cores para o header */
+.main-nav ul li a {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #1a2233;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.main-nav ul li a:hover, 
+.main-nav ul li a.active {
+  background-color: #1a2233;
+  color: #f8f9fa;
+}
+
+/* Botão primário com melhor contraste */
+.btn-primary {
+  background-color: #1a2233;
+  color: #ffffff;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #141b2a;
+  color: #ffffff;
+}
+
+/* Ajuste específico para o botão do novo ticket - mais compacto */
+#newTicketButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+#newTicketButton .btn-text {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+#newTicketButton i {
+  color: #ffffff;
+  margin-right: 5px;
+  font-size: 0.85rem;
+}
+
+/* Dark Mode - mantém o header igual em ambos os modos */
+body.dark-mode .main-header {
+  background-color: #f8f9fa;
+  border-bottom-color: #e0e0e0;
+}
+
+body.dark-mode .main-nav ul li a {
+  color: #1a2233;
+}
+
+body.dark-mode .main-nav ul li a:hover,
+body.dark-mode .main-nav ul li a.active {
+  background-color: #1a2233;
+  color: #f8f9fa;
+}
+
+/* Ajustes para elementos no header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notification-icon {
+  color: #1a2233;
+  position: relative;
+  cursor: pointer;
+}
+
+.notification-icon i {
+  font-size: 1.2rem;
+  color: #1a2233;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #1a2233;
+}
+
+.user-profile .user-name {
+  margin: 0 0.5rem;
+  color: #1a2233;
+}
+
+.user-profile i {
+  font-size: 0.8rem;
+  color: #1a2233;
+}
+
+.dark-mode-toggle {
+  color: #1a2233;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.dark-mode-toggle i {
+  font-size: 1.2rem;
+}
+
+/* Mesmas cores no modo escuro */
+body.dark-mode .notification-icon i,
+body.dark-mode .user-profile,
+body.dark-mode .user-profile .user-name,
+body.dark-mode .user-profile i,
+body.dark-mode .dark-mode-toggle {
+  color: #1a2233;
+}
+
+/* Ajustes para o logo no header */
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  min-width: 150px;
+  background-color: #e8eaed;
+  height: 100%;
+  position: relative;
+}
+
+.header-logo .logo {
+  height: 70px;
+  width: auto;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  top: 7px;
+}
+
+.header-logo .logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2233;
+}
+
+/* Mesmas cores no modo escuro */
+body.dark-mode .header-logo .logo-text {
+  color: #1a2233;
+}
+
+/* Ajustes para usar todo o espaço disponível na tela */
+.main-content {
+  width: 100%;
+  padding: 0;
+  max-width: none;
+}
+
+.section-content {
+  width: 100%;
+  max-width: 100%;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+/* Cores para os ícones do dashboard */
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 1.8rem;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+.stat-icon.orange {
+  background-color: rgba(var(--warning-rgb), 0.1);
+  color: var(--warning-color);
+}
+
+.stat-icon.blue {
+  background-color: rgba(var(--info-rgb), 0.1);
+  color: var(--info-color);
+}
+
+.stat-icon.green {
+  background-color: rgba(var(--success-rgb), 0.1);
+  color: var(--success-color);
+}
+
+/* Títulos das seções */
+.section-content h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #1a2233;
+}
+
+body.dark-mode .section-content h1 {
+  color: var(--text-color-dark);
+} 

@@ -70,7 +70,15 @@ class UiService {
     document.querySelectorAll('.main-nav a').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        
         const section = link.getAttribute('data-section');
+        
+        // Especial para links de admin
+        if (link.classList.contains('admin-menu-item')) {
+          this.handleAdminNavigation(link, section);
+          return;
+        }
+        
         this.showSection(section);
         
         // Atualizar navegação ativa
@@ -88,6 +96,61 @@ class UiService {
         this.showTicketTab(tabId);
       });
     });
+  }
+
+  /**
+   * Manipula a navegação para seções administrativas
+   * @param {HTMLElement} link - O link clicado
+   * @param {string} section - A seção a ser mostrada
+   */
+  handleAdminNavigation(link, section) {
+    console.log('Navegação administrativa:', section);
+    
+    // Remover active de todos os links
+    document.querySelectorAll('.main-nav a').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Adicionar active no link clicado
+    link.classList.add('active');
+    
+    // Mapeamento de seções
+    const sectionMap = {
+      'reports': 'relatorios',
+      'users': 'colaboradores'
+    };
+    
+    // Usar o mapeamento se necessário
+    const sectionId = sectionMap[section] || section;
+    
+    console.log(`Mostrando seção admin: ${sectionId}`);
+    
+    // Esconder todas as seções
+    document.querySelectorAll('.section-content').forEach(s => {
+      s.classList.remove('active');
+      s.style.display = 'none';
+    });
+    
+    // Mostrar a seção administrativa
+    const sectionElement = document.getElementById(`${sectionId}Section`);
+    if (sectionElement) {
+      sectionElement.style.display = 'block';
+      
+      // Notificar o módulo de admin sobre a mudança
+      if (window.adminModule) {
+        window.adminModule.loadAdminSectionData(sectionId);
+      } else {
+        console.warn('AdminModule não disponível para carregar dados da seção', sectionId);
+        // Importar dinamicamente
+        import('../modules/AdminModule.js').then(module => {
+          module.adminModule.loadAdminSectionData(sectionId);
+        }).catch(error => {
+          console.error('Erro ao importar AdminModule:', error);
+        });
+      }
+    } else {
+      console.error(`Seção não encontrada: ${sectionId}Section`);
+    }
   }
 
   /**
@@ -252,16 +315,13 @@ class UiService {
   }
 
   /**
-   * Mostra a interface principal após o login
+   * Mostra a interface principal
    */
   showMainInterface() {
     if (this.loginSection && this.mainContent && this.mainHeader) {
       this.loginSection.style.display = "none";
-      this.mainContent.style.display = "block";
+      this.mainContent.style.display = "flex";
       this.mainHeader.style.display = "flex";
-      
-      // Mostrar dashboard por padrão
-      this.showSection('dashboard');
     }
   }
 
@@ -343,18 +403,24 @@ class UiService {
    * @param {string} modalId - ID do modal a ser exibido
    */
   showModal(modalId) {
+    console.log(`Tentando mostrar modal: ${modalId}`);
+    
     const modal = document.getElementById(modalId);
     if (modal) {
+      console.log(`Modal encontrado: ${modalId}`);
       modal.classList.add('show');
       document.body.classList.add('modal-open');
       
       // Focar no primeiro campo de entrada, se houver
       const firstInput = modal.querySelector('input, textarea, select');
       if (firstInput) {
+        console.log(`Focando primeiro campo do modal: ${modalId}`);
         setTimeout(() => {
           firstInput.focus();
         }, 100);
       }
+    } else {
+      console.error(`Modal não encontrado: ${modalId}`);
     }
   }
 

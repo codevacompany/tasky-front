@@ -3,7 +3,8 @@
  */
 export const CONFIG = {
   // API
-  API_URL: 'https://tasky-api-lime.vercel.app/api',
+  API_URL: 'https://tasky-api-lime.vercel.app',
+  API_BASE_URL: 'https://tasky-api-lime.vercel.app',
   
   // Intervalos
   NOTIFICATION_CHECK_INTERVAL: 60000, // 60 segundos

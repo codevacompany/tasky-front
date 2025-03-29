@@ -20,7 +20,6 @@
   <header class="main-header" id="mainHeader" style="display: none;">
     <div class="header-logo">
       <img src="./img/tasky.png" alt="Tasky Logo" class="logo">
-      <span class="logo-text">Tasky</span>
     </div>
     
     <div class="header-nav">
@@ -28,9 +27,10 @@
         <ul>
           <li><a href="#dashboard" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
           <li><a href="#tickets" data-section="tickets"><i class="fas fa-ticket-alt"></i> Tickets</a></li>
-          <li class="admin-only"><a href="#reports" data-section="reports"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
-          <li class="admin-only"><a href="#users" data-section="users"><i class="fas fa-users"></i> Usuários</a></li>
-          <li class="admin-only"><a href="#settings" data-section="settings"><i class="fas fa-cog"></i> Configurações</a></li>
+          <li class="admin-only"><a href="#relatorios" class="admin-menu-item" data-section="relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+          <li class="admin-only"><a href="#colaboradores" class="admin-menu-item" data-section="colaboradores"><i class="fas fa-users"></i> Usuários</a></li>
+          <li class="admin-only"><a href="#setores" class="admin-menu-item" data-section="setores"><i class="fas fa-building"></i> Setores</a></li>
+          <li class="admin-only"><a href="#categorias" class="admin-menu-item" data-section="categorias"><i class="fas fa-tag"></i> Categorias</a></li>
         </ul>
       </nav>
     </div>
@@ -51,10 +51,6 @@
         <span class="user-name" id="userName">Usuário</span>
         <i class="fas fa-chevron-down"></i>
       </div>
-      
-      <button id="darkModeToggle" class="btn-icon dark-mode-toggle">
-        <i class="fas fa-moon"></i>
-      </button>
     </div>
   </header>
   
@@ -296,6 +292,226 @@
       <h1>Configurações do Sistema</h1>
       <!-- Conteúdo das configurações -->
     </section>
+
+    <!-- SEÇÕES ADMINISTRATIVAS -->
+    <!-- Seção de Relatórios -->
+    <section id="relatoriosSection" class="section-content admin-section">
+      <h1>Relatórios</h1>
+      <div id="relatorioContainer" class="report-container">
+        <!-- O conteúdo do relatório será inserido aqui via JavaScript -->
+        <div class="empty-state">
+          <i class="fas fa-chart-bar"></i>
+          <p>Carregando relatórios...</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Seção de Setores -->
+    <section id="setoresSection" class="section-content admin-section">
+      <h1>Setores</h1>
+      
+      <ul class="tab-buttons">
+        <li class="tab-btn active" data-tab="listaSetores">Lista de Setores</li>
+        <li class="tab-btn" data-tab="novoSetor">Novo Setor</li>
+      </ul>
+      
+      <div class="tab-content">
+        <div class="tab-pane active" id="listaSetoresTab">
+          <div class="table-container">
+            <table class="data-table" id="setoresTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Os setores serão inseridos aqui via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="tab-pane" id="novoSetorTab">
+          <form id="setorForm" class="compact-form">
+            <div class="form-group">
+              <label for="nomeSetor">Nome do Setor</label>
+              <input type="text" id="nomeSetor" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Seção de Categorias -->
+    <section id="categoriasSection" class="section-content admin-section">
+      <h1>Categorias</h1>
+      
+      <ul class="tab-buttons">
+        <li class="tab-btn active" data-tab="listaCategorias">Lista de Categorias</li>
+        <li class="tab-btn" data-tab="novaCategoria">Nova Categoria</li>
+      </ul>
+      
+      <div class="tab-content">
+        <div class="tab-pane active" id="listaCategoriasTab">
+          <div class="table-container">
+            <table class="data-table" id="categoriasTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- As categorias serão inseridas aqui via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="tab-pane" id="novaCategoriaTab">
+          <form id="categoriaForm" class="compact-form">
+            <div class="form-group">
+              <label for="nomeCategoria">Nome da Categoria</label>
+              <input type="text" id="nomeCategoria" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Seção de Colaboradores -->
+    <section id="colaboradoresSection" class="section-content admin-section">
+      <h1>Colaboradores</h1>
+      
+      <ul class="tab-buttons">
+        <li class="tab-btn active" data-tab="listaColaboradores">Lista de Colaboradores</li>
+        <li class="tab-btn" data-tab="novoColaborador">Novo Colaborador</li>
+      </ul>
+      
+      <div class="tab-content">
+        <div class="tab-pane active" id="listaColaboradoresTab">
+          <div class="table-container">
+            <table class="data-table" id="colaboradoresTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Setor</th>
+                  <th>Ativo</th>
+                  <th>Data de Cadastro</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Os colaboradores serão inseridos aqui via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div class="tab-pane" id="novoColaboradorTab">
+          <form id="cadastroColaboradorForm" class="form-grid">
+            <div class="form-group">
+              <label for="nomeColaborador">Nome</label>
+              <input type="text" id="nomeColaborador" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="sobrenomeColaborador">Sobrenome</label>
+              <input type="text" id="sobrenomeColaborador">
+            </div>
+            
+            <div class="form-group">
+              <label for="emailColaborador">E-mail</label>
+              <input type="email" id="emailColaborador" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="setorColaborador">Setor</label>
+              <select id="setorColaborador" required>
+                <!-- Os setores serão inseridos aqui via JavaScript -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="senhaColaborador">Senha</label>
+              <input type="password" id="senhaColaborador" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="isAdminColaborador">Administrador</label>
+              <select id="isAdminColaborador" required>
+                <option value="false">Não</option>
+                <option value="true">Sim</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="ativoColaborador">Ativo</label>
+              <select id="ativoColaborador" required>
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal de Detalhes do Colaborador -->
+    <div class="modal" id="colaboradorModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Detalhes do Colaborador</h2>
+          <button class="close-btn close-colaborador">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="colaboradorDetails" class="details-container">
+            <!-- Os detalhes do colaborador serão inseridos aqui via JavaScript -->
+          </div>
+          <div class="modal-actions">
+            <button id="changePasswordBtn" class="btn btn-secondary">Alterar Senha</button>
+            <button id="toggleAtivoBtn" class="btn btn-warning">Ativar/Desativar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Alteração de Senha -->
+    <div class="modal" id="changePasswordModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Alterar Senha</h2>
+          <button class="close-btn close-password">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="changePasswordForm">
+            <div class="form-group">
+              <label for="novaSenha">Nova Senha</label>
+              <input type="password" id="novaSenha" required>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary close-password">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Modal de Detalhes do Ticket -->
