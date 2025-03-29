@@ -446,6 +446,39 @@ class ApiService {
       throw error;
     }
   }
+
+  /**
+   * Obtém um ticket pelo ID
+   * @param {number} ticketId - ID do ticket
+   * @returns {Promise<Object>}
+   */
+  async getTicketById(ticketId) {
+    try {
+      const response = await this.request(`/tickets/${ticketId}`);
+      return response;
+    } catch (error) {
+      console.error(`Erro ao buscar ticket ${ticketId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancela um ticket pelo ID
+   * @param {number} ticketId - ID do ticket a ser cancelado
+   * @returns {Promise<Object>} - Resposta da API
+   */
+  async cancelTicket(ticketId) {
+    try {
+      const response = await this.request(`/tickets/${ticketId}/cancel`, {
+        method: "PUT",
+        body: JSON.stringify({ status: 'Cancelado' })
+      });
+      return response;
+    } catch (error) {
+      console.error(`Erro ao cancelar ticket ${ticketId}:`, error);
+      throw error;
+    }
+  }
 }
 
 // Exporta uma instância única do serviço

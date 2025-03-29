@@ -225,19 +225,37 @@ class UserModule {
   }
 
   /**
-   * Obtém o ID do usuário atual
-   * @returns {string|null}
-   */
-  getCurrentUserId() {
-    return this.currentUser?.id || null;
-  }
-
-  /**
-   * Obtém o usuário atual
-   * @returns {Object|null}
+   * Retorna o objeto do usuário atual
+   * @returns {Object|null} - Objeto do usuário atual ou null se não estiver logado
    */
   getCurrentUser() {
     return this.currentUser;
+  }
+
+  /**
+   * Retorna o ID do usuário atual
+   * @returns {number|null} - ID do usuário atual ou null se não estiver logado
+   */
+  getCurrentUserId() {
+    if (!this.currentUser) return null;
+    return this.currentUser.id || null;
+  }
+
+  /**
+   * Retorna o ID do departamento do usuário atual
+   * @returns {number|null} - ID do departamento do usuário atual ou null se não estiver logado
+   */
+  getCurrentUserDepartmentId() {
+    if (!this.currentUser) return null;
+    
+    // Verifica se o usuário tem departmentId ou setorId
+    const departmentId = this.currentUser.departmentId || this.currentUser.setorId || null;
+    
+    if (!departmentId) {
+      console.warn("Usuário logado não possui departamento definido:", this.currentUser);
+    }
+    
+    return departmentId;
   }
 
   /**

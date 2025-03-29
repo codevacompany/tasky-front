@@ -32,6 +32,22 @@ class AdminModule {
    * Configura os listeners de eventos
    */
   setupEventListeners() {
+    // Botões para abrir modais de cadastro
+    const newSetorBtn = document.getElementById('newSetorBtn');
+    if (newSetorBtn) {
+      newSetorBtn.addEventListener('click', this.openSetorModal.bind(this));
+    }
+    
+    const newCategoriaBtn = document.getElementById('newCategoriaBtn');
+    if (newCategoriaBtn) {
+      newCategoriaBtn.addEventListener('click', this.openCategoriaModal.bind(this));
+    }
+    
+    const newColaboradorBtn = document.getElementById('newColaboradorBtn');
+    if (newColaboradorBtn) {
+      newColaboradorBtn.addEventListener('click', this.openColaboradorModal.bind(this));
+    }
+    
     // Formulário de cadastro de setores
     const setorForm = document.getElementById('setorForm');
     if (setorForm) {
@@ -71,20 +87,26 @@ class AdminModule {
       toggleAtivoBtn.addEventListener('click', this.toggleAtivoColaborador.bind(this));
     }
     
-    // Botões para fechar modais
+    // Configurar itens de menu administrativo
+    this.setupAdminMenuItems();
+    
+    // Configurar fechamento de modais
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      const modalId = btn.getAttribute('data-close-modal');
+      btn.addEventListener('click', () => {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
+      });
+    });
+    
+    // Fechar modais específicos
     document.querySelectorAll('.close-colaborador').forEach(btn => {
-      btn.addEventListener('click', this.closeColaboradorModal.bind(this));
+      btn.addEventListener('click', this.closeColaboradorDetailsModal.bind(this));
     });
     
     document.querySelectorAll('.close-password').forEach(btn => {
       btn.addEventListener('click', this.closePasswordModal.bind(this));
     });
-    
-    // Configurar todas as abas
-    this.setupTabHandlers();
-    
-    // Configurar itens de menu administrativo
-    this.setupAdminMenuItems();
   }
   
   /**
@@ -218,12 +240,16 @@ class AdminModule {
    * @param {string} section - Nome da seção a carregar dados
    */
   loadAdminSectionData(section) {
+    console.log('Carregando dados da seção:', section);
+    
     switch (section) {
-      case 'inicio':
+      case 'dashboard':
         this.updateDashboardStats();
         break;
-      case 'cadastroColaboradores':
-        this.loadSetores();
+      case 'tickets':
+        if (window.ticketModule) {
+          window.ticketModule.carregarTicketsIniciais();
+        }
         break;
       case 'colaboradores':
         this.loadColaboradores();
@@ -237,6 +263,8 @@ class AdminModule {
       case 'relatorios':
         this.loadRelatorio();
         break;
+      default:
+        console.log('Seção não reconhecida:', section);
     }
   }
 
@@ -512,21 +540,25 @@ class AdminModule {
    */
   showColaboradorDetails(colaborador) {
     this.currentColaboradorId = colaborador.id;
-    const modal = document.getElementById('colaboradorModal');
-    const details = document.getElementById('colaboradorDetails');
     
-    if (!modal || !details) return;
-    
-    const toggleBtn = document.getElementById('toggleAtivoBtn');
-    
-    details.innerHTML = this.getColaboradorDetailsHTML(colaborador);
-    
-    if (toggleBtn) {
-      toggleBtn.textContent = colaborador.isActive ? 'Desativar' : 'Ativar';
-      toggleBtn.setAttribute('data-ativo', colaborador.isActive);
+    // Preencher detalhes
+    const detailsContainer = document.getElementById('colaboradorDetails');
+    if (detailsContainer) {
+      detailsContainer.innerHTML = this.getColaboradorDetailsHTML(colaborador);
     }
     
-    modal.style.display = 'block';
+    // Configurar botão de toggle
+    const toggleBtn = document.getElementById('toggleAtivoBtn');
+    if (toggleBtn) {
+      const isActive = colaborador.isActive === 'Sim' || colaborador.isActive === true;
+      toggleBtn.textContent = isActive ? 'Desativar Colaborador' : 'Ativar Colaborador';
+      toggleBtn.setAttribute('data-ativo', isActive);
+      toggleBtn.className = isActive ? 'btn btn-danger' : 'btn btn-success';
+    }
+    
+    // Mostrar modal
+    const modal = document.getElementById('colaboradorDetailsModal');
+    if (modal) modal.style.display = 'block';
   }
 
   /**
@@ -630,21 +662,22 @@ class AdminModule {
   /**
    * Fecha o modal de detalhes do colaborador
    */
-  closeColaboradorModal() {
-    const modal = document.getElementById('colaboradorModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
+  closeColaboradorDetailsModal() {
+    uiService.closeModal('colaboradorDetailsModal');
   }
 
   /**
    * Fecha o modal de alteração de senha
    */
   closePasswordModal() {
-    const modal = document.getElementById('changePasswordModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
+    uiService.closeModal('changePasswordModal');
+  }
+
+  /**
+   * Fecha o modal de cadastro de colaborador
+   */
+  closeColaboradorModal() {
+    uiService.closeModal('colaboradorModal');
   }
 
   // RELATÓRIOS
@@ -735,6 +768,47 @@ class AdminModule {
       console.error('Erro ao formatar data:', error);
       return '-';
     }
+  }
+
+  /**
+   * Abre o modal para cadastro de setor
+   */
+  openSetorModal() {
+    // Limpar o formulário
+    const form = document.getElementById('setorForm');
+    if (form) form.reset();
+    
+    // Mostrar o modal
+    uiService.showModal('setorModal');
+  }
+
+  /**
+   * Abre o modal para cadastro de categoria
+   */
+  openCategoriaModal() {
+    // Limpar o formulário
+    const form = document.getElementById('categoriaForm');
+    if (form) form.reset();
+    
+    // Mostrar o modal
+    uiService.showModal('categoriaModal');
+  }
+
+  /**
+   * Abre o modal para cadastro de colaborador
+   */
+  openColaboradorModal() {
+    // Limpar o formulário
+    const form = document.getElementById('cadastroColaboradorForm');
+    if (form) form.reset();
+    
+    // Preencher o select de setores
+    this.loadSetores().then(() => {
+      this.updateSetoresDropdowns(this.setores);
+    });
+    
+    // Mostrar o modal
+    uiService.showModal('colaboradorModal');
   }
 }
 

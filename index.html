@@ -36,7 +36,7 @@
     </div>
     
     <div class="header-actions">
-      <button id="newTicketButton" class="btn btn-primary">
+      <button id="newTicketButton" class="header-action-btn">
         <i class="fas fa-plus"></i>
         <span class="btn-text">Novo Ticket</span>
       </button>
@@ -229,19 +229,19 @@
             <div class="tickets-summary">
               <div class="summary-item">
                 <span class="summary-label">Total</span>
-                <span class="stat-number">0</span>
+                <span id="recebidosTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Pendentes</span>
-                <span class="stat-number">0</span>
+                <span id="recebidosPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Em Andamento</span>
-                <span class="stat-number">0</span>
+                <span id="recebidosEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Resolvidos</span>
-                <span class="stat-number">0</span>
+                <span id="recebidosResolvidos" class="stat-number">0</span>
               </div>
             </div>
             
@@ -315,19 +315,19 @@
             <div class="tickets-summary">
               <div class="summary-item">
                 <span class="summary-label">Total</span>
-                <span class="stat-number">0</span>
+                <span id="criadosTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Pendentes</span>
-                <span class="stat-number">0</span>
+                <span id="criadosPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Em Andamento</span>
-                <span class="stat-number">0</span>
+                <span id="criadosEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Resolvidos</span>
-                <span class="stat-number">0</span>
+                <span id="criadosResolvidos" class="stat-number">0</span>
               </div>
             </div>
             
@@ -401,19 +401,19 @@
             <div class="tickets-summary">
               <div class="summary-item">
                 <span class="summary-label">Total</span>
-                <span class="stat-number">0</span>
+                <span id="departamentoTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Pendentes</span>
-                <span class="stat-number">0</span>
+                <span id="departamentoPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Em Andamento</span>
-                <span class="stat-number">0</span>
+                <span id="departamentoEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Resolvidos</span>
-                <span class="stat-number">0</span>
+                <span id="departamentoResolvidos" class="stat-number">0</span>
               </div>
             </div>
             
@@ -489,168 +489,81 @@
     
     <!-- Seção de Setores -->
     <section id="setoresSection" class="section-content admin-section">
-      <h1>Setores</h1>
+      <div class="section-header">
+        <h1>Setores</h1>
+        <button id="newSetorBtn" class="header-action-btn">
+          <i class="fas fa-plus"></i> Novo Setor
+        </button>
+      </div>
       
-      <ul class="tab-buttons">
-        <li class="tab-btn active" data-tab="listaSetores">Lista de Setores</li>
-        <li class="tab-btn" data-tab="novoSetor">Novo Setor</li>
-      </ul>
-      
-      <div class="tab-content">
-        <div class="tab-pane active" id="listaSetoresTab">
-          <div class="table-container">
-            <table class="data-table" id="setoresTable">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Os setores serão inseridos aqui via JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <div class="tab-pane" id="novoSetorTab">
-          <form id="setorForm" class="compact-form">
-            <div class="form-group">
-              <label for="nomeSetor">Nome do Setor</label>
-              <input type="text" id="nomeSetor" required>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Cadastrar</button>
-            </div>
-          </form>
-        </div>
+      <div class="table-container">
+        <table class="data-table" id="setoresTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Os setores serão inseridos aqui via JavaScript -->
+          </tbody>
+        </table>
       </div>
     </section>
     
     <!-- Seção de Categorias -->
     <section id="categoriasSection" class="section-content admin-section">
-      <h1>Categorias</h1>
+      <div class="section-header">
+        <h1>Categorias</h1>
+        <button id="newCategoriaBtn" class="header-action-btn">
+          <i class="fas fa-plus"></i> Nova Categoria
+        </button>
+      </div>
       
-      <ul class="tab-buttons">
-        <li class="tab-btn active" data-tab="listaCategorias">Lista de Categorias</li>
-        <li class="tab-btn" data-tab="novaCategoria">Nova Categoria</li>
-      </ul>
-      
-      <div class="tab-content">
-        <div class="tab-pane active" id="listaCategoriasTab">
-          <div class="table-container">
-            <table class="data-table" id="categoriasTable">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- As categorias serão inseridas aqui via JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <div class="tab-pane" id="novaCategoriaTab">
-          <form id="categoriaForm" class="compact-form">
-            <div class="form-group">
-              <label for="nomeCategoria">Nome da Categoria</label>
-              <input type="text" id="nomeCategoria" required>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Cadastrar</button>
-            </div>
-          </form>
-        </div>
+      <div class="table-container">
+        <table class="data-table" id="categoriasTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- As categorias serão inseridas aqui via JavaScript -->
+          </tbody>
+        </table>
       </div>
     </section>
     
     <!-- Seção de Colaboradores -->
     <section id="colaboradoresSection" class="section-content admin-section">
-      <h1>Colaboradores</h1>
+      <div class="section-header">
+        <h1>Colaboradores</h1>
+        <button id="newColaboradorBtn" class="header-action-btn">
+          <i class="fas fa-plus"></i> Novo Colaborador
+        </button>
+      </div>
       
-      <ul class="tab-buttons">
-        <li class="tab-btn active" data-tab="listaColaboradores">Lista de Colaboradores</li>
-        <li class="tab-btn" data-tab="novoColaborador">Novo Colaborador</li>
-      </ul>
-      
-      <div class="tab-content">
-        <div class="tab-pane active" id="listaColaboradoresTab">
-          <div class="table-container">
-            <table class="data-table" id="colaboradoresTable">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome</th>
-                  <th>Setor</th>
-                  <th>Ativo</th>
-                  <th>Data de Cadastro</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Os colaboradores serão inseridos aqui via JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-        
-        <div class="tab-pane" id="novoColaboradorTab">
-          <form id="cadastroColaboradorForm" class="form-grid">
-            <div class="form-group">
-              <label for="nomeColaborador">Nome</label>
-              <input type="text" id="nomeColaborador" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="sobrenomeColaborador">Sobrenome</label>
-              <input type="text" id="sobrenomeColaborador">
-            </div>
-            
-            <div class="form-group">
-              <label for="emailColaborador">E-mail</label>
-              <input type="email" id="emailColaborador" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="setorColaborador">Setor</label>
-              <select id="setorColaborador" required>
-                <!-- Os setores serão inseridos aqui via JavaScript -->
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="senhaColaborador">Senha</label>
-              <input type="password" id="senhaColaborador" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="isAdminColaborador">Administrador</label>
-              <select id="isAdminColaborador" required>
-                <option value="false">Não</option>
-                <option value="true">Sim</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label for="ativoColaborador">Ativo</label>
-              <select id="ativoColaborador" required>
-                <option value="true">Sim</option>
-                <option value="false">Não</option>
-              </select>
-            </div>
-            
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Cadastrar</button>
-            </div>
-          </form>
-        </div>
+      <div class="table-container">
+        <table class="data-table" id="colaboradoresTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Setor</th>
+              <th>Ativo</th>
+              <th>Data de Cadastro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Os colaboradores serão inseridos aqui via JavaScript -->
+          </tbody>
+        </table>
       </div>
     </section>
 
     <!-- Modal de Detalhes do Colaborador -->
-    <div class="modal" id="colaboradorModal">
+    <div class="modal" id="colaboradorDetailsModal">
       <div class="modal-content">
         <div class="modal-header">
           <h2>Detalhes do Colaborador</h2>
@@ -860,6 +773,117 @@
   <!-- Overlay de Carregamento -->
   <div class="loading-overlay" id="loadingOverlay" style="display: none;">
     <div class="spinner"></div>
+  </div>
+
+  <!-- Modal para cadastro de Setor -->
+  <div class="modal" id="setorModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Setor</h2>
+        <button class="close-btn" data-close-modal="setorModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="setorForm" class="compact-form">
+          <div class="form-group">
+            <label for="nomeSetor">Nome do Setor</label>
+            <input type="text" id="nomeSetor" placeholder="Digite o nome do setor" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="setorModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para cadastro de Categoria -->
+  <div class="modal" id="categoriaModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Nova Categoria</h2>
+        <button class="close-btn" data-close-modal="categoriaModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="categoriaForm" class="compact-form">
+          <div class="form-group">
+            <label for="nomeCategoria">Nome da Categoria</label>
+            <input type="text" id="nomeCategoria" placeholder="Digite o nome da categoria" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="categoriaModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para cadastro de Colaborador -->
+  <div class="modal" id="colaboradorModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Colaborador</h2>
+        <button class="close-btn" data-close-modal="colaboradorModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="cadastroColaboradorForm" class="form-grid">
+          <div class="form-group">
+            <label for="nomeColaborador">Nome</label>
+            <input type="text" id="nomeColaborador" placeholder="Digite o nome do colaborador" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="sobrenomeColaborador">Sobrenome</label>
+            <input type="text" id="sobrenomeColaborador" placeholder="Digite o sobrenome">
+          </div>
+          
+          <div class="form-group">
+            <label for="emailColaborador">E-mail</label>
+            <input type="email" id="emailColaborador" placeholder="Digite o e-mail" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="setorColaborador">Setor</label>
+            <select id="setorColaborador" required>
+              <!-- Os setores serão inseridos aqui via JavaScript -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="senhaColaborador">Senha</label>
+            <input type="password" id="senhaColaborador" placeholder="Digite a senha" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="isAdminColaborador">Administrador</label>
+            <select id="isAdminColaborador" required>
+              <option value="false">Não</option>
+              <option value="true">Sim</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="ativoColaborador">Ativo</label>
+            <select id="ativoColaborador" required>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="colaboradorModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- JavaScript da aplicação -->

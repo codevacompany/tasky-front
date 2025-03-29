@@ -40,6 +40,15 @@ function setupGlobalEvents() {
   // Configurar logo inicial baseada no tema atual
   updateLogoBasedOnTheme();
   
+  // Configuração geral para fechamento de modais
+  document.addEventListener('click', function(e) {
+    const closeModalBtn = e.target.closest('[data-close-modal]');
+    if (closeModalBtn) {
+      const modalId = closeModalBtn.getAttribute('data-close-modal');
+      uiService.closeModal(modalId);
+    }
+  });
+  
   // Função para atualizar a logo baseada no tema
   function updateLogoBasedOnTheme() {
     const isDarkMode = document.body.classList.contains('dark-mode');
@@ -215,6 +224,10 @@ window.addEventListener('online', () => {
 // window.addEventListener('offline', () => {
 //   uiService.showOfflineBanner();
 // });
+
+// Exportar módulos para acesso global
+window.ticketModule = ticketModule;
+window.adminModule = adminModule;
 
 // Inicialização da aplicação
 async function initApp() {

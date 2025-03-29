@@ -116,6 +116,95 @@ class FormatUtils {
       return '<i class="fas fa-info-circle"></i>';
     }
   }
+
+  /**
+   * Formata uma data para o formato local (dd/mm/aaaa hh:mm)
+   * @param {string} dateString - String de data no formato ISO
+   * @returns {string} - Data formatada
+   */
+  formatDate(dateString) {
+    if (!dateString) return "N/A";
+    
+    try {
+      const date = new Date(dateString);
+      
+      if (isNaN(date.getTime())) {
+        return "Data inválida";
+      }
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return "Erro";
+    }
+  }
+  
+  /**
+   * Formata um prazo, destacando se estiver vencido
+   * @param {string} dateString - String de data no formato ISO
+   * @returns {string} - HTML formatado com o prazo
+   */
+  formatDeadline(dateString) {
+    if (!dateString) return "<span>Sem prazo</span>";
+    
+    try {
+      const deadline = new Date(dateString);
+      
+      if (isNaN(deadline.getTime())) {
+        return "<span>Data inválida</span>";
+      }
+      
+      const now = new Date();
+      const isExpired = deadline < now;
+      
+      const formattedDate = this.formatDate(dateString);
+      
+      if (isExpired) {
+        return `<span class="expired-deadline">${formattedDate}</span>`;
+      } else {
+        return `<span class="valid-deadline">${formattedDate}</span>`;
+      }
+    } catch (error) {
+      console.error("Erro ao formatar prazo:", error);
+      return "<span>Erro</span>";
+    }
+  }
+  
+  /**
+   * Formata um número para exibição com separadores de milhar
+   * @param {number} number - Número a ser formatado
+   * @returns {string} - Número formatado
+   */
+  formatNumber(number) {
+    if (number === undefined || number === null) return "0";
+    
+    try {
+      return number.toLocaleString('pt-BR');
+    } catch (error) {
+      console.error("Erro ao formatar número:", error);
+      return "Erro";
+    }
+  }
+  
+  /**
+   * Trunca um texto longo, adicionando "..." ao final
+   * @param {string} text - Texto a ser truncado
+   * @param {number} maxLength - Comprimento máximo
+   * @returns {string} - Texto truncado
+   */
+  truncateText(text, maxLength = 50) {
+    if (!text) return "";
+    
+    if (text.length <= maxLength) return text;
+    
+    return text.substring(0, maxLength) + "...";
+  }
 }
 
 // Exporta uma instância única

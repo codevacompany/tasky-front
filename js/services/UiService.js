@@ -74,6 +74,7 @@ class UiService {
         e.preventDefault();
         
         const section = link.getAttribute('data-section');
+        console.log('Navegação para seção:', section);
         
         // Especial para links de admin
         if (link.classList.contains('admin-menu-item')) {
@@ -118,8 +119,13 @@ class UiService {
     
     // Mapeamento de seções
     const sectionMap = {
-      'reports': 'relatorios',
-      'users': 'colaboradores'
+      'relatorios': 'relatorios',
+      'colaboradores': 'colaboradores',
+      'usuarios': 'colaboradores',
+      'setores': 'setores',
+      'categorias': 'categorias',
+      'dashboard': 'dashboard',
+      'tickets': 'tickets'
     };
     
     // Usar o mapeamento se necessário
@@ -137,18 +143,30 @@ class UiService {
     const sectionElement = document.getElementById(`${sectionId}Section`);
     if (sectionElement) {
       sectionElement.style.display = 'block';
+      sectionElement.classList.add('active');
       
-      // Notificar o módulo de admin sobre a mudança
-      if (window.adminModule) {
-        window.adminModule.loadAdminSectionData(sectionId);
-      } else {
-        console.warn('AdminModule não disponível para carregar dados da seção', sectionId);
-        // Importar dinamicamente
-        import('../modules/AdminModule.js').then(module => {
-          module.adminModule.loadAdminSectionData(sectionId);
-        }).catch(error => {
-          console.error('Erro ao importar AdminModule:', error);
-        });
+      // Notificar o módulo apropriado sobre a mudança
+      try {
+        if (sectionId === 'dashboard' || sectionId === 'tickets') {
+          // Para dashboard e tickets usamos outros módulos
+          if (sectionId === 'dashboard' && window.adminModule) {
+            window.adminModule.loadAdminSectionData('dashboard');
+          } else if (sectionId === 'tickets' && window.ticketModule) {
+            window.ticketModule.carregarTicketsIniciais();
+          }
+        } else if (window.adminModule) {
+          // Para seções administrativas usamos adminModule
+          window.adminModule.loadAdminSectionData(sectionId);
+        } else {
+          // Importar dinamicamente se necessário
+          import('../modules/AdminModule.js').then(module => {
+            module.adminModule.loadAdminSectionData(sectionId);
+          }).catch(error => {
+            console.error('Erro ao importar AdminModule:', error);
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados da seção:', error);
       }
     } else {
       console.error(`Seção não encontrada: ${sectionId}Section`);
@@ -160,16 +178,32 @@ class UiService {
    * @param {string} sectionId - ID da seção a ser mostrada
    */
   showSection(sectionId) {
+    console.log('Mostrando seção:', sectionId);
+    
     // Esconder todas as seções
     document.querySelectorAll('.section-content').forEach(section => {
       section.classList.remove('active');
+      section.style.display = 'none';
     });
 
     // Mostrar a seção selecionada
     const section = document.getElementById(`${sectionId}Section`);
     if (section) {
       section.classList.add('active');
+      section.style.display = 'block';
       this.activeSection = sectionId;
+      
+      // Se for a seção de tickets, acionar carregamento de tickets
+      if (sectionId === 'tickets' && window.ticketModule) {
+        window.ticketModule.carregarTicketsIniciais();
+      }
+      
+      // Se for dashboard, atualizar estatísticas
+      if (sectionId === 'dashboard' && window.adminModule) {
+        window.adminModule.updateDashboardStats();
+      }
+    } else {
+      console.error(`Seção não encontrada: ${sectionId}Section`);
     }
   }
 
@@ -450,46 +484,26 @@ class UiService {
   }
 
   /**
-   * Mostra um modal específico
-   * @param {string} modalId - ID do modal a ser exibido
+   * Mostra um modal específico pelo ID
+   * @param {string} modalId - ID do modal a ser mostrado
    */
   showModal(modalId) {
-    console.log(`Tentando mostrar modal: ${modalId}`);
-    
     const modal = document.getElementById(modalId);
     if (modal) {
-      console.log(`Modal encontrado: ${modalId}`);
-      modal.classList.add('show');
-      document.body.classList.add('modal-open');
-      
-      // Focar no primeiro campo de entrada, se houver
-      const firstInput = modal.querySelector('input, textarea, select');
-      if (firstInput) {
-        console.log(`Focando primeiro campo do modal: ${modalId}`);
-        setTimeout(() => {
-          firstInput.focus();
-        }, 100);
-      }
+      modal.style.display = 'block';
     } else {
       console.error(`Modal não encontrado: ${modalId}`);
     }
   }
 
   /**
-   * Fecha um modal específico
+   * Fecha um modal específico pelo ID
    * @param {string} modalId - ID do modal a ser fechado
    */
   closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-      modal.classList.remove('show');
-      document.body.classList.remove('modal-open');
-      
-      // Resetar formulários dentro do modal
-      const form = modal.querySelector('form');
-      if (form) {
-        form.reset();
-      }
+      modal.style.display = 'none';
     }
   }
 
