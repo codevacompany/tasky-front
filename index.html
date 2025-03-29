@@ -1,836 +1,487 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tasky - Sistema de Gerenciamento de Tickets</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <!-- Seção de Login -->
-    <div id="loginSection" class="container">
-      <div class="login-card">
-        <img src="/images/tasky.png" alt="Logo" class="logo" />
-        <form id="loginForm">
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasky - Sistema de Gestão de Chamados</title>
+  
+  <!-- Font Awesome para ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  
+  <!-- CSS da aplicação -->
+  <link rel="stylesheet" href="css/main.css">
+  
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="main-header" id="mainHeader" style="display: none;">
+    <div class="header-logo">
+      <img src="./img/tasky.png" alt="Tasky Logo" class="logo">
+      <span class="logo-text">Tasky</span>
+    </div>
+    
+    <div class="header-nav">
+      <nav class="main-nav">
+        <ul>
+          <li><a href="#dashboard" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+          <li><a href="#tickets" data-section="tickets"><i class="fas fa-ticket-alt"></i> Tickets</a></li>
+          <li class="admin-only"><a href="#reports" data-section="reports"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+          <li class="admin-only"><a href="#users" data-section="users"><i class="fas fa-users"></i> Usuários</a></li>
+          <li class="admin-only"><a href="#settings" data-section="settings"><i class="fas fa-cog"></i> Configurações</a></li>
+        </ul>
+      </nav>
+    </div>
+    
+    <div class="header-actions">
+      <button id="newTicketButton" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        <span class="btn-text">Novo Ticket</span>
+      </button>
+      
+      <div class="notification-icon" id="notificationButton">
+        <i class="far fa-bell"></i>
+        <span class="notification-badge" id="notificationBadge">0</span>
+      </div>
+      
+      <div class="user-profile" id="profileButton">
+        <img src="./img/user-placeholder.jpg" alt="Perfil" class="user-avatar" id="userAvatar">
+        <span class="user-name" id="userName">Usuário</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      
+      <button id="darkModeToggle" class="btn-icon dark-mode-toggle">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Seção de Login -->
+  <section id="loginSection" class="login-section">
+    <div class="login-container">
+      <div class="login-header">
+        <img src="./img/tasky.png" alt="Tasky Logo" class="login-logo">
+      </div>
+      
+      <div class="login-form-container">
+        <form id="loginForm" class="login-form">
           <div class="form-group">
-            <label for="emailLogin">Email:</label>
-            <input
-              type="text"
-              id="emailLogin"
-              placeholder="Digite seu nome"
-              required
-            />
+            <label for="loginEmail">E-mail</label>
+            <div class="input-group">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="loginEmail" placeholder="Seu e-mail" required>
+            </div>
           </div>
+          
           <div class="form-group">
-            <label for="senhaLogin">Senha:</label>
-            <input
-              type="password"
-              id="senhaLogin"
-              placeholder="Digite sua senha"
-              required
-            />
+            <label for="loginPassword">Senha</label>
+            <div class="input-group">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="loginPassword" placeholder="Sua senha" required>
+            </div>
           </div>
-          <button type="submit">Entrar</button>
+          
+          <div class="form-actions">
+            <div class="remember-me">
+              <input type="checkbox" id="rememberMe">
+              <label for="rememberMe">Lembrar-me</label>
+            </div>
+            <a href="#" class="forgot-password">Esqueceu a senha?</a>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        </form>
+      </div>
+      
+      <div class="login-footer">
+        <p>Não tem uma conta? <a href="#" id="registerLink">Cadastre-se</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content" id="mainContent" style="display: none;">
+    <!-- Dashboard -->
+    <section id="dashboardSection" class="section-content active">
+      <h1>Dashboard</h1>
+      
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-ticket-alt"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total de Tickets</h3>
+            <p id="totalTicketsCount">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Pendentes</h3>
+            <p id="pendingTicketsCount">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fas fa-spinner"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Em Andamento</h3>
+            <p id="inProgressTicketsCount">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Resolvidos</h3>
+            <p id="resolvedTicketsCount">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dashboard-row">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>Últimos Tickets</h2>
+            <a href="#tickets" class="card-action">Ver todos</a>
+          </div>
+          <div class="card-content">
+            <div id="latestTicketsList" class="latest-tickets">
+              <!-- Os tickets serão inseridos aqui via JavaScript -->
+              <div class="empty-state">
+                <i class="fas fa-ticket-alt"></i>
+                <p>Nenhum ticket criado recentemente</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>Atividade Recente</h2>
+          </div>
+          <div class="card-content">
+            <div id="activityList" class="activity-list">
+              <!-- As atividades serão inseridas aqui via JavaScript -->
+              <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>Nenhuma atividade recente</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Tickets -->
+    <section id="ticketsSection" class="section-content">
+      <h1>Tickets</h1>
+      
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="recebidos">Recebidos</button>
+          <button class="tab-btn" data-tab="criados">Criados por Mim</button>
+          <button class="tab-btn" data-tab="departamento">Meu Departamento</button>
+        </div>
+        
+        <div class="tab-content">
+          <div class="tab-pane active" id="recebidosTab">
+            <div class="ticket-filters">
+              <div class="filter-group">
+                <label for="statusFilter">Status:</label>
+                <select id="statusFilter">
+                  <option value="all">Todos</option>
+                  <option value="pendente">Pendentes</option>
+                  <option value="em_andamento">Em Andamento</option>
+                  <option value="resolvido">Resolvidos</option>
+                  <option value="cancelado">Cancelados</option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="priorityFilter">Prioridade:</label>
+                <select id="priorityFilter">
+                  <option value="all">Todas</option>
+                  <option value="baixa">Baixa</option>
+                  <option value="media">Média</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+              
+              <div class="search-group">
+                <input type="text" id="searchTickets" placeholder="Buscar tickets...">
+                <button class="btn-icon">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="tickets-table-container">
+              <table class="tickets-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Prioridade</th>
+                    <th>Status</th>
+                    <th>Data Criação</th>
+                    <th>Prazo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsRecebidosTable">
+                  <!-- Os tickets serão inseridos aqui via JavaScript -->
+                </tbody>
+              </table>
+              <div id="noTicketsRecebidos" class="no-tickets-message" style="display: none;">
+                <i class="fas fa-ticket-alt"></i>
+                <p>Nenhum ticket encontrado</p>
+              </div>
+            </div>
+            
+            <div class="pagination">
+              <button class="pagination-btn" id="prevPage">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <span id="paginationInfo">Página 1 de 1</span>
+              <button class="pagination-btn" id="nextPage">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="tab-pane" id="criadosTab">
+            <!-- Conteúdo similar ao tab de recebidos, mas para tickets criados pelo usuário -->
+            <div id="ticketsCriadosTable">
+              <!-- Os tickets serão inseridos aqui via JavaScript -->
+            </div>
+          </div>
+          
+          <div class="tab-pane" id="departamentoTab">
+            <!-- Conteúdo similar ao tab de recebidos, mas para tickets do departamento -->
+            <div id="ticketsDepartamentoTable">
+              <!-- Os tickets serão inseridos aqui via JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Relatórios (Admin) -->
+    <section id="reportsSection" class="section-content admin-section">
+      <h1>Relatórios</h1>
+      <!-- Conteúdo dos relatórios -->
+    </section>
+    
+    <!-- Usuários (Admin) -->
+    <section id="usersSection" class="section-content admin-section">
+      <h1>Gerenciamento de Usuários</h1>
+      <!-- Conteúdo do gerenciamento de usuários -->
+    </section>
+    
+    <!-- Configurações (Admin) -->
+    <section id="settingsSection" class="section-content admin-section">
+      <h1>Configurações do Sistema</h1>
+      <!-- Conteúdo das configurações -->
+    </section>
+  </main>
+
+  <!-- Modal de Detalhes do Ticket -->
+  <div class="modal" id="ticketDetailsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Detalhes do Ticket</h2>
+        <button class="close-btn" data-close-modal="ticketDetailsModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="ticketDetailsContent">
+        <!-- O conteúdo do ticket será inserido aqui via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Novo Ticket -->
+  <div class="modal" id="newTicketModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Ticket</h2>
+        <button class="close-btn" data-close-modal="newTicketModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="newTicketForm">
+          <div class="form-group">
+            <label for="ticketTitle">Título</label>
+            <input type="text" id="ticketTitle" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="ticketDepartment">Departamento</label>
+            <select id="ticketDepartment" required>
+              <!-- As opções serão inseridas aqui via JavaScript -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="ticketCategory">Categoria</label>
+            <select id="ticketCategory" required>
+              <!-- As opções serão inseridas aqui via JavaScript -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="ticketPriority">Prioridade</label>
+            <select id="ticketPriority" required>
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="ticketDeadline">Prazo</label>
+            <input type="date" id="ticketDeadline">
+          </div>
+          
+          <div class="form-group">
+            <label for="ticketDescription">Descrição</label>
+            <textarea id="ticketDescription" rows="5" required></textarea>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal="newTicketModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Criar Ticket</button>
+          </div>
         </form>
       </div>
     </div>
+  </div>
 
-    <!-- Conteúdo Principal -->
-    <div id="mainContent" style="display: none">
-      <!-- Header -->
-      <header>
-        <div class="header-left">
-          <img src="/images/tasky.png" alt="Logo" class="logo" />
-        </div>
-        <div class="header-actions">
-          <div class="notification">
-            <i class="fas fa-bell"></i>
-            <span id="notificationCount" class="badge">0</span>
-          </div>
-          <button class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Sair</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Menu e Conteúdo do Admin -->
-      <div id="adminMenuContainer" style="display: none">
-        <!-- Menu Lateral -->
-        <nav id="adminMenu" class="admin-menu">
-          <h3 id="adminGreeting" class="admin-greeting">Olá, Administrador!</h3>
-          <ul>
-            <li class="menu-item active" data-section="inicio">
-              <i class="fas fa-home"></i>
-              <span>Início</span>
-            </li>
-            <li class="menu-item" data-section="toggleSubmenu">
-              <i class="fas fa-users"></i>
-              <span>Cadastros</span>
-              <i class="fas fa-chevron-down"></i>
-            </li>
-            <ul class="submenu">
-              <li data-section="cadastroColaboradores">
-                <i class="fas fa-user-plus"></i>
-                <span>Novo Colaborador</span>
-              </li>
-              <li data-section="colaboradores">
-                <i class="fas fa-users"></i>
-                <span>Colaboradores</span>
-              </li>
-              <li data-section="setores">
-                <i class="fas fa-building"></i>
-                <span>Setores</span>
-              </li>
-              <li data-section="categorias">
-                <i class="fas fa-tags"></i>
-                <span>Categorias</span>
-              </li>
-            </ul>
-            <li class="menu-item" data-section="relatorios">
-              <i class="fas fa-chart-line"></i>
-              <span>Relatórios</span>
-            </li>
-          </ul>
-        </nav>
-
-        <!-- Conteúdo do Admin -->
-        <div id="adminContent">
-          <!-- Seção de Início -->
-          <div id="inicioSection" class="admin-section">
-            <div class="greeting-container">
-              <div class="greeting-content">
-                <i class="fas fa-tachometer-alt"></i>
-                <div>
-                  <h2>Olá, Administrador!</h2>
-                  <p>
-                    Gerencie tickets, colaboradores, setores e acompanhe todas
-                    as atualizações do sistema
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="dashboard-grid">
-              <div class="stat-card">
-                <i class="fas fa-ticket-alt"></i>
-                <div class="stat-title">Total de Tickets</div>
-                <div class="stat-number" id="totalTicketsAdmin">0</div>
-              </div>
-
-              <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <div class="stat-title">Colaboradores</div>
-                <div class="stat-number" id="totalColaboradores">0</div>
-              </div>
-
-              <div class="stat-card">
-                <i class="fas fa-building"></i>
-                <div class="stat-title">Setores</div>
-                <div class="stat-number" id="totalSetores">0</div>
-              </div>
-
-              <div class="stat-card">
-                <i class="fas fa-clock"></i>
-                <div class="stat-title">Tickets Pendentes</div>
-                <div class="stat-number" id="ticketsPendentes">0</div>
-              </div>
-            </div>
-
-            <div class="report-section">
-              <h3>
-                <i class="fas fa-history"></i>
-                Últimas Atualizações
-              </h3>
-              <div id="ultimasAtualizacoes" class="update-container">
-                <!-- As atualizações serão inseridas dinamicamente via JavaScript -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Seção de Cadastro de Colaboradores -->
-          <div id="cadastroColaboradoresSection" class="admin-section">
-            <div class="card">
-              <h2><i class="fas fa-user-plus"></i> Cadastrar Colaborador</h2>
-              <form id="cadastroColaboradorForm">
-                <div class="form-group full-width">
-                  <label for="nomeColaborador">Nome:</label>
-                  <input
-                    type="text"
-                    id="nomeColaborador"
-                    placeholder="Digite seu nome"
-                    required
-                  />
-                </div>
-                <div class="form-group full-width">
-                  <label for="sobrenomeColaborador">Sobrenome:</label>
-                  <input
-                    type="text"
-                    id="sobrenomeColaborador"
-                    placeholder="Digite seu sobrenome"
-                    required
-                  />
-                </div>
-                <div class="form-group full-width">
-                  <label for="emailColaborador">Email:</label>
-                  <input
-                    type="text"
-                    id="emailColaborador"
-                    placeholder="Digite seu email"
-                    required
-                  />
-                </div>
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label for="setorColaborador">Setor:</label>
-                    <select id="setorColaborador" required></select>
-                  </div>
-                  <div class="form-group">
-                    <label for="senhaColaborador">Senha:</label>
-                    <input
-                      type="password"
-                      id="senhaColaborador"
-                      placeholder="Digite a senha"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="isAdminColaborador">Administrador:</label>
-                    <select id="isAdminColaborador">
-                      <option value="false">Não</option>
-                      <option value="true">Sim</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label for="ativoColaborador">Ativo:</label>
-                    <select id="ativoColaborador">
-                      <option value="true">Sim</option>
-                      <option value="false">Não</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="button-group">
-                  <button type="submit">Cadastrar</button>
-                  <button type="reset">Limpar</button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Seção de Lista de Colaboradores -->
-          <div id="colaboradoresSection" class="admin-section">
-            <div class="card">
-              <h2><i class="fas fa-users"></i> Lista de Colaboradores</h2>
-              <div class="table-container">
-                <table id="colaboradoresTable">
-                  <thead>
-                    <tr>
-                      <th><i class="fas fa-hashtag"></i><span>ID</span></th>
-                      <th>
-                        <i class="fas fa-ticket-alt"></i><span>Nome</span>
-                      </th>
-                      <th>
-                        <i class="fas fa-exclamation-circle"></i
-                        ><span>Setor</span>
-                      </th>
-                      <th><i class="fas fa-tag"></i><span>Ativo</span></th>
-                      <th>
-                        <i class="fas fa-calendar-alt"></i
-                        ><span>Data de Cadastro</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Seção de Setores -->
-          <div id="setoresSection" class="admin-section">
-            <div class="card">
-              <h2><i class="fas fa-building"></i> Lista de Setores</h2>
-              <button class="add-btn" id="toggleSetorForm">
-                Adicionar Setor
-              </button>
-              <form id="setorForm" style="display: none">
-                <div class="form-group">
-                  <label for="nomeSetor">Nome do Setor:</label>
-                  <input
-                    type="text"
-                    id="nomeSetor"
-                    placeholder="Digite o nome do setor"
-                    required
-                  />
-                </div>
-                <div class="button-group">
-                  <button type="submit">Cadastrar</button>
-                  <button type="button" onclick="toggleSetorForm()">
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-              <div class="table-container">
-                <table id="setoresTable">
-                  <thead>
-                    <tr>
-                      <th><i class="fas fa-hashtag"></i><span>ID</span></th>
-                      <th>
-                        <i class="fas fa-ticket-alt"></i><span>Nome</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Seção de Categorias -->
-          <div id="categoriasSection" class="admin-section">
-            <div class="card">
-              <h2><i class="fas fa-tags"></i> Lista de Categorias</h2>
-              <button class="add-btn" onclick="toggleCategoriaForm()">
-                Adicionar Categoria
-              </button>
-              <form id="categoriaForm" style="display: none">
-                <div class="form-group">
-                  <label for="nomeCategoria">Nome da Categoria:</label>
-                  <input
-                    type="text"
-                    id="nomeCategoria"
-                    placeholder="Digite o nome da categoria"
-                    required
-                  />
-                </div>
-                <div class="button-group">
-                  <button type="submit">Cadastrar</button>
-                  <button type="button" onclick="toggleCategoriaForm()">
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-              <div class="table-container">
-                <table id="categoriasTable">
-                  <thead>
-                    <tr>
-                      <th><i class="fas fa-hashtag"></i><span>ID</span></th>
-                      <th>
-                        <i class="fas fa-ticket-alt"></i><span>Nome</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Seção de Relatórios -->
-          <div id="relatoriosSection" class="admin-section">
-            <div class="card">
-              <div class="report-section">
-                <h3>
-                  <i class="fas fa-history"></i>
-                  Histórico de Atualizações
-                </h3>
-                <div id="historicoAtualizacoes" class="update-container">
-                  <!-- O histórico será inserido dinamicamente via JavaScript -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <!-- Modal de Perfil -->
+  <div class="modal" id="profileModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Meu Perfil</h2>
+        <button class="close-btn" data-close-modal="profileModal">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-
-      <!-- Conteúdo do Usuário -->
-      <div id="userContent">
-        <!-- Menu Lateral -->
-        <nav id="userMenu">
-          <p class="user-greeting" id="userGreeting">Olá!</p>
-          <ul>
-            <li class="menu-item active" data-section="novoTicket">
-              <i class="fas fa-plus-circle"></i>
-              <span>Novo Ticket</span>
-            </li>
-            <li class="menu-item" data-section="toggleSubmenu">
-              <i class="fas fa-ticket-alt"></i>
-              <span>Meus Tickets</span>
-              <i class="fas fa-chevron-down"></i>
-            </li>
-            <ul class="submenu">
-              <li data-section="ticketsRecebidos">
-                <i class="fas fa-inbox"></i>
-                <span>Recebidos</span>
-              </li>
-              <li data-section="ticketsCriados">
-                <i class="fas fa-paper-plane"></i>
-                <span>Criados</span>
-              </li>
-            </ul>
-            <li class="menu-item" data-section="ticketsSetor">
-              <i class="fas fa-building"></i>
-              <span>Tickets do Setor</span>
-            </li>
-          </ul>
-        </nav>
-
-        <!-- Conteúdo Principal do Usuário -->
-        <div id="userMainContent">
-          <!-- Seção Novo Ticket -->
-          <div id="novoTicketSection" class="user-section">
-            <div class="welcome-card">
-              <i class="fas fa-plus-circle fa-3x"></i>
-              <h2>Novo Ticket</h2>
-              <p>Crie um novo ticket de suporte para sua solicitação</p>
-            </div>
-
-            <div class="novo-ticket-container">
-              <div class="ticket-form-container">
-                <form id="ticketForm">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="nome">Assunto:</label>
-                      <input type="text" id="nome" placeholder="Digite o assunto do ticket" required />
-                    </div>
-                    <div class="form-group">
-                      <label for="prioridade">Prioridade:</label>
-                      <select id="prioridade" required>
-                        <option value="Baixa">Baixa</option>
-                        <option value="Média">Média</option>
-                        <option value="Alta">Alta</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="setorDestino">Setor Destino:</label>
-                      <select id="setorDestino" required></select>
-                    </div>
-                    <div class="form-group">
-                      <label for="usuarioDestino">Usuário Destino:</label>
-                      <select id="usuarioDestino" required></select>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="descricao">Descrição:</label>
-                    <textarea id="descricao" placeholder="Descreva o ticket" rows="4" required></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="conclusao">Data de Conclusão:</label>
-                    <input type="datetime-local" id="conclusao" />
-                  </div>
-                  <div class="button-group">
-                    <button type="reset" class="btn-secondary">Limpar</button>
-                    <button type="submit" class="btn-primary">Enviar</button>
-                  </div>
-                </form>
-              </div>
-              <div class="ultimos-tickets-container">
-                <div class="ultimos-tickets-header">
-                  <h2>Últimos Tickets Criados</h2>
-                </div>
-                <div class="ultimos-tickets-list">
-                  <!-- Os tickets serão inseridos aqui dinamicamente -->
-                </div>
-              </div>
+      <div class="modal-body">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <img src="./img/user-placeholder.jpg" alt="Avatar" id="profileAvatar">
+            <div class="avatar-upload">
+              <i class="fas fa-camera"></i>
             </div>
           </div>
-
-          <!-- Seção Tickets Recebidos -->
-          <div id="ticketsRecebidosSection" class="user-section" style="display: none;">
-            <div class="welcome-card">
-              <i class="fas fa-inbox fa-3x"></i>
-              <h2>Tickets Recebidos</h2>
-              <p>Visualize e gerencie os tickets atribuídos a você</p>
-            </div>
-
-            <div class="tickets-summary">
-              <div class="summary-item">
-                <i class="fas fa-ticket-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Total</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-clock"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Pendentes</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-sync-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Em Andamento</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-check-circle"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Resolvidos</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="table-container">
-              <table id="ticketsRecebidosTable">
-                <thead>
-                  <tr>
-                    <th><i class="fas fa-hashtag"></i>ID</th>
-                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
-                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
-                    <th><i class="fas fa-tag"></i>Status</th>
-                    <th><i class="fas fa-user"></i>Solicitante</th>
-                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
-                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
-                    <th><i class="fas fa-clock"></i>Prazo</th>
-                    <th><i class="fas fa-cog"></i>Ações</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Seção Tickets Criados -->
-          <div id="ticketsCriadosSection" class="user-section" style="display: none;">
-            <div class="welcome-card">
-              <i class="fas fa-paper-plane fa-3x"></i>
-              <h2>Tickets Criados</h2>
-              <p>Acompanhe os tickets que você criou</p>
-            </div>
-
-            <div class="tickets-summary">
-              <div class="summary-item">
-                <i class="fas fa-ticket-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Total</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-clock"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Pendentes</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-sync-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Em Andamento</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-check-circle"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Resolvidos</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="table-container">
-              <table id="ticketsCriadosTable">
-                <thead>
-                  <tr>
-                    <th><i class="fas fa-hashtag"></i>ID</th>
-                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
-                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
-                    <th><i class="fas fa-tag"></i>Status</th>
-                    <th><i class="fas fa-user"></i>Atribuído/Setor</th>
-                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
-                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
-                    <th><i class="fas fa-clock"></i>Prazo</th>
-                    <th><i class="fas fa-cog"></i>Ações</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Seção Tickets do Setor -->
-          <div id="ticketsSetorSection" class="user-section" style="display: none;">
-            <div class="welcome-card">
-              <i class="fas fa-building fa-3x"></i>
-              <h2>Tickets do Setor</h2>
-              <p>Visualize e gerencie os tickets do seu setor</p>
-            </div>
-
-            <div class="tickets-summary">
-              <div class="summary-item">
-                <i class="fas fa-ticket-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Total</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-clock"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Pendentes</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-sync-alt"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Em Andamento</span>
-                </div>
-              </div>
-              <div class="summary-item">
-                <i class="fas fa-check-circle"></i>
-                <div class="summary-info">
-                  <span class="stat-number">0</span>
-                  <span class="stat-label">Resolvidos</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="table-container">
-              <table id="ticketsSetor">
-                <thead>
-                  <tr>
-                    <th><i class="fas fa-hashtag"></i>ID</th>
-                    <th><i class="fas fa-ticket-alt"></i>Assunto</th>
-                    <th><i class="fas fa-exclamation-circle"></i>Prioridade</th>
-                    <th><i class="fas fa-tag"></i>Status</th>
-                    <th><i class="fas fa-user"></i>Solicitante</th>
-                    <th><i class="fas fa-calendar-alt"></i>Criação</th>
-                    <th><i class="fas fa-calendar-check"></i>Conclusão</th>
-                    <th><i class="fas fa-clock"></i>Prazo</th>
-                    <th><i class="fas fa-cog"></i>Ações</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
+          <div class="profile-info">
+            <h3 id="profileName">Nome do Usuário</h3>
+            <p id="profileRole">Cargo / Departamento</p>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Modal de Detalhes do Ticket -->
-    <div id="ticketModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Detalhes do Ticket</h2>
-          <button class="close">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div id="ticketDetails"></div>
-          
-          <div class="updates-section">
-            <h3><i class="fas fa-comments"></i> Atualizações</h3>
-            <div id="atualizacoes"></div>
-            
-            <div class="comment-form">
-              <textarea id="novoComentario" placeholder="Digite seu comentário..."></textarea>
-              <button onclick="chamadosSystem.enviarComentario()">
-                <i class="fas fa-paper-plane"></i>
-                Enviar Comentário
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Notificações -->
-    <div id="notificationModal" class="modal">
-      <div class="modal-content notification-modal">
-        <span class="close-notification">&times;</span>
-        <div class="notification-header">
-          <div class="left-section">
-            <i class="fas fa-bell"></i>
-            <h2>Notificações</h2>
-          </div>
-        </div>
-        <div id="notificationList" class="notification-list">
-          <!-- Exemplo de notificação -->
-          <div class="notification-item">
-            <i class="fas fa-ticket-alt"></i>
-            <div class="notification-content">
-              <div class="notification-title">Novo ticket criado</div>
-              <div class="notification-message">O ticket #123 foi criado e atribuído ao seu setor.</div>
-              <div class="notification-time">
-                <i class="far fa-clock"></i>
-                Há 5 minutos
-              </div>
-            </div>
+        
+        <form id="profileForm">
+          <div class="form-group">
+            <label for="profileNome">Nome Completo</label>
+            <input type="text" id="profileNome" required>
           </div>
           
-          <div class="notification-item">
-            <i class="fas fa-comment-alt"></i>
-            <div class="notification-content">
-              <div class="notification-title">Novo comentário</div>
-              <div class="notification-message">João adicionou um comentário ao ticket #456.</div>
-              <div class="notification-time">
-                <i class="far fa-clock"></i>
-                Há 30 minutos
-              </div>
-            </div>
+          <div class="form-group">
+            <label for="profileEmail">E-mail</label>
+            <input type="email" id="profileEmail" required>
           </div>
+          
+          <div class="form-group">
+            <label for="profileTelefone">Telefone</label>
+            <input type="tel" id="profileTelefone">
+          </div>
+          
+          <h3>Alterar Senha</h3>
+          
+          <div class="form-group">
+            <label for="profileSenha">Nova Senha</label>
+            <input type="password" id="profileSenha">
+          </div>
+          
+          <div class="form-group">
+            <label for="profileConfirmSenha">Confirmar Senha</label>
+            <input type="password" id="profileConfirmSenha">
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" id="logoutBtn" class="btn btn-danger">
+              <i class="fas fa-sign-out-alt"></i>
+              Sair
+            </button>
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-          <!-- Estado vazio -->
-          <div class="notification-empty" style="display: none;">
-            <i class="far fa-bell-slash"></i>
-            <p>Você não tem novas notificações</p>
-          </div>
-        </div>
-        <div class="notification-footer">
-          <button class="mark-all-read">
+  <!-- Modal de Notificações -->
+  <div class="modal" id="notificationsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Notificações</h2>
+        <button class="close-btn" data-close-modal="notificationsModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="notifications-actions">
+          <button id="markAllReadButton" class="btn btn-text">
             <i class="fas fa-check-double"></i>
             Marcar todas como lidas
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- Modal de Detalhes do Colaborador -->
-    <div id="colaboradorModal" class="modal">
-      <div class="modal-content">
-        <span class="close-colaborador">×</span>
-        <h2>Detalhes do Colaborador</h2>
-        <div id="colaboradorDetails"></div>
-        <div class="button-group">
-          <button onclick="openChangePasswordModal(currentColaboradorId)">
-            Alterar Senha
-          </button>
-          <button
-            id="toggleAtivoBtn"
-            onclick="toggleAtivoColaborador(currentColaboradorId)"
-          >
-            Ativar/Desativar
-          </button>
-          <button onclick="excluirColaborador(currentColaboradorId)">
-            Excluir
-          </button>
+        
+        <div class="notifications-list" id="notificationList">
+          <!-- As notificações serão inseridas aqui via JavaScript -->
+          <div class="notification-empty">
+            <i class="far fa-bell-slash"></i>
+            <p>Você não tem novas notificações</p>
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modal de Alteração de Senha -->
-    <div id="changePasswordModal" class="modal">
-      <div class="modal-content">
-        <span class="close-password">×</span>
-        <h2>Alterar Senha</h2>
-        <form id="changePasswordForm">
-          <div class="form-group">
-            <label for="novaSenha">Nova Senha:</label>
-            <input
-              type="password"
-              id="novaSenha"
-              placeholder="Digite a nova senha"
-              required
-            />
-          </div>
-          <div class="button-group">
-            <button type="submit">Alterar</button>
-            <button class="close-password" type="button">
-              Cancelar
-            </button>
-          </div>
-        </form>
+  <!-- Alerta -->
+  <div class="alert" id="alertBox">
+    <div class="alert-content">
+      <div class="alert-icon fas fa-info-circle"></div>
+      <div class="alert-text">
+        <div class="alert-title">Notificação</div>
+        <div class="alert-message" id="alertMessage"></div>
       </div>
+      <button class="alert-close" id="alertClose">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+  </div>
 
-    <!-- Modal de Alerta -->
-    <div id="customAlertOverlay" class="custom-alert-overlay"></div>
-    <div id="customAlert" class="custom-alert">
-      <i class="custom-alert-icon fas fa-info-circle"></i>
-      <div class="custom-alert-message"></div>
-      <button class="custom-alert-button">ENTENDI</button>
-    </div>
+  <!-- Overlay de Carregamento -->
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="spinner"></div>
+  </div>
 
-    <script src="/script.js"></script>
-
-    <style>
-      .ultimos-tickets-container {
-        background: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      }
-
-      .ultimos-tickets-container h2 {
-        color: #2c3e50;
-        font-size: 16px;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #f1f5f9;
-      }
-
-      .ultimos-tickets-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-height: 400px;
-        overflow-y: auto;
-      }
-
-      .ticket-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-      }
-
-      .ticket-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        flex: 1;
-      }
-
-      .ticket-title {
-        font-size: 13px;
-        color: #1e293b;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-      }
-
-      .ticket-date {
-        font-size: 11px;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .ticket-status {
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: 500;
-        margin-left: 8px;
-        white-space: nowrap;
-      }
-    </style>
-  </body>
+  <!-- JavaScript da aplicação -->
+  <script type="module" src="js/app.js"></script>
+</body>
 </html>

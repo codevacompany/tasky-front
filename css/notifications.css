@@ -1,0 +1,173 @@
+/**
+ * Estilos para as notificações
+ */
+
+/* Modal de Notificações */
+#notificationsModal .modal-content {
+  width: 450px;
+  max-width: 100%;
+  max-height: 600px;
+}
+
+.notifications-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.notifications-list {
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.notification-item {
+  display: flex;
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.8rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  gap: 1rem;
+}
+
+.notification-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.notification-item.unread {
+  background-color: rgba(37, 99, 235, 0.05);
+  border-left: 3px solid var(--primary-color);
+}
+
+.notification-item i {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--text-color);
+}
+
+.notification-message {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.notification-time {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  gap: 0.3rem;
+}
+
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.notification-empty i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.notification-empty p {
+  font-size: 1rem;
+}
+
+/* Efeitos de Animação */
+.notification-item.fade-out {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+/* Scrollbar Personalizada */
+.notifications-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.notifications-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Tipos de Notificação */
+.notification-item i.fa-ticket-alt {
+  color: var(--primary-color);
+}
+
+.notification-item i.fa-comment-alt {
+  color: var(--info-color);
+}
+
+.notification-item i.fa-user-check {
+  color: var(--success-color);
+}
+
+.notification-item i.fa-exchange-alt {
+  color: var(--warning-color);
+}
+
+.notification-item i.fa-clock {
+  color: var(--danger-color);
+}
+
+/* Responsividade */
+@media (max-width: 576px) {
+  #notificationsModal .modal-content {
+    width: 95%;
+    margin: 0 auto;
+  }
+  
+  .notification-item {
+    padding: 0.8rem;
+  }
+  
+  .notification-title {
+    font-size: 0.95rem;
+  }
+  
+  .notification-message {
+    font-size: 0.85rem;
+  }
+} 
