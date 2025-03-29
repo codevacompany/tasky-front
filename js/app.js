@@ -28,10 +28,13 @@ async function checkServerConnection() {
 
 // Configurar eventos globais
 function setupGlobalEvents() {
-  // Configurar alternância do modo escuro/claro
+  // Configurar alternância do modo escuro/claro - somente para interfaces após login
   document.getElementById('darkModeToggle').addEventListener('click', function() {
-    document.body.classList.toggle('dark-mode');
-    updateLogoBasedOnTheme();
+    // Apenas alternar o modo escuro se não estiver na tela de login
+    if (!document.getElementById('loginSection').classList.contains('active')) {
+      document.body.classList.toggle('dark-mode');
+      updateLogoBasedOnTheme();
+    }
   });
   
   // Configurar logo inicial baseada no tema atual
@@ -49,7 +52,8 @@ function setupGlobalEvents() {
     }
     
     if (loginLogo) {
-      loginLogo.src = isDarkMode ? './images/tasky-white.png' : './images/tasky.png';
+      // Login logo sempre usa a versão branca para o cabeçalho preto
+      loginLogo.src = './images/tasky-white.png';
     }
     
     if (themeToggleIcon) {

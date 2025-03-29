@@ -323,6 +323,18 @@ class UiService {
       this.loginSection.style.display = "flex";
       this.mainContent.style.display = "none";
       this.mainHeader.style.display = "none";
+      
+      // Garantir que o modo escuro está desativado na tela de login
+      document.body.classList.remove('dark-mode');
+      
+      // Adicionar classe active para controle
+      this.loginSection.classList.add('active');
+      
+      // Garantir que a logo seja a versão branca
+      const loginLogo = document.getElementById('loginLogo');
+      if (loginLogo) {
+        loginLogo.src = './images/tasky-white.png';
+      }
     }
   }
 
@@ -332,6 +344,7 @@ class UiService {
   showMainInterface() {
     if (this.loginSection && this.mainContent && this.mainHeader) {
       this.loginSection.style.display = "none";
+      this.loginSection.classList.remove('active');
       this.mainContent.style.display = "flex";
       this.mainHeader.style.display = "flex";
     }
