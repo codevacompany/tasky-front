@@ -37,12 +37,6 @@ class UserModule {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', this.logout.bind(this));
     }
-    
-    // Atualização de perfil
-    const profileForm = document.getElementById('profileForm');
-    if (profileForm) {
-      profileForm.addEventListener('submit', this.updateProfile.bind(this));
-    }
   }
 
   /**
@@ -250,6 +244,8 @@ class UserModule {
    * Realiza logout do usuário
    */
   logout() {
+    // Fechar o modal de perfil antes de fazer logout
+    uiService.closeProfileModal();
     this.clearUserSession();
     uiService.showLoginSection();
     uiService.showAlert("Logout realizado com sucesso");
@@ -349,7 +345,7 @@ class UserModule {
     // Atualizar nome no cabeçalho do perfil
     const profileNameElement = document.getElementById('profileName');
     if (profileNameElement) {
-      profileNameElement.textContent = this.currentUser.nome || '';
+      profileNameElement.textContent = this.currentUser.nome || 'Usuário';
     }
     
     // Atualizar cargo/departamento no cabeçalho do perfil
@@ -364,33 +360,21 @@ class UserModule {
       profileAvatarElement.src = this.getUserAvatar();
     }
     
-    // Preencher campos do formulário
-    const nameField = document.getElementById('profileNome');
-    const emailField = document.getElementById('profileEmail');
-    const telefoneField = document.getElementById('profileTelefone');
+    // Preencher campos somente leitura com as informações do usuário
+    const nomeDisplay = document.getElementById('profileNomeDisplay');
+    const emailDisplay = document.getElementById('profileEmailDisplay');
+    const setorDisplay = document.getElementById('profileSetorDisplay');
     
-    if (nameField) {
-      nameField.value = this.currentUser.nome || '';
+    if (nomeDisplay) {
+      nomeDisplay.textContent = this.currentUser.nome || '-';
     }
     
-    if (emailField) {
-      emailField.value = this.currentUser.email || '';
+    if (emailDisplay) {
+      emailDisplay.textContent = this.currentUser.email || '-';
     }
     
-    if (telefoneField) {
-      telefoneField.value = this.currentUser.telefone || '';
-    }
-    
-    // Limpar campos de senha
-    const senhaField = document.getElementById('profileSenha');
-    const confirmSenhaField = document.getElementById('profileConfirmSenha');
-    
-    if (senhaField) {
-      senhaField.value = '';
-    }
-    
-    if (confirmSenhaField) {
-      confirmSenhaField.value = '';
+    if (setorDisplay) {
+      setorDisplay.textContent = this.currentUser.setor || 'Sem departamento';
     }
   }
 }

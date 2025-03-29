@@ -7,6 +7,8 @@ class UiService {
     this.newTicketModal = null;
     this.profileModal = null;
     this.notificationsModal = null;
+    this.alertBox = null;
+    this.alertTimeout = null;
     this.activeSection = null;
   }
 
@@ -194,9 +196,16 @@ class UiService {
    * @param {string} message - Mensagem a ser exibida
    * @param {string} type - Tipo de alerta: 'success', 'error', 'warning' ou 'info'
    * @param {string} title - Título opcional do alerta
+   * @param {number} duration - Duração em milissegundos para esconder o alerta (default: 5000)
    */
-  showAlert(message, type = "success", title = "") {
+  showAlert(message, type = "success", title = "", duration = 5000) {
     if (!this.alertBox) return;
+
+    // Limpar timeout anterior se existir
+    if (this.alertTimeout) {
+      clearTimeout(this.alertTimeout);
+      this.alertTimeout = null;
+    }
 
     // Definir ícone baseado no tipo
     let iconClass = 'fa-info-circle';
@@ -231,13 +240,16 @@ class UiService {
       alertMessage.textContent = message;
     }
 
+    // Garantir que o alerta esteja no correto z-index
+    this.alertBox.style.zIndex = "1000";
+
     // Mostrar alerta
     this.alertBox.classList.add('show');
 
-    // Esconder automaticamente após 5 segundos
-    setTimeout(() => {
+    // Esconder automaticamente após o tempo especificado
+    this.alertTimeout = setTimeout(() => {
       this.hideAlert();
-    }, 5000);
+    }, duration);
   }
 
   /**
@@ -387,14 +399,27 @@ class UiService {
    * Mostra o modal de perfil do usuário
    */
   showProfileModal() {
-    this.showModal('profileModal');
+    console.log('Mostrando dropdown de perfil');
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+      modal.classList.add('show');
+      // Não adicionamos a classe modal-open ao body para evitar overflow:hidden
+      // que impediria a rolagem da página enquanto o dropdown de perfil está aberto
+    } else {
+      console.error('Dropdown de perfil não encontrado!');
+    }
   }
 
   /**
    * Fecha o modal de perfil do usuário
    */
   closeProfileModal() {
-    this.closeModal('profileModal');
+    console.log('Fechando dropdown de perfil');
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+      modal.classList.remove('show');
+      // Não removemos a classe modal-open do body, pois não a adicionamos
+    }
   }
 
   /**

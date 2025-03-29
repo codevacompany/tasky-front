@@ -96,22 +96,54 @@ function setupGlobalEvents() {
   // Botão de perfil
   const profileButton = document.getElementById('profileButton');
   if (profileButton) {
-    profileButton.addEventListener('click', function() {
+    profileButton.addEventListener('click', function(e) {
+      e.stopPropagation(); // Evitar que o clique se propague para o documento
       console.log('Perfil clicado');
       
-      if (userModule) {
-        // Primeiro carregar os dados do perfil
-        userModule.loadProfileForm();
-        
-        // Depois mostrar o modal
-        setTimeout(() => {
-          uiService.showProfileModal();
-        }, 100);
+      // Verificar se o dropdown de notificações está aberto e fechá-lo
+      const notificationsModal = document.getElementById('notificationsModal');
+      if (notificationsModal && notificationsModal.classList.contains('show')) {
+        uiService.closeNotificationModal();
+      }
+      
+      // Verificar se o dropdown de perfil já está aberto
+      const profileModal = document.getElementById('profileModal');
+      if (profileModal && profileModal.classList.contains('show')) {
+        uiService.closeProfileModal();
       } else {
-        console.error('Módulo de usuário não disponível');
+        if (userModule) {
+          // Primeiro carregar os dados do perfil
+          userModule.loadProfileForm();
+          
+          // Depois mostrar o dropdown
+          setTimeout(() => {
+            uiService.showProfileModal();
+          }, 100);
+        } else {
+          console.error('Módulo de usuário não disponível');
+        }
       }
     });
   }
+  
+  // Fechar dropdowns ao clicar fora deles
+  document.addEventListener('click', function(e) {
+    // Fechar dropdown de perfil se estiver aberto
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal && profileModal.classList.contains('show') && 
+        !profileModal.contains(e.target) && 
+        !document.getElementById('profileButton').contains(e.target)) {
+      uiService.closeProfileModal();
+    }
+    
+    // Fechar dropdown de notificações se estiver aberto
+    const notificationsModal = document.getElementById('notificationsModal');
+    if (notificationsModal && notificationsModal.classList.contains('show') && 
+        !notificationsModal.contains(e.target) && 
+        !document.getElementById('notificationButton').contains(e.target)) {
+      uiService.closeNotificationModal();
+    }
+  });
   
   // Botão de notificações
   const notificationButton = document.getElementById('notificationButton');

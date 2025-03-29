@@ -191,7 +191,7 @@
         <div class="tab-buttons">
           <button class="tab-btn active" data-tab="recebidos">Recebidos</button>
           <button class="tab-btn" data-tab="criados">Criados por Mim</button>
-          <button class="tab-btn" data-tab="departamento">Meu Departamento</button>
+          <button class="tab-btn" data-tab="departamento">Tickets do Setor</button>
         </div>
         
         <div class="tab-content">
@@ -769,7 +769,7 @@
   </div>
 
   <!-- Modal de Perfil -->
-  <div class="modal" id="profileModal">
+  <div class="profile-dropdown" id="profileModal">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Meu Perfil</h2>
@@ -781,52 +781,36 @@
         <div class="profile-header">
           <div class="profile-avatar">
             <img src="./images/user-placeholder.jpg" alt="Avatar" id="profileAvatar">
-            <div class="avatar-upload">
-              <i class="fas fa-camera"></i>
-            </div>
           </div>
           <div class="profile-info">
-            <h3 id="profileName">Nome do Usuário</h3>
-            <p id="profileRole">Cargo / Departamento</p>
+            <h3 id="profileName">Usuário</h3>
+            <p id="profileRole">Sem departamento</p>
           </div>
         </div>
         
-        <form id="profileForm">
-          <div class="form-group">
-            <label for="profileNome">Nome Completo</label>
-            <input type="text" id="profileNome" required>
+        <div class="profile-details">
+          <div class="info-group">
+            <label>Nome</label>
+            <p id="profileNomeDisplay">-</p>
           </div>
           
-          <div class="form-group">
-            <label for="profileEmail">E-mail</label>
-            <input type="email" id="profileEmail" required>
+          <div class="info-group">
+            <label>E-mail</label>
+            <p id="profileEmailDisplay">-</p>
           </div>
           
-          <div class="form-group">
-            <label for="profileTelefone">Telefone</label>
-            <input type="tel" id="profileTelefone">
+          <div class="info-group">
+            <label>Setor</label>
+            <p id="profileSetorDisplay">-</p>
           </div>
-          
-          <h3>Alterar Senha</h3>
-          
-          <div class="form-group">
-            <label for="profileSenha">Nova Senha</label>
-            <input type="password" id="profileSenha">
-          </div>
-          
-          <div class="form-group">
-            <label for="profileConfirmSenha">Confirmar Senha</label>
-            <input type="password" id="profileConfirmSenha">
-          </div>
-          
-          <div class="form-actions">
-            <button type="button" id="logoutBtn" class="btn btn-danger">
-              <i class="fas fa-sign-out-alt"></i>
-              Sair
-            </button>
-            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-          </div>
-        </form>
+        </div>
+        
+        <div class="form-actions right-aligned">
+          <button type="button" id="logoutBtn" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i>
+            Sair
+          </button>
+        </div>
       </div>
     </div>
   </div>

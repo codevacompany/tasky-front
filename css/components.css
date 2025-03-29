@@ -5,23 +5,30 @@
 /* Alertas */
 .alert {
   position: fixed;
-  top: 20px;
+  top: calc(var(--header-height) + 4px);
   right: 20px;
   padding: 0;
   margin-bottom: 1rem;
   border: 1px solid transparent;
   border-radius: var(--radius);
-  z-index: 1500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   width: calc(100% - 40px);
   overflow: hidden;
   transform: translateX(calc(100% + 40px));
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .alert.show {
   transform: translateX(0);
+  animation: alertPulse 1s;
+}
+
+@keyframes alertPulse {
+  0% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+  50% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+  100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
 }
 
 .alert-content {

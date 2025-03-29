@@ -75,7 +75,7 @@
   --transition: all 0.2s ease-in-out;
   
   /* Layout */
-  --header-height: 70px;
+  --header-height: 65px;
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 70px;
 }
@@ -1035,4 +1035,79 @@ body.dark-mode .main-nav ul li a:hover,
 body.dark-mode .main-nav ul li a.active {
   background-color: #f8f9fa;
   color: #1a2233;
+}
+
+/* Ajuste para logo na tela de login */
+.login-logo {
+  height: auto;
+  max-width: 300px;
+  margin-bottom: 1rem;
+  margin-top: 0.8rem;
+  display: block;
+}
+
+/* Ajustes específicos para o lembrar-me na tela de login */
+.remember-me {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  width: 100%;
+}
+
+.remember-me label {
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+/* Corrigir espaçamento no form de login */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para perfil read-only */
+.profile-details {
+  margin: 2rem 0;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.info-group {
+  margin-bottom: 1.5rem;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.info-group p {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0.5rem 0;
+  color: var(--text-color);
+}
+
+.right-aligned {
+  text-align: right;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+/* Ajuste para modo escuro */
+body.dark-mode .info-group label {
+  color: #aaaaaa;
+}
+
+body.dark-mode .info-group p {
+  color: #e2e2e2;
+}
+
+body.dark-mode .profile-details {
+  border-top-color: #34394d;
 } 

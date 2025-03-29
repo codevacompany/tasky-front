@@ -288,4 +288,68 @@
   .profile-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/**
+ * Perfil de usuário no estilo dropdown
+ */
+.profile-dropdown {
+  position: absolute;
+  top: calc(var(--header-height) + 4px);
+  right: 20px;
+  width: 360px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid var(--border-color);
+}
+
+.profile-dropdown.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.profile-dropdown .modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.profile-dropdown .modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.profile-dropdown .modal-header .close-btn {
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.profile-dropdown .modal-header .close-btn:hover {
+  opacity: 1;
+}
+
+.profile-dropdown .modal-body {
+  padding: 1.5rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Modo escuro para o dropdown de perfil */
+body.dark-mode .profile-dropdown {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .profile-dropdown .modal-header {
+  border-bottom-color: var(--border-color);
+  color: var(--text-color);
 } 
