@@ -10,22 +10,6 @@ import { ticketModule } from './modules/TicketModule.js';
 import { notificationModule } from './modules/NotificationModule.js';
 import { adminModule } from './modules/AdminModule.js';
 
-// Verificar conexão com o servidor
-async function checkServerConnection() {
-  try {
-    await apiService.checkHealth();
-    console.log('Conexão com o servidor estabelecida com sucesso');
-    uiService.hideOfflineBanner(); // Se já estava mostrando, esconder agora
-    return true;
-  } catch (error) {
-    console.error('Erro ao conectar com o servidor:', error);
-    // Comentamos as linhas abaixo para permitir uso mesmo sem conexão
-    // uiService.showAlert('Não foi possível conectar ao servidor. Algumas funcionalidades podem estar limitadas.', 'warning');
-    // uiService.showOfflineBanner();
-    return false;
-  }
-}
-
 // Configurar eventos globais
 function setupGlobalEvents() {
   // Configurar alternância do modo escuro/claro - somente para interfaces após login
@@ -236,17 +220,6 @@ async function initApp() {
   // Inicializar serviços
   uiService.init();
   
-  // Verificar conexão com o servidor
-  const isConnected = await checkServerConnection();
-  if (!isConnected) {
-    // Comentamos as linhas abaixo para não mostrar o banner offline
-    // uiService.showOfflineBanner();
-    
-    // Se estiver offline, verificar periodicamente se o servidor voltou
-    startConnectionCheck();
-    // Continuar com a inicialização mesmo offline
-  }
-  
   // Inicializar módulos
   userModule.init();
   
@@ -281,4 +254,4 @@ async function initApp() {
 document.addEventListener('DOMContentLoaded', initApp);
 
 // Exportar para possível uso em testes ou desenvolvimento
-export { initApp, checkServerConnection, startConnectionCheck }; 
+export { initApp, startConnectionCheck }; 

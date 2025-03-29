@@ -174,7 +174,7 @@ class TicketModule {
       }
 
       // Selecionar tbody e mostrar estado de carregamento
-      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+      const tbody = document.querySelector("#ticketsRecebidosTableBody");
       if (!tbody) {
         console.error("Elemento tbody para tickets recebidos não encontrado");
         return;
@@ -197,7 +197,7 @@ class TicketModule {
       // Verificar se não há tickets
       if (!response || response.length === 0) {
         tbody.innerHTML = this.getEmptyStateHTML();
-        this.atualizarContadores(0, 0, 0, 0, 'ticketsRecebidos');
+        this.atualizarContadores(0, 0, 0, 0, 'recebidos');
         
         // Mostrar mensagem de nenhum ticket encontrado
         const noTicketsMsg = document.getElementById('noTicketsRecebidos');
@@ -228,7 +228,7 @@ class TicketModule {
       const resolvidos = response.filter(t => t.status.toLowerCase().includes("finalizado")).length;
 
       // Atualizar contadores
-      this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'ticketsRecebidos');
+      this.atualizarContadores(total, pendentes, emAndamento, resolvidos, 'recebidos');
       
       // Adicionar event listeners para botões de ação
       this.setupTicketActionButtons();
@@ -687,7 +687,7 @@ class TicketModule {
     let html = `
       <tr data-id="${ticket.id}">
         <td>${ticket.id}</td>
-        <td>${ticket.title}</td>
+        <td>${ticket.name}</td>
         <td><span class="priority-badge ${prioridadeClass}">${ticket.priority || "N/A"}</span></td>
         <td><span class="status-badge ${statusClass}">${ticket.status || "N/A"}</span></td>
     `;
@@ -982,7 +982,8 @@ class TicketModule {
    * Carrega os últimos tickets criados pelo usuário atual
    */
   async carregarUltimosTickets() {
-    const container = document.querySelector('.ultimos-tickets-list');
+    const container = document.querySelector('.latestTickestList');
+    console.log(container)
     if (!container) return;
 
     try {

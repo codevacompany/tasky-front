@@ -324,7 +324,7 @@ class ApiService {
   async getUserNotifications(userId) {
     try {
       // Tenta obter as notificações do backend
-      const notificacoes = await this.request(`/notifications/user/${userId}`);
+      const notificacoes = await this.request(`/notifications/target-user/${userId}`);
       return notificacoes;
     } catch (error) {
       console.log(`Não foi possível obter notificações do backend: ${error.message}`);
@@ -340,7 +340,7 @@ class ApiService {
   async markAllNotificationsAsRead() {
     try {
       const data = await this.request("/notifications/mark-all-read", {
-        method: "PUT",
+        method: "POST",
       });
       return data;
     } catch (error) {
@@ -395,55 +395,13 @@ class ApiService {
   async markNotificationAsRead(notificationId) {
     try {
       const data = await this.request(`/notifications/${notificationId}/read`, {
-        method: "PUT"
+        method: "POST"
       });
       return data;
     } catch (error) {
       console.log(`Erro ao marcar notificação como lida: ${error.message}`);
       // Retorna um objeto de sucesso simulado em caso de falha na API
       return { success: true, message: "Operação local bem-sucedida" };
-    }
-  }
-
-  /**
-   * Verifica a saúde do servidor
-   * @returns {Promise<Object>} Informações sobre a saúde do servidor
-   */
-  async checkHealth() {
-    try {
-      console.log("Verificando saúde do servidor...");
-      // URL direto para verificação de saúde
-      const url = `${CONFIG.API_URL}/health`;
-      console.log(`URL de verificação de saúde: ${url}`);
-      
-      const response = await fetch(url, {
-        // Definir um timeout para evitar esperar muito tempo quando o servidor estiver offline
-        signal: AbortSignal.timeout(5000) // 5 segundos de timeout
-      });
-      
-      console.log(`Resposta de saúde do servidor: status ${response.status}`);
-      
-      if (!response.ok) {
-        throw new Error(`Erro na verificação de saúde: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      console.log(`Resposta de texto: ${text}`);
-      
-      let data = null;
-      
-      try {
-        data = text ? JSON.parse(text) : { status: 'ok' };
-      } catch (e) {
-        console.warn('Resposta não é um JSON válido:', text);
-        data = { status: 'ok', message: text };
-      }
-      
-      console.log('Dados de saúde do servidor:', data);
-      return data;
-    } catch (error) {
-      console.error("Erro ao verificar saúde do servidor:", error.message);
-      throw error;
     }
   }
 
