@@ -278,12 +278,29 @@ class TicketModule {
    * Configura os botões de ação dos tickets (visualizar, editar, cancelar)
    */
   setupTicketActionButtons() {
+    // Configurar clique na linha do ticket
+    document.querySelectorAll('tr[data-id]').forEach(row => {
+      const ticketId = row.getAttribute('data-id');
+      
+      // Adicionar evento de clique à linha inteira
+      row.addEventListener('click', (event) => {
+        // Verificar se o clique não foi em um botão de ação
+        if (!event.target.closest('.action-btn')) {
+          this.viewTicketDetails(ticketId);
+        }
+      });
+      
+      // Adicionar estilo de cursor para indicar que é clicável
+      row.style.cursor = 'pointer';
+    });
+    
     // Configurar botões de visualizar
     document.querySelectorAll('.action-btn .fa-eye').forEach(btn => {
       const row = btn.closest('tr');
       const ticketId = row.getAttribute('data-id');
       
-      btn.parentElement.addEventListener('click', () => {
+      btn.parentElement.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar propagação para o evento da linha
         this.viewTicketDetails(ticketId);
       });
     });
@@ -293,7 +310,8 @@ class TicketModule {
       const row = btn.closest('tr');
       const ticketId = row.getAttribute('data-id');
       
-      btn.parentElement.addEventListener('click', () => {
+      btn.parentElement.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar propagação para o evento da linha
         this.openEditTicketForm(ticketId);
       });
     });
@@ -303,7 +321,8 @@ class TicketModule {
       const row = btn.closest('tr');
       const ticketId = row.getAttribute('data-id');
       
-      btn.parentElement.addEventListener('click', () => {
+      btn.parentElement.addEventListener('click', (event) => {
+        event.stopPropagation(); // Evitar propagação para o evento da linha
         this.confirmCancelTicket(ticketId);
       });
     });
@@ -325,20 +344,150 @@ class TicketModule {
         throw new Error('Ticket não encontrado');
       }
       
-      // Aqui você pode implementar a lógica para mostrar os detalhes do ticket
-      // Por exemplo, exibir um modal com todas as informações
-      
       console.log('Detalhes do ticket carregados:', ticket);
+      
+      // Gerar o HTML com os detalhes do ticket
+      const ticketHTML = this.getTicketDetailsHTML(ticket);
+      
+      // Mostrar o modal com os detalhes do ticket
+      uiService.showTicketDetails(ticketHTML);
+      
+      // Configurar os botões de ação para o ticket no modal, se necessário
+      this.setupTicketModalActions(ticket);
+      
       uiService.hideLoading();
-      
-      // [IMPLEMENTAR] Mostrar modal com detalhes
-      uiService.showAlert('Função de visualização de detalhes em implementação', 'info');
-      
     } catch (error) {
       console.error('Erro ao carregar detalhes do ticket:', error);
       uiService.hideLoading();
       uiService.showAlert('Erro ao carregar detalhes: ' + error.message, 'error');
     }
+  }
+  
+  /**
+   * Configura os botões de ação no modal de detalhes do ticket
+   * @param {Object} ticket - Dados do ticket
+   */
+  setupTicketModalActions(ticket) {
+    // Configurar botões de ação no modal, se houver
+    const actionButtons = document.querySelectorAll('#ticketDetailsContent .ticket-action-btn');
+    
+    actionButtons.forEach(btn => {
+      const action = btn.getAttribute('data-action');
+      
+      btn.addEventListener('click', () => {
+        switch(action) {
+          case 'edit':
+            this.openEditTicketForm(ticket.id);
+            break;
+          case 'cancel':
+            this.confirmCancelTicket(ticket.id);
+            break;
+          case 'resolve':
+            this.resolveTicket(ticket.id);
+            break;
+          default:
+            console.log(`Ação não implementada: ${action}`);
+        }
+      });
+    });
+  }
+  
+  /**
+   * Cria o HTML de detalhes do ticket para o modal
+   * @param {Object} ticket - Dados do ticket
+   * @returns {string} - HTML de detalhes
+   */
+  getTicketDetailsHTML(ticket) {
+    // Função auxiliar para formatar datas
+    const formatarData = (dataString) => {
+      if (!dataString) return '-';
+      const data = new Date(dataString);
+      return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    };
+    
+    // Obter classes para status e prioridade
+    const getStatusClass = (status) => {
+      switch(status?.toLowerCase()) {
+        case 'pendente': return 'status-pendente';
+        case 'em_andamento': 
+        case 'em andamento': return 'status-em-andamento';
+        case 'resolvido': return 'status-resolvido';
+        case 'cancelado': return 'status-cancelado';
+        default: return '';
+      }
+    };
+    
+    const getPriorityClass = (priority) => {
+      switch(priority?.toLowerCase()) {
+        case 'baixa': return 'priority-baixa';
+        case 'média':
+        case 'media': return 'priority-media';
+        case 'alta': return 'priority-alta';
+        default: return '';
+      }
+    };
+    
+    // Formatar texto do status
+    const formatStatus = (status) => {
+      if (!status) return '-';
+      switch(status.toLowerCase()) {
+        case 'em_andamento': return 'EM ANDAMENTO';
+        case 'em andamento': return 'EM ANDAMENTO';
+        default: return status.toUpperCase();
+      }
+    };
+    
+    // Verificar data limite para prazo
+    let prazo = "-";
+    const dataLimite = this.obterDataLimite(ticket);
+    if (dataLimite) {
+      prazo = formatUtils.formatarPrazo(dataLimite);
+    }
+    
+    return `
+      <div class="ticket-details ticket-details-grid">
+        <div class="details-row">
+          <div class="details-item"><strong>ID:</strong> ${ticket.id || '-'}</div>
+          <div class="details-item"><strong>Categoria:</strong> ${ticket.category || '-'}</div>
+        </div>
+        
+        <div class="details-row full-width">
+          <div class="details-item"><strong>Assunto:</strong> ${ticket.title || ticket.subject || '-'}</div>
+        </div>
+        
+        <div class="details-row">
+          <div class="details-item"><strong>Prioridade:</strong> <span class="priority-label ${getPriorityClass(ticket.priority)}">${ticket.priority?.toUpperCase() || '-'}</span></div>
+          <div class="details-item"><strong>Status:</strong> <span class="status-label ${getStatusClass(ticket.status)}">${formatStatus(ticket.status)}</span></div>
+        </div>
+        
+        <div class="details-row">
+          <div class="details-item"><strong>Solicitante:</strong> ${ticket.requester?.name || ticket.solicitante || '-'}</div>
+          <div class="details-item"><strong>Setor:</strong> ${ticket.department?.name || ticket.setor || '-'}</div>
+        </div>
+        
+        <div class="details-row">
+          <div class="details-item"><strong>Data de Criação:</strong> ${formatarData(ticket.createdAt || ticket.created_at)}</div>
+          <div class="details-item"><strong>Data de Aceitação:</strong> ${formatarData(ticket.acceptanceDate || ticket.acceptance_date)}</div>
+        </div>
+        
+        <div class="details-row">
+          <div class="details-item"><strong>Data de Conclusão:</strong> ${formatarData(ticket.completionDate || ticket.completion_date)}</div>
+          <div class="details-item"><strong>Prazo:</strong> ${prazo}</div>
+        </div>
+        
+        <div class="details-row full-width">
+          <div class="details-item"><strong>Descrição:</strong> ${ticket.description || '-'}</div>
+        </div>
+        
+        <div class="ticket-actions full-width">
+          <button class="btn btn-primary ticket-action-btn" data-action="edit">Editar</button>
+          ${ticket.status !== 'resolvido' && ticket.status !== 'cancelado' ? 
+            `<button class="btn btn-success ticket-action-btn" data-action="resolve">Resolver</button>` : ''}
+          ${ticket.status !== 'cancelado' ? 
+            `<button class="btn btn-danger ticket-action-btn" data-action="cancel">Cancelar</button>` : ''}
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -923,35 +1072,6 @@ class TicketModule {
   }
 
   /**
-   * Cria o HTML de detalhes do ticket para o modal
-   * @param {Object} ticket - Dados do ticket
-   * @returns {string} - HTML de detalhes
-   */
-  getTicketDetailsHTML(ticket) {
-    // Verificar diferentes campos para prazo usando obterDataLimite
-    let prazoFormatado = "-";
-    const dataLimite = this.obterDataLimite(ticket);
-    if (dataLimite) {
-      prazoFormatado = formatUtils.formatarPrazo(dataLimite);
-    }
-    
-    return `
-      <div class="ticket-details">
-        <p><strong>ID:</strong> ${ticket.id}</p>
-        <p><strong>Assunto:</strong> ${ticket.title}</p>
-        <p><strong>Prioridade:</strong> ${formatUtils.getPriorityIcon(ticket.priority)} ${ticket.priority}</p>
-        <p><strong>Status:</strong> ${formatUtils.getStatusIcon(ticket.status)} ${ticket.status}</p>
-        <p><strong>Solicitante:</strong> ${ticket.solicitante}</p>
-        <p><strong>Data de Criação:</strong> ${formatUtils.formatarData(ticket.createdAt)}</p>
-        <p><strong>Data de Aceitação:</strong> ${formatUtils.formatarData(ticket.acceptanceDate)}</p>
-        <p><strong>Data de Conclusão:</strong> ${ticket.completionDate ? formatUtils.formatarData(ticket.completionDate) : "-"}</p>
-        <p><strong>Prazo:</strong> ${prazoFormatado}</p>
-        <p class="full-width"><strong>Descrição:</strong> ${ticket.description}</p>
-      </div>
-    `;
-  }
-
-  /**
    * Envia um novo comentário para um ticket
    */
   async enviarComentario() {
@@ -1355,6 +1475,40 @@ class TicketModule {
     } catch (error) {
       console.error('Erro ao inicializar formulário de novo ticket:', error);
       uiService.showAlert('Erro ao carregar dados do formulário', 'error');
+    }
+  }
+
+  /**
+   * Resolve um ticket
+   * @param {string|number} ticketId - ID do ticket a ser resolvido
+   */
+  async resolveTicket(ticketId) {
+    try {
+      console.log('Resolvendo ticket:', ticketId);
+      uiService.showLoading('Resolvendo ticket...');
+      
+      // Chamar API para resolver o ticket
+      await apiService.request(`/tickets/${ticketId}/resolve`, {
+        method: 'PUT'
+      });
+      
+      uiService.hideLoading();
+      uiService.showAlert('Ticket resolvido com sucesso', 'success');
+      
+      // Fechar o modal de detalhes do ticket
+      uiService.closeModal('ticketDetailsModal');
+      
+      // Recarregar a lista de tickets para atualizar a interface
+      const activeTab = document.querySelector('.tab-btn[data-tab].active');
+      if (activeTab) {
+        const tabId = activeTab.getAttribute('data-tab');
+        this.carregarTicketsPorTab(tabId);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao resolver ticket:', error);
+      uiService.hideLoading();
+      uiService.showAlert('Erro ao resolver ticket: ' + error.message, 'error');
     }
   }
 }

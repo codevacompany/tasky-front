@@ -462,4 +462,150 @@ body.modal-open {
 #newTicketModal .btn-secondary:hover {
   background-color: #e0e0e0;
   transform: translateY(-1px);
+}
+
+/* Estilos para o modal de detalhes do ticket */
+#ticketDetailsModal .ticket-details {
+  margin-bottom: 24px;
+}
+
+/* Novo layout em grid para o modal de detalhes */
+#ticketDetailsModal .ticket-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#ticketDetailsModal .details-row {
+  display: flex;
+  gap: 16px;
+}
+
+#ticketDetailsModal .details-row.full-width {
+  flex-direction: column;
+}
+
+#ticketDetailsModal .details-item {
+  flex: 1;
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#ticketDetailsModal .details-row.full-width .details-item {
+  width: 100%;
+  white-space: normal;
+}
+
+#ticketDetailsModal .ticket-details strong {
+  color: #2c3e50;
+  margin-right: 8px;
+  font-weight: 600;
+  min-width: 160px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Classes para as etiquetas de prioridade */
+#ticketDetailsModal .priority-label, 
+#ticketDetailsModal .status-label {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  white-space: nowrap;
+}
+
+#ticketDetailsModal .priority-baixa {
+  background-color: #e9f7ef;
+  color: #27ae60;
+}
+
+#ticketDetailsModal .priority-media {
+  background-color: #fef9e7;
+  color: #f1c40f;
+}
+
+#ticketDetailsModal .priority-alta {
+  background-color: #fae5e5;
+  color: #e74c3c;
+}
+
+/* Classes para as etiquetas de status */
+#ticketDetailsModal .status-pendente {
+  background-color: #fef9e7;
+  color: #f1c40f;
+}
+
+#ticketDetailsModal .status-em-andamento {
+  background-color: #e8f4fd;
+  color: #3498db;
+}
+
+#ticketDetailsModal .status-resolvido {
+  background-color: #e9f7ef;
+  color: #27ae60;
+}
+
+#ticketDetailsModal .status-cancelado {
+  background-color: #f8f9fa;
+  color: #7f8c8d;
+}
+
+/* Estilos para os botões de ação */
+#ticketDetailsModal .ticket-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+#ticketDetailsModal .btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+#ticketDetailsModal .btn-primary {
+  background-color: #1a2233;
+  color: white;
+}
+
+#ticketDetailsModal .btn-primary:hover {
+  background-color: #141b2a;
+  transform: translateY(-1px);
+}
+
+#ticketDetailsModal .btn-success {
+  background-color: #27ae60;
+  color: white;
+}
+
+#ticketDetailsModal .btn-success:hover {
+  background-color: #219955;
+  transform: translateY(-1px);
+}
+
+#ticketDetailsModal .btn-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+#ticketDetailsModal .btn-danger:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
 } 

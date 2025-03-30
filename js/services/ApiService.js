@@ -456,17 +456,34 @@ class ApiService {
   }
 
   /**
-   * Obtém um ticket pelo ID
-   * @param {number} ticketId - ID do ticket
-   * @returns {Promise<Object>}
+   * Busca um ticket específico pelo ID
+   * @param {number|string} id - ID do ticket
+   * @returns {Promise<Object>} Dados do ticket
    */
-  async getTicketById(ticketId) {
+  async getTicketById(id) {
+    console.log(`[ApiService] Buscando detalhes do ticket ${id}`);
     try {
-      const response = await this.request(`/tickets/${ticketId}`);
-      return response;
+      // Tentar obter o ticket pelo endpoint específico
+      return await this.request(`/tickets/${id}`);
     } catch (error) {
-      console.error(`Erro ao buscar ticket ${ticketId}:`, error);
-      throw error;
+      console.error(`[ApiService] Erro ao buscar ticket ${id}:`, error);
+      
+      // Como fallback, tentar buscar todos os tickets e encontrar o específico
+      try {
+        console.log(`[ApiService] Tentando buscar todos os tickets como fallback para encontrar ticket ${id}`);
+        const allTickets = await this.request('/tickets');
+        const ticket = allTickets.find(t => String(t.id) === String(id));
+        
+        if (!ticket) {
+          throw new Error(`Ticket ${id} não encontrado`);
+        }
+        
+        console.log(`[ApiService] Ticket ${id} encontrado via fallback`);
+        return ticket;
+      } catch (fallbackError) {
+        console.error(`[ApiService] Erro no fallback para buscar ticket ${id}:`, fallbackError);
+        throw new Error(`Não foi possível encontrar o ticket ${id}`);
+      }
     }
   }
 
