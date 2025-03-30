@@ -395,6 +395,45 @@ class UserModule {
       setorDisplay.textContent = this.currentUser.setor || 'Sem departamento';
     }
   }
+
+  /**
+   * Método para buscar usuários por setor
+   * @param {string} sectorId - ID do setor
+   * @returns {Promise<Array>} Lista de usuários do setor
+   */
+  async getUsersBySector(sectorId) {
+    console.log(`Buscando usuários do setor: ${sectorId}`);
+    
+    try {
+      // Tentar obter todos os usuários primeiro
+      const allUsers = await apiService.request('/users');
+      console.log('Todos os usuários obtidos:', allUsers);
+      
+      // Filtrar apenas os usuários do departamento especificado
+      const filteredUsers = Array.isArray(allUsers) ? allUsers.filter(user => {
+        // Verificar se o departmentId do usuário corresponde ao sectorId fornecido
+        // Considerar diferentes formatos possíveis (departmentId, setorId, etc)
+        const userDeptId = user.departmentId || user.setorId || user.department_id;
+        
+        // Converter para string para comparação segura
+        const userDeptIdStr = String(userDeptId);
+        const sectorIdStr = String(sectorId);
+        
+        return userDeptIdStr === sectorIdStr;
+      }) : [];
+      
+      console.log(`Usuários filtrados para o setor ${sectorId}:`, filteredUsers);
+      
+      if (filteredUsers.length === 0) {
+        console.log(`Nenhum usuário encontrado para o setor ${sectorId}`);
+      }
+      
+      return filteredUsers;
+    } catch (error) {
+      console.error('Erro ao buscar usuários por setor:', error);
+      return [];
+    }
+  }
 }
 
 // Exporta uma instância única do módulo

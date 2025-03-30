@@ -203,19 +203,26 @@
   align-items: center;
   gap: 0.3rem;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .prazo-atrasado {
-  color: var(--danger-color);
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.prazo-urgente {
+  color: #ef4444;
+  font-weight: 600;
 }
 
 .prazo-proximo {
-  color: var(--warning-color);
+  color: #f97316;
 }
 
 .prazo-ok {
-  color: var(--success-color);
+  color: #10b981;
 }
 
 /* Paginação */

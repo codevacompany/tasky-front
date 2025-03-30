@@ -13,18 +13,16 @@ body.modal-open {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 30px 0;
 }
 
 .modal.show {
-  opacity: 1;
-  visibility: visible;
+  display: flex;
 }
 
 .modal-content {
@@ -36,6 +34,7 @@ body.modal-open {
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease;
+  margin: auto;
 }
 
 @keyframes modalSlideIn {
@@ -206,22 +205,29 @@ body.modal-open {
 
 /* Modal de Notificações - posicionamento específico */
 #notificationsModal {
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-top: 70px;
-  padding-right: 20px;
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 35px;
+  z-index: 1010;
+}
+
+#notificationsModal.show {
+  display: block;
 }
 
 #notificationsModal .modal-content {
-  width: 400px;
+  width: 320px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
   animation: modalDropDown 0.3s ease;
-  position: relative;
-  right: 70px;
+  max-height: 450px;
+  overflow: hidden;
 }
 
 @keyframes modalDropDown {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-10px);
     opacity: 0;
   }
   to {
@@ -233,17 +239,26 @@ body.modal-open {
 .notifications-actions {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 0;
+  padding: 0.75rem;
   border-bottom: 1px solid var(--border-color);
+  background-color: rgba(var(--primary-rgb), 0.03);
 }
 
 #markAllReadButton {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary-color);
+  width: 100%;
+  border-radius: 4px;
+  padding: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+#markAllReadButton:hover {
+  background-color: rgba(var(--primary-rgb), 0.08);
 }
 
 #markAllReadButton i {
@@ -252,86 +267,199 @@ body.modal-open {
 
 /* Estilos para o conteúdo das notificações */
 .notifications-list {
-  max-height: 400px;
+  max-height: 350px;
   overflow-y: auto;
-}
-
-.notification-item {
-  padding: 1rem;
-  border-radius: var(--radius-sm);
-  background-color: rgba(0, 0, 0, 0.03);
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  display: flex;
-  transition: var(--transition);
-  border-left: 3px solid transparent;
-}
-
-.notification-item:hover {
-  background-color: rgba(var(--primary-rgb), 0.08);
-}
-
-.notification-item.unread {
-  border-left-color: var(--primary-color);
-  background-color: rgba(var(--primary-rgb), 0.05);
-}
-
-.notification-icon {
-  color: var(--primary-color);
-  font-size: 1.2rem;
-  margin-right: 1rem;
-  min-width: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-content {
-  flex: 1;
-}
-
-.notification-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  color: var(--text-color);
-}
-
-.notification-message {
-  font-size: 0.9rem;
-  color: var(--text-light);
-  margin-bottom: 0.5rem;
-}
-
-.notification-time {
-  font-size: 0.8rem;
-  color: var(--text-light);
-  display: flex;
-  align-items: center;
-}
-
-.notification-time i {
-  margin-right: 0.25rem;
-  font-size: 0.75rem;
 }
 
 .notification-empty {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
   color: var(--text-light);
 }
 
 .notification-empty i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
   opacity: 0.5;
 }
 
 .notification-empty p {
-  font-size: 1rem;
+  font-size: 0.85rem;
   margin-bottom: 0.25rem;
 }
 
 .notification-empty small {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   opacity: 0.7;
+}
+
+/* Estilo específico para o modal de novo ticket */
+#newTicketModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#newTicketModal.show {
+  display: flex;
+}
+
+#newTicketModal .modal-content {
+  position: relative;
+  margin: auto;
+  width: 85%;
+  max-width: 1200px;
+  min-width: 850px;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+#newTicketModal .modal-header {
+  background-color: #1a2233;
+  color: white;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 1rem 1.5rem;
+  border-bottom: none;
+}
+
+#newTicketModal .modal-header h2 {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+#newTicketModal .modal-header .close-btn {
+  color: white;
+  opacity: 0.9;
+}
+
+#newTicketModal .modal-header .close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  opacity: 1;
+}
+
+#newTicketModal .modal-body {
+  padding: 2.5rem;
+}
+
+#newTicketModal .form-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+#newTicketModal .form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+#newTicketModal .form-group {
+  margin-bottom: 1.2rem;
+}
+
+#newTicketModal .form-group label {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+#newTicketModal input[type="text"],
+#newTicketModal input[type="date"],
+#newTicketModal select,
+#newTicketModal textarea {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+#newTicketModal input[type="text"]:focus,
+#newTicketModal input[type="date"]:focus,
+#newTicketModal select:focus,
+#newTicketModal textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+  outline: none;
+}
+
+#newTicketModal select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+#newTicketModal textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+/* Estilo para os checkboxes de prioridade */
+#newTicketModal .checkbox-group {
+  display: flex;
+  gap: 2.5rem;
+  margin-top: 0.8rem;
+  padding: 0.5rem;
+}
+
+#newTicketModal .checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#newTicketModal .checkbox-container input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+#newTicketModal .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+
+#newTicketModal .btn {
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+#newTicketModal .btn-primary {
+  background-color: #1a2233;
+  color: white;
+}
+
+#newTicketModal .btn-primary:hover {
+  background-color: #141b2a;
+  transform: translateY(-1px);
+}
+
+#newTicketModal .btn-secondary {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+#newTicketModal .btn-secondary:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-1px);
 } 

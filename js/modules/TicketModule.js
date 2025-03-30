@@ -24,6 +24,9 @@ class TicketModule {
         
         // Configurar eventos
         this.setupTicketEvents();
+        
+        // Inicializar o formulário de novo ticket
+        this.initNewTicketForm();
       })
       .catch(error => {
         console.error('Erro ao inicializar TicketModule:', error);
@@ -183,7 +186,7 @@ class TicketModule {
       // Mostrar indicador de carregamento
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" class="loading-state">
+          <td colspan="10" class="loading-state">
             <div class="loading-spinner"></div>
             <p>Carregando tickets recebidos...</p>
           </td>
@@ -193,6 +196,22 @@ class TicketModule {
       // Carregar tickets da API
       const response = await apiService.getTicketsByTargetUser(userId);
       console.log('Tickets recebidos:', response);
+        
+      // Mostrar detalhadamente a estrutura do primeiro ticket
+      if (response && response.length > 0) {
+        console.log('Estrutura detalhada do primeiro ticket:');
+        console.log(JSON.stringify(response[0], null, 2));
+        console.log('Campos específicos:');
+        console.log('createdAt:', response[0].createdAt);
+        console.log('completedAt:', response[0].completedAt);
+        console.log('completionDate:', response[0].completionDate);
+        console.log('deadline:', response[0].deadline);
+        console.log('dueDate:', response[0].dueDate);
+        console.log('priority:', response[0].priority);
+        console.log('status:', response[0].status);
+        console.log('requester:', response[0].requester);
+        console.log('department:', response[0].department);
+      }
         
       // Verificar se não há tickets
       if (!response || response.length === 0) {
@@ -236,14 +255,14 @@ class TicketModule {
       console.error('Erro ao carregar tickets recebidos:', error);
       
       // Mostrar mensagem de erro na tabela
-      const tbody = document.querySelector("#ticketsRecebidosTable tbody");
+      const tbody = document.querySelector("#ticketsRecebidosTableBody");
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="error-state">
+            <td colspan="10" class="error-state">
               <i class="fas fa-exclamation-circle"></i>
               <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
-              <button class="btn btn-small retry-btn" onclick="ticketModule.carregarTicketsRecebidos()">
+              <button class="btn btn-small retry-btn" onclick="document.dispatchEvent(new CustomEvent('retryLoadReceivedTickets'))">
                 <i class="fas fa-sync-alt"></i> Tentar novamente
               </button>
             </td>
@@ -256,45 +275,38 @@ class TicketModule {
   }
 
   /**
-   * Configura event listeners para botões de ação nos tickets
+   * Configura os botões de ação dos tickets (visualizar, editar, cancelar)
    */
   setupTicketActionButtons() {
-    console.log('Configurando event listeners para botões de ação');
-    
-    // Botões de visualização de ticket
-    const viewButtons = document.querySelectorAll('.view-ticket');
-    viewButtons.forEach(btn => {
-      btn.addEventListener('click', (event) => {
-        const ticketId = event.target.closest('tr').dataset.id;
-        if (ticketId) {
-          this.viewTicketDetails(ticketId);
-        }
+    // Configurar botões de visualizar
+    document.querySelectorAll('.action-btn .fa-eye').forEach(btn => {
+      const row = btn.closest('tr');
+      const ticketId = row.getAttribute('data-id');
+      
+      btn.parentElement.addEventListener('click', () => {
+        this.viewTicketDetails(ticketId);
       });
     });
     
-    // Botões de edição de ticket
-    const editButtons = document.querySelectorAll('.edit-ticket');
-    editButtons.forEach(btn => {
-      btn.addEventListener('click', (event) => {
-        const ticketId = event.target.closest('tr').dataset.id;
-        if (ticketId) {
-          this.openEditTicketForm(ticketId);
-        }
+    // Configurar botões de editar
+    document.querySelectorAll('.action-btn .fa-edit').forEach(btn => {
+      const row = btn.closest('tr');
+      const ticketId = row.getAttribute('data-id');
+      
+      btn.parentElement.addEventListener('click', () => {
+        this.openEditTicketForm(ticketId);
       });
     });
     
-    // Botões de cancelamento de ticket
-    const cancelButtons = document.querySelectorAll('.cancel-ticket');
-    cancelButtons.forEach(btn => {
-      btn.addEventListener('click', (event) => {
-        const ticketId = event.target.closest('tr').dataset.id;
-        if (ticketId) {
-          this.confirmCancelTicket(ticketId);
-        }
+    // Configurar botões de cancelar
+    document.querySelectorAll('.action-btn .fa-times').forEach(btn => {
+      const row = btn.closest('tr');
+      const ticketId = row.getAttribute('data-id');
+      
+      btn.parentElement.addEventListener('click', () => {
+        this.confirmCancelTicket(ticketId);
       });
     });
-
-    console.log(`Event listeners configurados: ${viewButtons.length} view, ${editButtons.length} edit, ${cancelButtons.length} cancel`);
   }
 
   /**
@@ -465,7 +477,7 @@ class TicketModule {
       // Mostrar indicador de carregamento
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" class="loading-state">
+          <td colspan="10" class="loading-state">
             <div class="loading-spinner"></div>
             <p>Carregando tickets criados...</p>
           </td>
@@ -522,7 +534,7 @@ class TicketModule {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="error-state">
+            <td colspan="10" class="error-state">
               <i class="fas fa-exclamation-circle"></i>
               <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
               <button class="btn btn-small retry-btn" onclick="document.dispatchEvent(new CustomEvent('retryLoadCreatedTickets'))">
@@ -561,7 +573,7 @@ class TicketModule {
       // Mostrar indicador de carregamento
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" class="loading-state">
+          <td colspan="10" class="loading-state">
             <div class="loading-spinner"></div>
             <p>Carregando tickets do departamento...</p>
           </td>
@@ -618,7 +630,7 @@ class TicketModule {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="error-state">
+            <td colspan="10" class="error-state">
               <i class="fas fa-exclamation-circle"></i>
               <p>Erro ao carregar tickets: ${error.message || 'Erro desconhecido'}</p>
               <button class="btn btn-small retry-btn" onclick="document.dispatchEvent(new CustomEvent('retryLoadDepartmentTickets'))">
@@ -634,28 +646,100 @@ class TicketModule {
   }
 
   /**
+   * Obtém a data limite de um ticket, verificando múltiplas propriedades possíveis
+   * @param {Object} ticket - Objeto do ticket
+   * @returns {Date|null} - Data limite do ticket ou null se não encontrada
+   */
+  obterDataLimite(ticket) {
+    if (!ticket) return null;
+    
+    // Verificar se o ticket já está finalizado ou resolvido
+    const statusFinalizado = ticket.status && 
+      (ticket.status.toLowerCase().includes('finalizado') || 
+       ticket.status.toLowerCase().includes('resolvido'));
+    
+    // Se o ticket estiver finalizado, a data de conclusão é mais relevante
+    if (statusFinalizado && ticket.completedAt) {
+      try {
+        const data = new Date(ticket.completedAt);
+        if (!isNaN(data.getTime())) {
+          console.log(`[DEBUG] Ticket finalizado, usando completedAt:`, data);
+          return data;
+        }
+      } catch (error) {
+        console.error(`[DEBUG] Erro ao converter data de conclusão:`, error);
+      }
+    }
+    
+    // Lista de possíveis propriedades que podem conter a data limite
+    const camposPossiveis = ['deadline', 'dueDate', 'prazo', 'endDate', 'due_date', 'expectedDate', 'completionDate', 'dueDateTime'];
+    
+    // Verificar cada propriedade e retornar a primeira data válida encontrada
+    for (const campo of camposPossiveis) {
+      if (ticket[campo]) {
+        try {
+          const data = new Date(ticket[campo]);
+          if (!isNaN(data.getTime())) {
+            console.log(`[DEBUG] Data limite encontrada no campo ${campo}:`, data);
+            return data;
+          }
+        } catch (error) {
+          console.error(`[DEBUG] Erro ao converter data do campo ${campo}:`, error);
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
    * Retorna HTML para uma linha de ticket na tabela
    * @param {Object} ticket - Objeto do ticket
    * @param {string} secao - Seção onde o ticket será exibido ('recebidos', 'criados', 'departamento')
    * @returns {string} HTML para linha de ticket
    */
   getTicketRowHTML(ticket, secao = 'recebidos') {
+    console.log(`Processando ticket para tabela ${secao}:`, ticket);
+    
+    // Verificar campos relacionados a datas e status
+    console.log(`Ticket #${ticket.id} campos detalhados:`, {
+      createdAt: ticket.createdAt,
+      completedAt: ticket.completedAt,
+      completionDate: ticket.completionDate,
+      deadline: ticket.deadline,
+      dueDate: ticket.dueDate,
+      status: ticket.status,
+      priority: ticket.priority
+    });
+    
     const setorNome = this.getSetorNome(ticket.departmentId);
-    const creator = ticket.requesterName || "Desconhecido";
+    
+    // Tentativas diferentes para obter o nome do solicitante
+    let solicitante = "Desconhecido";
+    if (ticket.requesterName) {
+      solicitante = ticket.requesterName;
+    } else if (ticket.requester && typeof ticket.requester === 'string') {
+      solicitante = ticket.requester;
+    } else if (ticket.requester && ticket.requester.name) {
+      solicitante = ticket.requester.name;
+    } else if (ticket.requester && ticket.requester.firstName) {
+      solicitante = ticket.requester.firstName + (ticket.requester.lastName ? ' ' + ticket.requester.lastName : '');
+    }
+    
     const assignee = ticket.assigneeName || "Não atribuído";
     
     // Classe de prioridade para estilização
     let prioridadeClass = "";
     switch(ticket.priority?.toLowerCase()) {
       case "alta":
-        prioridadeClass = "priority-high";
+        prioridadeClass = "priority-flag alta";
         break;
       case "média":
       case "media":
-        prioridadeClass = "priority-medium";
+        prioridadeClass = "priority-flag media";
         break;
       case "baixa":
-        prioridadeClass = "priority-low";
+        prioridadeClass = "priority-flag baixa";
         break;
     }
     
@@ -663,52 +747,92 @@ class TicketModule {
     let statusClass = "";
     switch(ticket.status?.toLowerCase()) {
       case "pendente":
-        statusClass = "status-pending";
+        statusClass = "status-flag pendente";
         break;
       case "em andamento":
-        statusClass = "status-progress";
+        statusClass = "status-flag em_andamento";
         break;
       case "finalizado":
       case "concluído":
       case "concluido":
-        statusClass = "status-done";
+        statusClass = "status-flag finalizado";
         break;
       case "cancelado":
-        statusClass = "status-cancelled";
+        statusClass = "status-flag cancelado";
         break;
     }
     
-    // Formatar datas
+    // Formatar datas - tentativa múltipla de campos para adaptação a diferentes estruturas de dados
     const dataCriacao = ticket.createdAt ? formatUtils.formatDate(ticket.createdAt) : "N/A";
-    const dataConclusao = ticket.completedAt ? formatUtils.formatDate(ticket.completedAt) : "N/A";
-    const prazo = ticket.deadline ? formatUtils.formatDate(ticket.deadline) : "N/A";
+    
+    // Tentar diferentes campos para data de conclusão
+    let dataConclusao = "N/A";
+    if (ticket.completionDate) {
+      dataConclusao = formatUtils.formatDate(ticket.completionDate);
+    } else if (ticket.completedAt) {
+      dataConclusao = formatUtils.formatDate(ticket.completedAt);
+    } else if (ticket.completedDate) {
+      dataConclusao = formatUtils.formatDate(ticket.completedDate);
+    }
+    
+    // Verificar data limite para prazo
+    let prazo = "N/A";
+    const dataLimite = this.obterDataLimite(ticket);
+    if (dataLimite) {
+      prazo = formatUtils.formatarPrazo(dataLimite);
+      console.log(`Ticket #${ticket.id}: Data limite encontrada:`, dataLimite);
+    } else {
+      console.log(`Ticket #${ticket.id}: Nenhuma data limite encontrada`);
+    }
     
     // Construir HTML com base na seção
     let html = `
       <tr data-id="${ticket.id}">
         <td>${ticket.id}</td>
-        <td>${ticket.name}</td>
-        <td><span class="priority-badge ${prioridadeClass}">${ticket.priority || "N/A"}</span></td>
-        <td><span class="status-badge ${statusClass}">${ticket.status || "N/A"}</span></td>
+        <td>${ticket.title || ticket.name}</td>
     `;
     
-    // Adicionar coluna de Setor (para tickets recebidos e criados) ou Solicitante (para tickets do departamento)
+    // Adicionar colunas específicas baseadas na seção
     if (secao === 'departamento') {
-      html += `<td>${creator}</td>`;
+      // Para tickets do departamento: Solicitante, Departamento, Prioridade, Status
+      html += `
+        <td>${solicitante}</td>
+        <td>${setorNome}</td>
+        <td><span class="${prioridadeClass}">${ticket.priority || "Desconhecido"}</span></td>
+        <td><span class="${statusClass}">${ticket.status || "Desconhecido"}</span></td>
+      `;
+    } else if (secao === 'criados') {
+      // Para tickets criados: Solicitante (não aplicável), Departamento, Prioridade, Status
+      html += `
+        <td>${solicitante}</td>
+        <td>${setorNome}</td>
+        <td><span class="${prioridadeClass}">${ticket.priority || "Desconhecido"}</span></td>
+        <td><span class="${statusClass}">${ticket.status || "Desconhecido"}</span></td>
+      `;
     } else {
-      html += `<td>${setorNome}</td>`;
+      // Para tickets recebidos: Solicitante, Departamento, Prioridade, Status
+      html += `
+        <td>${solicitante}</td>
+        <td>${setorNome}</td>
+        <td><span class="${prioridadeClass}">${ticket.priority || "Desconhecido"}</span></td>
+        <td><span class="${statusClass}">${ticket.status || "Desconhecido"}</span></td>
+      `;
     }
     
-    // Adicionar colunas comuns
+    // Adicionar colunas de datas
     html += `
         <td>${dataCriacao}</td>
         <td>${dataConclusao}</td>
         <td>${prazo}</td>
+    `;
+    
+    // Adicionar coluna de ações
+    html += `
         <td class="actions">
-          <button class="btn-icon view-ticket" title="Ver detalhes">
+          <button class="action-btn" title="Ver detalhes">
             <i class="fas fa-eye"></i>
           </button>
-          <button class="btn-icon edit-ticket" title="Editar ticket">
+          <button class="action-btn" title="Editar ticket">
             <i class="fas fa-edit"></i>
           </button>
     `;
@@ -716,7 +840,7 @@ class TicketModule {
     // Adicionar botão de cancelar apenas para tickets criados pelo usuário
     if (secao === 'criados') {
       html += `
-          <button class="btn-icon cancel-ticket" title="Cancelar ticket">
+          <button class="action-btn" title="Cancelar ticket">
             <i class="fas fa-times"></i>
           </button>
       `;
@@ -738,7 +862,7 @@ class TicketModule {
   getEmptyStateHTML() {
     return `
       <tr>
-        <td colspan="9" class="empty-state">
+        <td colspan="10" class="empty-state">
           <i class="fas fa-ticket-alt"></i>
           <p>Nenhum ticket encontrado</p>
         </td>
@@ -804,6 +928,13 @@ class TicketModule {
    * @returns {string} - HTML de detalhes
    */
   getTicketDetailsHTML(ticket) {
+    // Verificar diferentes campos para prazo usando obterDataLimite
+    let prazoFormatado = "-";
+    const dataLimite = this.obterDataLimite(ticket);
+    if (dataLimite) {
+      prazoFormatado = formatUtils.formatarPrazo(dataLimite);
+    }
+    
     return `
       <div class="ticket-details">
         <p><strong>ID:</strong> ${ticket.id}</p>
@@ -814,7 +945,7 @@ class TicketModule {
         <p><strong>Data de Criação:</strong> ${formatUtils.formatarData(ticket.createdAt)}</p>
         <p><strong>Data de Aceitação:</strong> ${formatUtils.formatarData(ticket.acceptanceDate)}</p>
         <p><strong>Data de Conclusão:</strong> ${ticket.completionDate ? formatUtils.formatarData(ticket.completionDate) : "-"}</p>
-        <p><strong>Prazo:</strong> ${formatUtils.formatarPrazo(ticket.deadline)}</p>
+        <p><strong>Prazo:</strong> ${prazoFormatado}</p>
         <p class="full-width"><strong>Descrição:</strong> ${ticket.description}</p>
       </div>
     `;
@@ -1056,25 +1187,11 @@ class TicketModule {
       statusClass = 'status-finalizado';
     }
     
-    // Define a classe para prazo
-    let prazoClass = '';
-    let prazoTexto = '';
-    
-    if (ticket.deadline) {
-      const hoje = new Date();
-      const prazo = new Date(ticket.deadline);
-      const diffDias = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
-      
-      if (diffDias < 0) {
-        prazoClass = 'prazo-atrasado';
-        prazoTexto = `Atrasado: ${Math.abs(diffDias)} dias`;
-      } else if (diffDias <= 3) {
-        prazoClass = 'prazo-proximo';
-        prazoTexto = `Prazo: ${diffDias} dias`;
-      } else {
-        prazoClass = 'prazo-ok';
-        prazoTexto = `Prazo: ${diffDias} dias`;
-      }
+    // Define o prazo usando a função obterDataLimite e formatUtils
+    let prazoHTML = '';
+    const dataLimite = this.obterDataLimite(ticket);
+    if (dataLimite) {
+      prazoHTML = formatUtils.formatarPrazo(dataLimite);
     }
     
     return `
@@ -1083,7 +1200,7 @@ class TicketModule {
           <div class="ticket-title">${ticket.title}</div>
           <div class="ticket-info">
             <span>Setor: ${departmentName}</span>
-            <span class="${prazoClass}">${prazoTexto}</span>
+            ${prazoHTML ? `<span>${prazoHTML}</span>` : ''}
           </div>
         </div>
         <span class="status-flag ${statusClass}">${ticket.status}</span>
@@ -1092,24 +1209,152 @@ class TicketModule {
   }
 
   /**
-   * Cria um novo ticket
-   * @param {Object} ticketData - Dados do ticket
-   * @returns {Promise<boolean>} - Resultado da criação
+   * Método para criar um novo ticket
+   * @param {Event} event - Evento de submit do formulário
    */
-  async createTicket(ticketData) {
+  handleCreateTicket = async (event) => {
+    event.preventDefault();
+    
     try {
+      uiService.showLoading();
+      
+      // Obter elementos do formulário
+      const titleInput = document.getElementById('ticketTitle');
+      const departmentSelect = document.getElementById('ticketDepartment');
+      const categorySelect = document.getElementById('ticketCategory');
+      const userSelect = document.getElementById('ticketUser');
+      const deadlineInput = document.getElementById('ticketDeadline');
+      const descriptionInput = document.getElementById('ticketDescription');
+      
+      // Obter o valor da prioridade dos checkboxes
+      const priorityCheckbox = document.querySelector('input[name="ticketPriority"]:checked');
+      
+      // Validar campos obrigatórios
+      if (!titleInput.value || !departmentSelect.value || !categorySelect.value || !descriptionInput.value) {
+        uiService.showAlert('Preencha todos os campos obrigatórios', 'error');
+        uiService.hideLoading();
+        return;
+      }
+      
+      // Validar que uma prioridade foi selecionada
+      if (!priorityCheckbox) {
+        uiService.showAlert('Selecione uma prioridade para o ticket', 'error');
+        uiService.hideLoading();
+        return;
+      }
+      
+      const priority = priorityCheckbox.value;
+      
+      // Criar objeto do ticket
+      const ticketData = {
+        titulo: titleInput.value,
+        setorId: departmentSelect.value,
+        categoriaId: categorySelect.value,
+        destinatarioId: userSelect.value || null, // Pode ser null se nenhum usuário for selecionado
+        prioridade: priority,
+        prazo: deadlineInput.value || null,
+        descricao: descriptionInput.value,
+        status: 'pendente',
+        criadorId: userModule.getCurrentUserId()
+      };
+      
+      console.log('Enviando ticket para API:', ticketData);
+      
+      // Enviar para a API
       const response = await apiService.createTicket(ticketData);
-      if (response && response.id) {
-        uiService.showAlert("Ticket criado com sucesso!", "success");
-        return true;
+      
+      if (response && response.success) {
+        // Fechar o modal
+        uiService.closeModal('newTicketModal');
+        
+        // Limpar formulário
+        document.getElementById('newTicketForm').reset();
+        
+        // Mostrar mensagem de sucesso
+        uiService.showAlert('Ticket criado com sucesso!', 'success');
+        
+        // Recarregar os tickets
+        this.carregarTicketsIniciais();
       } else {
-        uiService.showAlert("Erro ao criar ticket. Verifique os dados e tente novamente.", "error");
-        return false;
+        throw new Error(response?.message || 'Erro ao criar ticket');
       }
     } catch (error) {
-      console.error("Erro ao criar ticket:", error);
-      uiService.showAlert("Erro ao criar ticket: " + error.message, "error");
-      return false;
+      console.error('Erro ao criar ticket:', error);
+      uiService.showAlert(
+        `Erro ao criar ticket: ${error.message || 'Verifique sua conexão'}`,
+        'error'
+      );
+    } finally {
+      uiService.hideLoading();
+    }
+  }
+
+  /**
+   * Inicializa o formulário de novo ticket com dados dos selects
+   */
+  async initNewTicketForm() {
+    console.log('Inicializando formulário de novo ticket');
+    
+    // Obter referências aos selects
+    const departmentSelect = document.getElementById('ticketDepartment');
+    const categorySelect = document.getElementById('ticketCategory');
+    
+    try {
+      // Carregar setores para o select de departamentos
+      if (departmentSelect) {
+        console.log('Carregando setores para o select...');
+        // Usar os setores já carregados no TicketModule
+        const sectors = this.setores;
+        departmentSelect.innerHTML = ''; // Limpar opções existentes
+        
+        // Adicionar opção padrão
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecione um setor';
+        departmentSelect.appendChild(defaultOption);
+        
+        // Adicionar setores
+        if (sectors && sectors.length > 0) {
+          console.log(`Adicionando ${sectors.length} setores ao select`);
+          sectors.forEach(sector => {
+            const option = document.createElement('option');
+            option.value = sector.id;
+            option.textContent = sector.name;
+            departmentSelect.appendChild(option);
+          });
+        } else {
+          console.warn('Nenhum setor disponível para carregar no select');
+        }
+      }
+      
+      // Carregar categorias para o select de categorias
+      if (categorySelect) {
+        console.log('Carregando categorias para o select...');
+        const categories = await apiService.getCategories();
+        categorySelect.innerHTML = ''; // Limpar opções existentes
+        
+        // Adicionar opção padrão
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecione uma categoria';
+        categorySelect.appendChild(defaultOption);
+        
+        // Adicionar categorias
+        if (categories && categories.length > 0) {
+          console.log(`Adicionando ${categories.length} categorias ao select`);
+          categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+          });
+        } else {
+          console.warn('Nenhuma categoria disponível para carregar no select');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar formulário de novo ticket:', error);
+      uiService.showAlert('Erro ao carregar dados do formulário', 'error');
     }
   }
 }

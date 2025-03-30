@@ -5,10 +5,10 @@
 import { CONFIG } from './config.js';
 import { apiService } from './services/ApiService.js';
 import { uiService } from './services/UiService.js';
-import { userModule } from './modules/UserModule.js';
 import { ticketModule } from './modules/TicketModule.js';
 import { notificationModule } from './modules/NotificationModule.js';
 import { adminModule } from './modules/AdminModule.js';
+import { userModule } from './modules/UserModule.js';
 
 // Configurar eventos globais
 function setupGlobalEvents() {
@@ -100,7 +100,7 @@ function setupGlobalEvents() {
       // Verificar se o dropdown de notificações está aberto e fechá-lo
       const notificationsModal = document.getElementById('notificationsModal');
       if (notificationsModal && notificationsModal.classList.contains('show')) {
-        uiService.closeNotificationModal();
+        notificationModule.closeNotifications();
       }
       
       // Verificar se o dropdown de perfil já está aberto
@@ -114,6 +114,10 @@ function setupGlobalEvents() {
           
           // Depois mostrar o dropdown
           setTimeout(() => {
+            // Garantir transparência do container
+            if (profileModal) {
+              profileModal.style.backgroundColor = 'transparent';
+            }
             uiService.showProfileModal();
           }, 100);
         } else {
@@ -132,13 +136,18 @@ function setupGlobalEvents() {
         !document.getElementById('profileButton').contains(e.target)) {
       uiService.closeProfileModal();
     }
+  });
+  
+  // Clicar fora do dropdown de notificações para fechar
+  document.addEventListener('click', function(e) {
+    const notificationBtn = document.getElementById('notificationButton');
+    const notificationModal = document.getElementById('notificationsModal');
     
-    // Fechar dropdown de notificações se estiver aberto
-    const notificationsModal = document.getElementById('notificationsModal');
-    if (notificationsModal && notificationsModal.classList.contains('show') && 
-        !notificationsModal.contains(e.target) && 
+    if (notificationModal && notificationModal.classList.contains('show') && 
+        !notificationModal.contains(e.target) && 
         !document.getElementById('notificationButton').contains(e.target)) {
-      uiService.closeNotificationModal();
+      console.log('Clique fora do dropdown, fechando notificações');
+      notificationModule.closeNotifications();
     }
   });
   
@@ -151,12 +160,12 @@ function setupGlobalEvents() {
     });
   }
   
-  // Botão para fechar o modal de notificações
+  // Botão para fechar o dropdown de notificações
   const closeNotificationsBtn = document.querySelector('[data-close-modal="notificationsModal"]');
   if (closeNotificationsBtn) {
     closeNotificationsBtn.addEventListener('click', function() {
-      console.log('Fechando modal de notificações via botão close');
-      uiService.closeNotificationModal();
+      console.log('Fechando dropdown de notificações via botão close');
+      notificationModule.closeNotifications();
     });
   }
   
@@ -244,14 +253,154 @@ async function initApp() {
     } else {
       uiService.showUserInterface();
     }
+    
+    // Mostrar a seção do dashboard inicialmente
+    uiService.showSection('dashboard');
+    
+    // Forçar atualização do dashboard após um pequeno atraso para garantir que todos os módulos estejam inicializados
+    setTimeout(() => {
+      console.log('Atualizando dashboard após inicialização');
+      if (adminModule) {
+        adminModule.updateDashboardStats();
+      }
+    }, 500);
   } else {
     console.log('Usuário não autenticado, mostrando tela de login');
     uiService.showLoginSection();
   }
 }
 
-// Iniciar aplicação quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', initApp);
+// Inicialização da aplicação
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('Inicializando aplicação...');
+  
+  try {
+    // Inicializar aplicação
+    await initApp();
+    
+    // Iniciar verificação de conexão
+    startConnectionCheck();
+    
+    // Configurar manipuladores para o formulário de novo ticket
+    setupNewTicketHandlers();
+    
+  } catch (error) {
+    console.error('Erro ao inicializar aplicação:', error);
+  }
+});
 
 // Exportar para possível uso em testes ou desenvolvimento
-export { initApp, startConnectionCheck }; 
+export { initApp, startConnectionCheck };
+
+// Adicionar manipuladores para o formulário de novo ticket
+function setupNewTicketHandlers() {
+  // Referências aos elementos
+  const newTicketForm = document.getElementById('newTicketForm');
+  const clearTicketFormBtn = document.getElementById('clearTicketForm');
+  const ticketDepartmentSelect = document.getElementById('ticketDepartment');
+  const ticketUserSelect = document.getElementById('ticketUser');
+  
+  // Configurar submissão do formulário
+  if (newTicketForm) {
+    newTicketForm.addEventListener('submit', async (event) => {
+      if (window.ticketModule) {
+        // Usar o método do módulo de tickets para processar o envio
+        await window.ticketModule.handleCreateTicket(event);
+      } else {
+        // Fallback caso o módulo não esteja disponível
+        event.preventDefault();
+        console.error('Módulo de tickets não inicializado');
+        window.uiService?.showAlert('Erro ao processar solicitação. Recarregue a página.', 'error');
+      }
+    });
+  }
+  
+  // Limpar formulário ao clicar no botão Limpar
+  if (clearTicketFormBtn) {
+    clearTicketFormBtn.addEventListener('click', () => {
+      if (newTicketForm) {
+        newTicketForm.reset();
+        // Desabilitar o select de usuários
+        if (ticketUserSelect) {
+          ticketUserSelect.disabled = true;
+          ticketUserSelect.innerHTML = '<option value="">Selecione um setor primeiro</option>';
+        }
+      }
+    });
+  }
+  
+  // Carregar usuários do setor quando um setor for selecionado
+  if (ticketDepartmentSelect) {
+    ticketDepartmentSelect.addEventListener('change', async () => {
+      const selectedSectorId = ticketDepartmentSelect.value;
+      
+      if (ticketUserSelect) {
+        // Resetar e desabilitar enquanto carrega
+        ticketUserSelect.disabled = true;
+        ticketUserSelect.innerHTML = '<option value="">Carregando usuários...</option>';
+        
+        if (selectedSectorId) {
+          try {
+            // Buscar usuários do setor selecionado
+            const users = await userModule.getUsersBySector(selectedSectorId);
+            
+            // Preencher o select com os usuários
+            ticketUserSelect.innerHTML = '<option value="">Selecione um usuário</option>';
+            
+            if (users && users.length > 0) {
+              users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                
+                // Obtendo nome do usuário baseado nos campos disponíveis
+                // Campos da tabela user: id, created_at, updated_at, firstName, lastName, email, password, isAdmin, isActive, departmentId
+                let displayName;
+                
+                if (user.firstName) {
+                  displayName = user.firstName + (user.lastName ? ' ' + user.lastName : '');
+                } else if (user.name) {
+                  displayName = user.name;
+                } else if (user.email) {
+                  // Usa o email como fallback se não tiver nome
+                  displayName = user.email.split('@')[0];
+                } else {
+                  displayName = `Usuário ${user.id}`;
+                }
+                
+                option.textContent = displayName;
+                ticketUserSelect.appendChild(option);
+              });
+              ticketUserSelect.disabled = false;
+            } else {
+              ticketUserSelect.innerHTML = '<option value="">Nenhum usuário encontrado</option>';
+            }
+          } catch (error) {
+            console.error('Erro ao carregar usuários do setor:', error);
+            ticketUserSelect.innerHTML = '<option value="">Erro ao carregar usuários</option>';
+          }
+        } else {
+          ticketUserSelect.innerHTML = '<option value="">Selecione um setor primeiro</option>';
+        }
+      }
+    });
+  }
+  
+  // Permitir apenas uma prioridade selecionada por vez
+  const priorityCheckboxes = document.querySelectorAll('input[name="ticketPriority"]');
+  if (priorityCheckboxes.length > 0) {
+    // Desmarcar todas as opções por padrão
+    priorityCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    
+    priorityCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          priorityCheckboxes.forEach(cb => {
+            if (cb !== this) cb.checked = false;
+          });
+        }
+      });
+    });
+  }
+} 

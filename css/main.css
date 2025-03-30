@@ -506,14 +506,47 @@ body.dark-mode .btn-primary:hover {
 }
 
 .notification-icon {
-  color: #1a2233;
   position: relative;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 15px;
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.notification-icon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  height: 16px;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #fff;
 }
 
 .notification-icon i {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #1a2233;
+}
+
+body.dark-mode .notification-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .user-profile {
@@ -605,59 +638,175 @@ body.dark-mode .header-logo .logo-text {
 }
 
 .dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
-.dashboard-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  width: 100%;
+.stat-card {
+  flex: 1;
+  min-width: 220px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Cores para os ícones do dashboard */
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .stat-icon {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  font-size: 1.8rem;
-  background-color: rgba(var(--primary-rgb), 0.1);
-  color: var(--primary-color);
+  margin-right: 15px;
+  font-size: 1.2rem;
 }
 
 .stat-icon.orange {
-  background-color: rgba(var(--warning-rgb), 0.1);
-  color: var(--warning-color);
+  background-color: var(--orange-color);
 }
 
 .stat-icon.blue {
-  background-color: rgba(var(--info-rgb), 0.1);
-  color: var(--info-color);
+  background-color: var(--blue-color);
 }
 
 .stat-icon.green {
-  background-color: rgba(var(--success-rgb), 0.1);
-  color: var(--success-color);
+  background-color: var(--green-color);
 }
 
-/* Títulos das seções */
-.section-content h1 {
+.stat-icon.purple {
+  background-color: #9c27b0;
+}
+
+.stat-icon.teal {
+  background-color: #009688;
+}
+
+.stat-icon.indigo {
+  background-color: #3f51b5;
+}
+
+.stat-info h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 5px 0;
+}
+
+.stat-info p {
   font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #1a2233;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
 }
 
-body.dark-mode .section-content h1 {
-  color: var(--text-color-dark);
+/* Tickets Recentes no Dashboard */
+.dashboard-recent {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+}
+
+.recent-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.recent-heading h2 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-item {
+  padding: 12px 15px;
+  border-radius: 6px;
+  background-color: var(--bg-light);
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ticket-item:hover {
+  transform: translateX(3px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.ticket-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.ticket-date {
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-secondary);
+}
+
+.loading-state i {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+/* Dark mode adaptations */
+@media (prefers-color-scheme: dark) {
+  .dashboard-stats .stat-card,
+  .dashboard-recent {
+    background-color: var(--dark-card-bg);
+  }
+  
+  .ticket-item {
+    background-color: var(--dark-bg-light);
+  }
 }
 
 /* Estados da tabela (vazio, carregando, erro) */
@@ -802,38 +951,86 @@ body.dark-mode .section-content h1 {
 }
 
 .priority-flag.alta {
-  background-color: rgba(245, 54, 54, 0.15);
-  color: #f53636;
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
 .priority-flag.media {
-  background-color: rgba(255, 165, 0, 0.15);
-  color: #ffa500;
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
 .priority-flag.baixa {
-  background-color: rgba(76, 175, 80, 0.15);
+  background-color: rgba(76, 175, 80, 0.1);
   color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .status-flag.pendente {
-  background-color: rgba(250, 140, 22, 0.15);
-  color: #fa8c16;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 .status-flag.em_andamento {
-  background-color: rgba(93, 120, 255, 0.15);
-  color: #5d78ff;
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
 }
 
 .status-flag.finalizado {
-  background-color: rgba(76, 175, 80, 0.15);
+  background-color: rgba(76, 175, 80, 0.1);
   color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
 .status-flag.cancelado {
-  background-color: rgba(158, 158, 158, 0.15);
+  background-color: rgba(158, 158, 158, 0.1);
   color: #9e9e9e;
+  border: 1px solid rgba(158, 158, 158, 0.3);
+}
+
+/* Estilos para prazos formatados */
+.prazo-col {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  gap: 5px;
+  min-width: 70px;
+}
+
+.prazo-col i {
+  font-size: 0.9em;
+}
+
+.prazo-col.prazo-ok {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.prazo-col.prazo-proximo {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.prazo-col.prazo-atrasado {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.prazo-col.prazo-erro {
+  background-color: rgba(97, 97, 97, 0.1);
+  color: #616161;
+  border: 1px solid rgba(97, 97, 97, 0.3);
 }
 
 /* Estilos para botões de ação como Novo Setor, Nova Categoria, Novo Colaborador */
@@ -944,13 +1141,12 @@ body.dark-mode .header-action-btn:hover {
 
 .summary-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   background-color: var(--card-bg);
   padding: 1rem;
   border-radius: 8px;
-  min-width: 120px;
+  min-width: 220px;
   flex-grow: 1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -961,20 +1157,64 @@ body.dark-mode .header-action-btn:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.summary-item-content {
+  display: flex;
+  align-items: center;
+}
+
+.summary-item .stat-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  margin-right: 0.75rem;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary-color);
+}
+
+.summary-item .stat-icon.orange {
+  background-color: rgba(var(--warning-rgb), 0.1);
+  color: var(--warning-color);
+}
+
+.summary-item .stat-icon.blue {
+  background-color: rgba(var(--info-rgb), 0.1);
+  color: var(--info-color);
+}
+
+.summary-item .stat-icon.green {
+  background-color: rgba(var(--success-rgb), 0.1);
+  color: var(--success-color);
+}
+
+.summary-info {
+  display: flex;
+  flex-direction: column;
+}
+
 .summary-label {
   font-size: 0.85rem;
   color: var(--text-light);
-  margin-bottom: 0.5rem;
+  display: block;
+  font-weight: 500;
 }
 
 .stat-number {
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--text-color);
+  display: block;
+  text-align: right;
+  min-width: 30px;
 }
 
+/* Cores para os contadores */
 .summary-item:nth-child(1) .stat-number {
-  color: var(--primary);
+  color: var(--primary-color);
 }
 
 .summary-item:nth-child(2) .stat-number {
@@ -982,11 +1222,24 @@ body.dark-mode .header-action-btn:hover {
 }
 
 .summary-item:nth-child(3) .stat-number {
-  color: #5d78ff; /* Em andamento - azul */
+  color: #2196f3; /* Em andamento - azul */
 }
 
 .summary-item:nth-child(4) .stat-number {
   color: #4caf50; /* Resolvidos - verde */
+}
+
+/* Dark mode para os itens de sumário */
+body.dark-mode .summary-item {
+  background-color: var(--card-bg-dark);
+}
+
+body.dark-mode .stat-number {
+  color: var(--text-color-dark);
+}
+
+body.dark-mode .summary-label {
+  color: var(--text-light-dark);
 }
 
 /* Adicionar estilos para o botão de tema */
@@ -1298,4 +1551,252 @@ body.dark-mode .compact-form textarea {
 
 body.dark-mode .compact-form label {
   color: #ddd;
+}
+
+/* Estilos específicos para as tabelas de tickets */
+.tickets-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tickets-table th,
+.tickets-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.tickets-table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Estilos para colunas específicas */
+.tickets-table th:nth-child(1), /* ID */
+.tickets-table td:nth-child(1) {
+  width: 60px;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(2), /* Título */
+.tickets-table td:nth-child(2) {
+  width: 20%;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(3), /* Solicitante */
+.tickets-table td:nth-child(3) {
+  width: 10%;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(4), /* Setor */
+.tickets-table td:nth-child(4) {
+  width: 10%;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(5), /* Prioridade */
+.tickets-table td:nth-child(5) {
+  width: 100px;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(6), /* Status */
+.tickets-table td:nth-child(6) {
+  width: 120px;
+  text-align: center;
+}
+
+.tickets-table th:nth-child(7), /* Data criação */
+.tickets-table td:nth-child(7),
+.tickets-table th:nth-child(8), /* Conclusão */
+.tickets-table td:nth-child(8),
+.tickets-table th:nth-child(9), /* Prazo */
+.tickets-table td:nth-child(9) {
+  width: 120px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.tickets-table th:last-child, /* Ações */
+.tickets-table td:last-child {
+  width: 100px;
+  text-align: center;
+}
+
+/* Estilos para flags de prioridade e status */
+.priority-flag,
+.status-flag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Cores para prioridades */
+.priority-flag.alta {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.priority-flag.media {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.priority-flag.baixa {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+/* Cores para status */
+.status-flag.pendente {
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.status-flag.em_andamento {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.status-flag.finalizado {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-flag.cancelado {
+  background-color: rgba(158, 158, 158, 0.1);
+  color: #9e9e9e;
+  border: 1px solid rgba(158, 158, 158, 0.3);
+}
+
+/* Modo escuro para tabelas */
+body.dark-mode .tickets-table th {
+  background-color: #2d3748;
+  color: #e2e8f0;
+}
+
+body.dark-mode .tickets-table td {
+  border-bottom-color: #2d3748;
+}
+
+body.dark-mode .tickets-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Estilos para tabelas tipo "caixa de entrada" no dashboard */
+.inbox-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.inbox-table thead {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inbox-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.inbox-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inbox-table tr:last-child td {
+  border-bottom: none;
+}
+
+.inbox-table .title-cell {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.inbox-table .status-col {
+  text-align: right;
+  width: 100px;
+}
+
+.inbox-table .status-cell {
+  text-align: right;
+}
+
+/* Status flags para a caixa de entrada */
+.inbox-table .status-flag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.inbox-table .status-flag.pendente {
+  background-color: rgba(var(--warning-rgb), 0.1);
+  color: var(--warning-color);
+}
+
+.inbox-table .status-flag.em_andamento {
+  background-color: rgba(var(--info-rgb), 0.1);
+  color: var(--info-color);
+}
+
+.inbox-table .status-flag.finalizado {
+  background-color: rgba(var(--success-rgb), 0.1);
+  color: var(--success-color);
+}
+
+.inbox-table .status-flag.cancelado {
+  background-color: rgba(var(--danger-rgb), 0.1);
+  color: var(--danger-color);
+}
+
+/* Ajustes para o dark mode */
+@media (prefers-color-scheme: dark) {
+  .inbox-table thead {
+    border-bottom: 1px solid var(--border-dark);
+  }
+  
+  .inbox-table td {
+    border-bottom: 1px solid var(--border-dark-light);
+  }
+  
+  .inbox-table th {
+    color: var(--text-secondary-dark);
+  }
 } 

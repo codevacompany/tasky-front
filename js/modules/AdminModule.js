@@ -4,6 +4,7 @@
 import { apiService } from '../services/ApiService.js';
 import { uiService } from '../services/UiService.js';
 import { userModule } from './UserModule.js';
+import { formatUtils } from '../utils/FormatUtils.js';
 
 class AdminModule {
   constructor() {
@@ -273,30 +274,341 @@ class AdminModule {
    */
   async updateDashboardStats() {
     try {
-      const tickets = await apiService.getTickets();
+      console.log('[AdminModule] Atualizando estatísticas do dashboard');
+      
+      // Obter ID do usuário atual
+      const userId = userModule.getCurrentUserId();
+      if (!userId) {
+        console.error('[AdminModule] Usuário não identificado');
+        return;
+      }
+      
+      console.log('[AdminModule] Carregando tickets para o usuário:', userId);
+      
+      // Carregar tickets recebidos pelo usuário atual
+      let ticketsRecebidos = [];
+      try {
+        ticketsRecebidos = await apiService.getTicketsByTargetUser(userId);
+        console.log('[AdminModule] Tickets recebidos carregados:', ticketsRecebidos.length);
+      } catch (error) {
+        console.error('[AdminModule] Erro ao carregar tickets recebidos:', error);
+        ticketsRecebidos = [];
+      }
+      
+      // Carregar tickets criados pelo usuário atual
+      let ticketsCriados = [];
+      try {
+        ticketsCriados = await apiService.getTicketsByRequester(userId);
+        console.log('[AdminModule] Tickets criados carregados:', ticketsCriados.length);
+      } catch (error) {
+        console.error('[AdminModule] Erro ao carregar tickets criados:', error);
+        ticketsCriados = [];
+      }
       
       // Contar tickets por status
-      const total = tickets.length;
-      const pendentes = tickets.filter(t => t.status.toLowerCase().includes('pendente')).length;
-      const emAndamento = tickets.filter(t => t.status.toLowerCase().includes('andamento')).length;
-      const resolvidos = tickets.filter(t => t.status.toLowerCase().includes('finalizado')).length;
+      const total = ticketsRecebidos.length;
+      const pendentes = ticketsRecebidos.filter(t => (t.status || '').toLowerCase().includes('pendente')).length;
+      const emAndamento = ticketsRecebidos.filter(t => (t.status || '').toLowerCase().includes('andamento')).length;
+      const resolvidos = ticketsRecebidos.filter(t => (t.status || '').toLowerCase().includes('finalizado')).length;
+      
+      console.log('[AdminModule] Estatísticas calculadas:', { total, pendentes, emAndamento, resolvidos });
+      
+      // Calcular porcentagem de resolução
+      const porcentagemResolucao = total > 0 ? Math.round((resolvidos / total) * 100) : 0;
+      
+      // Calcular tempos médios
+      const tempoMedioAceite = this.calcularTempoMedioAceite(ticketsRecebidos);
+      const tempoMedioConclusao = this.calcularTempoMedioConclusao(ticketsRecebidos);
       
       // Atualizar contadores no dashboard
-      this.updateDashboardCounters(total, pendentes, emAndamento, resolvidos);
+      this.updateDashboardCounters(total, pendentes, emAndamento, resolvidos, porcentagemResolucao, tempoMedioAceite, tempoMedioConclusao);
+      
+      // Carregar tickets recentes (recebidos e criados)
+      this.loadLatestReceivedTickets(ticketsRecebidos);
+      this.loadLatestCreatedTickets(ticketsCriados);
+      
     } catch (error) {
-      console.error('Erro ao atualizar estatísticas do dashboard:', error);
+      console.error('[AdminModule] Erro ao atualizar estatísticas do dashboard:', error);
       uiService.showAlert('Erro ao carregar estatísticas. Tente novamente.', 'error');
     }
   }
 
   /**
+   * Calcula o tempo médio de aceite dos tickets em horas
+   * @param {Array} tickets - Lista de tickets
+   * @returns {string} - Tempo médio formatado em horas
+   */
+  calcularTempoMedioAceite(tickets) {
+    // Filtrar tickets com data de aceitação
+    const ticketsComAceite = tickets.filter(t => t.acceptanceDate && t.createdAt);
+    
+    if (ticketsComAceite.length === 0) {
+      return "N/A";
+    }
+    
+    // Calcular a diferença média entre data de criação e aceitação
+    const tempoTotalMs = ticketsComAceite.reduce((acc, ticket) => {
+      const dataAceite = new Date(ticket.acceptanceDate);
+      const dataCriacao = new Date(ticket.createdAt);
+      return acc + (dataAceite - dataCriacao);
+    }, 0);
+    
+    const tempoMedioMs = tempoTotalMs / ticketsComAceite.length;
+    const tempoMedioHoras = (tempoMedioMs / (1000 * 60 * 60)).toFixed(1);
+    
+    return `${tempoMedioHoras}h`;
+  }
+
+  /**
+   * Calcula o tempo médio de conclusão dos tickets em dias
+   * @param {Array} tickets - Lista de tickets
+   * @returns {string} - Tempo médio formatado em dias
+   */
+  calcularTempoMedioConclusao(tickets) {
+    // Filtrar tickets concluídos
+    const ticketsConcluidos = tickets.filter(t => 
+      (t.completionDate || t.completedAt) && t.createdAt && 
+      (t.status.toLowerCase().includes('finalizado') || t.status.toLowerCase().includes('resolvido'))
+    );
+    
+    if (ticketsConcluidos.length === 0) {
+      return "N/A";
+    }
+    
+    // Calcular a diferença média entre data de criação e conclusão
+    const tempoTotalMs = ticketsConcluidos.reduce((acc, ticket) => {
+      const dataConclusao = new Date(ticket.completionDate || ticket.completedAt);
+      const dataCriacao = new Date(ticket.createdAt);
+      return acc + (dataConclusao - dataCriacao);
+    }, 0);
+    
+    const tempoMedioMs = tempoTotalMs / ticketsConcluidos.length;
+    const tempoMedioDias = (tempoMedioMs / (1000 * 60 * 60 * 24)).toFixed(1);
+    
+    return `${tempoMedioDias}d`;
+  }
+
+  /**
+   * Carrega os últimos tickets recebidos pelo usuário
+   * @param {Array} tickets - Lista de tickets recebidos
+   */
+  loadLatestReceivedTickets(tickets) {
+    const container = document.getElementById('latestTicketsList');
+    if (!container) return;
+    
+    // Ordenar por data de criação (mais recentes primeiro)
+    const sortedTickets = [...tickets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Log para depuração - verificar a estrutura dos tickets
+    console.log('[DEBUG] Tickets recebidos:', sortedTickets);
+    sortedTickets.forEach((ticket, index) => {
+      console.log(`[DEBUG] Ticket ${index} - deadline:`, ticket.deadline, 
+        'dueDate:', ticket.dueDate, 
+        'completionDate:', ticket.completionDate);
+    });
+    
+    // Pegar os 5 mais recentes
+    const recentTickets = sortedTickets.slice(0, 5);
+    
+    if (recentTickets.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <p>Nenhum ticket recebido recentemente</p>
+        </div>
+      `;
+      return;
+    }
+    
+    container.innerHTML = `
+      <table class="inbox-table">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Solicitante/Setor</th>
+            <th>Prazo</th>
+            <th class="status-col">Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    `;
+    
+    const tbody = container.querySelector('tbody');
+    
+    recentTickets.forEach(ticket => {
+      // Determinar a classe de status
+      let statusClass = '';
+      switch ((ticket.status || '').toLowerCase()) {
+        case 'pendente':
+          statusClass = 'status-flag pendente';
+          break;
+        case 'em andamento':
+          statusClass = 'status-flag em_andamento';
+          break;
+        case 'finalizado':
+        case 'resolvido':
+          statusClass = 'status-flag finalizado';
+          break;
+        case 'cancelado':
+          statusClass = 'status-flag cancelado';
+          break;
+      }
+      
+      // Formatar prazo utilizando o formatUtils
+      const dataLimite = this.obterDataLimite(ticket);
+      let prazo = 'N/A';
+      
+      if (dataLimite) {
+        prazo = formatUtils.formatarPrazo(dataLimite);
+      }
+      
+      // Obter nome do solicitante com múltiplas verificações
+      let solicitante = 'N/A';
+      if (ticket.requesterName) {
+        solicitante = ticket.requesterName;
+      } else if (ticket.requester && typeof ticket.requester === 'string') {
+        solicitante = ticket.requester;
+      } else if (ticket.requester && ticket.requester.name) {
+        solicitante = ticket.requester.name;
+      } else if (ticket.requester && ticket.requester.firstName) {
+        solicitante = ticket.requester.firstName + (ticket.requester.lastName ? ' ' + ticket.requester.lastName : '');
+      }
+      
+      // Obter setor
+      const setorNome = this.getSetorNome(ticket.departmentId);
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="title-cell">${ticket.title || ticket.name}</td>
+        <td>${solicitante}<br><small>${setorNome}</small></td>
+        <td>${prazo}</td>
+        <td class="status-cell"><span class="${statusClass}">${ticket.status}</span></td>
+      `;
+      
+      // Event listener para abrir detalhes do ticket
+      row.addEventListener('click', () => {
+        ticketModule.showTicketDetails(ticket.id);
+      });
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  /**
+   * Carrega os últimos tickets criados pelo usuário
+   * @param {Array} tickets - Lista de tickets criados
+   */
+  loadLatestCreatedTickets(tickets) {
+    const container = document.getElementById('activityList');
+    if (!container) return;
+    
+    // Ordenar por data de criação (mais recentes primeiro)
+    const sortedTickets = [...tickets].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Pegar os 5 mais recentes
+    const recentTickets = sortedTickets.slice(0, 5);
+    
+    if (recentTickets.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-plus-circle"></i>
+          <p>Nenhum ticket criado recentemente</p>
+        </div>
+      `;
+      return;
+    }
+    
+    container.innerHTML = `
+      <table class="inbox-table">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Setor Destino</th>
+            <th>Data</th>
+            <th>Prazo</th>
+            <th class="status-col">Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    `;
+    
+    const tbody = container.querySelector('tbody');
+    
+    recentTickets.forEach(ticket => {
+      // Determinar a classe de status
+      let statusClass = '';
+      switch ((ticket.status || '').toLowerCase()) {
+        case 'pendente':
+          statusClass = 'status-flag pendente';
+          break;
+        case 'em andamento':
+          statusClass = 'status-flag em_andamento';
+          break;
+        case 'finalizado':
+        case 'resolvido':
+          statusClass = 'status-flag finalizado';
+          break;
+        case 'cancelado':
+          statusClass = 'status-flag cancelado';
+          break;
+      }
+      
+      // Formatar data de criação
+      const dataCriacao = formatUtils.formatDate(ticket.createdAt);
+      
+      // Formatar prazo utilizando o formatUtils
+      const dataLimiteCriados = this.obterDataLimite(ticket);
+      let prazoExibicao = 'N/A';
+      
+      if (dataLimiteCriados) {
+        prazoExibicao = formatUtils.formatarPrazo(dataLimiteCriados);
+      }
+      
+      // Definir setor destino
+      const setorDestino = ticket.department ? ticket.department.name : 'N/A';
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="title-cell">${ticket.title || ticket.name}</td>
+        <td>${setorDestino}</td>
+        <td>${dataCriacao}</td>
+        <td>${prazoExibicao}</td>
+        <td class="status-cell"><span class="${statusClass}">${ticket.status}</span></td>
+      `;
+      
+      // Event listener para abrir detalhes do ticket
+      row.addEventListener('click', () => {
+        ticketModule.showTicketDetails(ticket.id);
+      });
+      
+      tbody.appendChild(row);
+    });
+  }
+
+  /**
    * Atualiza os contadores no dashboard
    */
-  updateDashboardCounters(total, pendentes, emAndamento, resolvidos) {
+  updateDashboardCounters(total, pendentes, emAndamento, resolvidos, porcentagemResolucao, tempoMedioAceite, tempoMedioConclusao) {
+    // Atualizar contadores principais
     document.getElementById('totalTicketsCount').textContent = total;
     document.getElementById('pendingTicketsCount').textContent = pendentes;
     document.getElementById('inProgressTicketsCount').textContent = emAndamento;
     document.getElementById('resolvedTicketsCount').textContent = resolvidos;
+    
+    // Atualizar estatísticas adicionais (se existirem os elementos)
+    if (document.getElementById('resolucaoPercentual')) {
+      document.getElementById('resolucaoPercentual').textContent = `${porcentagemResolucao}%`;
+    }
+    
+    if (document.getElementById('tempoMedioAceite')) {
+      document.getElementById('tempoMedioAceite').textContent = tempoMedioAceite;
+    }
+    
+    if (document.getElementById('tempoMedioConclusao')) {
+      document.getElementById('tempoMedioConclusao').textContent = tempoMedioConclusao;
+    }
   }
 
   // GERENCIAMENTO DE SETORES
@@ -809,6 +1121,53 @@ class AdminModule {
     
     // Mostrar o modal
     uiService.showModal('colaboradorModal');
+  }
+
+  /**
+   * Obtém a data limite de um ticket, verificando múltiplas propriedades possíveis
+   * @param {Object} ticket - Objeto do ticket
+   * @returns {Date|null} - Data limite do ticket ou null se não encontrada
+   */
+  obterDataLimite(ticket) {
+    if (!ticket) return null;
+    
+    // Verificar se o ticket já está finalizado ou resolvido
+    const statusFinalizado = ticket.status && 
+      (ticket.status.toLowerCase().includes('finalizado') || 
+       ticket.status.toLowerCase().includes('resolvido'));
+    
+    // Se o ticket estiver finalizado, a data de conclusão é mais relevante
+    if (statusFinalizado && ticket.completedAt) {
+      try {
+        const data = new Date(ticket.completedAt);
+        if (!isNaN(data.getTime())) {
+          console.log(`[DEBUG] Ticket finalizado, usando completedAt:`, data);
+          return data;
+        }
+      } catch (error) {
+        console.error(`[DEBUG] Erro ao converter data de conclusão:`, error);
+      }
+    }
+    
+    // Lista de possíveis propriedades que podem conter a data limite
+    const camposPossiveis = ['deadline', 'dueDate', 'prazo', 'endDate', 'due_date', 'expectedDate', 'completionDate'];
+    
+    // Verificar cada propriedade e retornar a primeira data válida encontrada
+    for (const campo of camposPossiveis) {
+      if (ticket[campo]) {
+        try {
+          const data = new Date(ticket[campo]);
+          if (!isNaN(data.getTime())) {
+            console.log(`[DEBUG] Data limite encontrada no campo ${campo}:`, data);
+            return data;
+          }
+        } catch (error) {
+          console.error(`[DEBUG] Erro ao converter data do campo ${campo}:`, error);
+        }
+      }
+    }
+    
+    return null;
   }
 }
 

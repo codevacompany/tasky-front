@@ -16,9 +16,11 @@ class UiService {
    * Inicializa o serviço de UI
    */
   init() {
+    console.log('Inicializando UiService');
     this.setupElements();
     this.setupModalHandlers();
     this.setupNavHandlers();
+    this.setupResizeHandlers();
     
     // Esconder o banner offline ao iniciar
     if (this.offlineBanner) {
@@ -98,6 +100,26 @@ class UiService {
         const tabId = tab.getAttribute('data-tab');
         this.showTicketTab(tabId);
       });
+    });
+  }
+
+  /**
+   * Configura manipuladores de eventos para redimensionamento
+   */
+  setupResizeHandlers() {
+    // Recentralizar modais quando a janela for redimensionada
+    window.addEventListener('resize', () => {
+      // Verificar se o modal de novo ticket está aberto
+      const newTicketModal = document.getElementById('newTicketModal');
+      if (newTicketModal && newTicketModal.classList.contains('show')) {
+        this.centerNewTicketModal();
+      }
+      
+      // Verificar se o modal de perfil está aberto
+      const profileModal = document.getElementById('profileModal');
+      if (profileModal && profileModal.classList.contains('show')) {
+        this.adjustProfileModalPosition();
+      }
     });
   }
 
@@ -416,44 +438,48 @@ class UiService {
   }
 
   /**
-   * Mostra o modal de notificações
-   */
-  showNotifications() {
-    console.log('Mostrando modal de notificações');
-    const modal = document.getElementById('notificationsModal');
-    if (modal) {
-      modal.classList.add('show');
-      // Não adicionamos a classe modal-open ao body para evitar overflow:hidden
-      // que impediria a rolagem da página enquanto o dropdown de notificações está aberto
-    } else {
-      console.error('Modal de notificações não encontrado!');
-    }
-  }
-
-  /**
-   * Fecha o modal de notificações
-   */
-  closeNotificationModal() {
-    console.log('Fechando modal de notificações');
-    const modal = document.getElementById('notificationsModal');
-    if (modal) {
-      modal.classList.remove('show');
-      // Não removemos a classe modal-open do body, pois não a adicionamos
-    }
-  }
-
-  /**
    * Mostra o modal de perfil do usuário
    */
   showProfileModal() {
     console.log('Mostrando dropdown de perfil');
     const modal = document.getElementById('profileModal');
     if (modal) {
+      // Posicionar corretamente com base no header
+      const headerHeight = document.querySelector('header')?.offsetHeight || 60;
+      modal.style.top = `${headerHeight}px`;
+      modal.style.right = '0'; // Posicionamento totalmente à direita
+      
+      // Mostrar o modal
       modal.classList.add('show');
-      // Não adicionamos a classe modal-open ao body para evitar overflow:hidden
-      // que impediria a rolagem da página enquanto o dropdown de perfil está aberto
+      
+      // Posicionar o modal de acordo com o viewport
+      this.adjustProfileModalPosition();
+      
+      // Adicionar evento de redimensionamento da janela para ajustar posição do modal
+      window.addEventListener('resize', this.adjustProfileModalPosition);
     } else {
       console.error('Dropdown de perfil não encontrado!');
+    }
+  }
+
+  /**
+   * Ajusta a posição do modal de perfil para garantir que fique visível na tela
+   */
+  adjustProfileModalPosition = () => {
+    const modal = document.getElementById('profileModal');
+    if (!modal || !modal.classList.contains('show')) return;
+    
+    const modalContent = modal.querySelector('.modal-content');
+    if (!modalContent) return;
+    
+    const viewportHeight = window.innerHeight;
+    const modalRect = modalContent.getBoundingClientRect();
+    const modalHeight = modalRect.height;
+    
+    // Verificar se o modal está saindo da tela
+    if (modalRect.top + modalHeight > viewportHeight) {
+      // Ajustar posição para cima se necessário
+      modal.style.top = `${Math.max(10, viewportHeight - modalHeight - 20)}px`;
     }
   }
 
@@ -465,7 +491,8 @@ class UiService {
     const modal = document.getElementById('profileModal');
     if (modal) {
       modal.classList.remove('show');
-      // Não removemos a classe modal-open do body, pois não a adicionamos
+      // Remover evento de redimensionamento
+      window.removeEventListener('resize', this.adjustProfileModalPosition);
     }
   }
 
@@ -474,6 +501,39 @@ class UiService {
    */
   showNewTicketModal() {
     this.showModal('newTicketModal');
+    
+    // Centralizar o modal na tela após ser exibido
+    this.centerNewTicketModal();
+  }
+  
+  /**
+   * Centraliza o modal de novo ticket na tela
+   */
+  centerNewTicketModal() {
+    const modal = document.getElementById('newTicketModal');
+    if (!modal) return;
+    
+    // Garantir que o modal tenha a classe show
+    modal.classList.add('show');
+    
+    // Centralizar verticalmente
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+      // Calcula a altura do modal e centraliza
+      const windowHeight = window.innerHeight;
+      const modalHeight = modalContent.offsetHeight;
+      
+      // Se o modal for maior que a janela, ajusta para exibir com scroll
+      if (modalHeight > windowHeight * 0.9) {
+        modalContent.style.marginTop = '5vh';
+        modalContent.style.marginBottom = '5vh';
+      } else {
+        // Centraliza verticalmente
+        const topMargin = Math.max(0, (windowHeight - modalHeight) / 2);
+        modalContent.style.marginTop = `${topMargin}px`;
+        modalContent.style.marginBottom = `${topMargin}px`;
+      }
+    }
   }
 
   /**
@@ -491,6 +551,10 @@ class UiService {
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.style.display = 'block';
+      modal.classList.add('show');
+      
+      // Adicionar classe à body para prevenir rolagem
+      document.body.classList.add('modal-open');
     } else {
       console.error(`Modal não encontrado: ${modalId}`);
     }
@@ -504,6 +568,10 @@ class UiService {
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.style.display = 'none';
+      modal.classList.remove('show');
+      
+      // Remover classe da body para permitir rolagem novamente
+      document.body.classList.remove('modal-open');
     }
   }
 

@@ -44,6 +44,34 @@
       <div class="notification-icon" id="notificationButton">
         <i class="far fa-bell"></i>
         <span class="notification-badge" id="notificationBadge">0</span>
+        
+        <!-- Dropdown de Notificações -->
+        <div class="notification-dropdown" id="notificationsModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Notificações</h2>
+              <button class="close-btn" id="closeNotifications">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="notifications-actions">
+                <button id="markAllReadButton">
+                  <i class="fas fa-check-double"></i>
+                  Marcar todas como lidas
+                </button>
+              </div>
+              
+              <div class="notifications-list" id="notificationList">
+                <!-- As notificações serão inseridas aqui via JavaScript -->
+                <div class="notification-empty">
+                  <i class="far fa-bell-slash"></i>
+                  <p>Você não tem novas notificações</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div class="theme-toggle" id="darkModeToggle">
@@ -143,8 +171,41 @@
             <i class="fas fa-check-circle"></i>
           </div>
           <div class="stat-info">
-            <h3>Resolvidos</h3>
+            <h3>Finalizados</h3>
             <p id="resolvedTicketsCount">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Estatísticas Adicionais -->
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Taxa de Resolução</h3>
+            <p id="resolucaoPercentual">0%</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon teal">
+            <i class="fas fa-hourglass-half"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Tempo Médio de Aceite</h3>
+            <p id="tempoMedioAceite">N/A</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon indigo">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Tempo Médio de Conclusão</h3>
+            <p id="tempoMedioConclusao">N/A</p>
           </div>
         </div>
       </div>
@@ -152,15 +213,15 @@
       <div class="dashboard-row">
         <div class="dashboard-card">
           <div class="card-header">
-            <h2>Últimos Tickets</h2>
+            <h2>Últimos Tickets Recebidos</h2>
             <a href="#tickets" class="card-action">Ver todos</a>
           </div>
           <div class="card-content">
             <div id="latestTicketsList" class="latest-tickets">
               <!-- Os tickets serão inseridos aqui via JavaScript -->
               <div class="empty-state">
-                <i class="fas fa-ticket-alt"></i>
-                <p>Nenhum ticket criado recentemente</p>
+                <i class="fas fa-inbox"></i>
+                <p>Nenhum ticket recebido recentemente</p>
               </div>
             </div>
           </div>
@@ -168,14 +229,15 @@
         
         <div class="dashboard-card">
           <div class="card-header">
-            <h2>Atividade Recente</h2>
+            <h2>Últimos Tickets Criados</h2>
+            <a href="#tickets" class="card-action">Ver todos</a>
           </div>
           <div class="card-content">
             <div id="activityList" class="activity-list">
               <!-- As atividades serão inseridas aqui via JavaScript -->
               <div class="empty-state">
-                <i class="fas fa-history"></i>
-                <p>Nenhuma atividade recente</p>
+                <i class="fas fa-plus-circle"></i>
+                <p>Nenhum ticket criado recentemente</p>
               </div>
             </div>
           </div>
@@ -228,19 +290,39 @@
             
             <div class="tickets-summary">
               <div class="summary-item">
-                <span class="summary-label">Total</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                  </div>
+                  <span class="summary-label">Total</span>
+                </div>
                 <span id="recebidosTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Pendentes</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <span class="summary-label">Pendentes</span>
+                </div>
                 <span id="recebidosPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Em Andamento</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon blue">
+                    <i class="fas fa-spinner"></i>
+                  </div>
+                  <span class="summary-label">Em Andamento</span>
+                </div>
                 <span id="recebidosEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Resolvidos</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                  <span class="summary-label">Resolvidos</span>
+                </div>
                 <span id="recebidosResolvidos" class="stat-number">0</span>
               </div>
             </div>
@@ -252,10 +334,11 @@
                     <th>ID</th>
                     <th>Título</th>
                     <th>Solicitante</th>
-                    <th>Departamento</th>
+                    <th>Setor</th>
                     <th>Prioridade</th>
                     <th>Status</th>
                     <th>Data Criação</th>
+                    <th>Conclusão</th>
                     <th>Prazo</th>
                     <th>Ações</th>
                   </tr>
@@ -314,19 +397,39 @@
             
             <div class="tickets-summary">
               <div class="summary-item">
-                <span class="summary-label">Total</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                  </div>
+                  <span class="summary-label">Total</span>
+                </div>
                 <span id="criadosTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Pendentes</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <span class="summary-label">Pendentes</span>
+                </div>
                 <span id="criadosPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Em Andamento</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon blue">
+                    <i class="fas fa-spinner"></i>
+                  </div>
+                  <span class="summary-label">Em Andamento</span>
+                </div>
                 <span id="criadosEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Resolvidos</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                  <span class="summary-label">Resolvidos</span>
+                </div>
                 <span id="criadosResolvidos" class="stat-number">0</span>
               </div>
             </div>
@@ -337,9 +440,10 @@
                   <tr>
                     <th>ID</th>
                     <th>Título</th>
+                    <th>Solicitante</th>
+                    <th>Setor</th>
                     <th>Prioridade</th>
                     <th>Status</th>
-                    <th>Departamento</th>
                     <th>Data Criação</th>
                     <th>Conclusão</th>
                     <th>Prazo</th>
@@ -400,19 +504,39 @@
             
             <div class="tickets-summary">
               <div class="summary-item">
-                <span class="summary-label">Total</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                  </div>
+                  <span class="summary-label">Total</span>
+                </div>
                 <span id="departamentoTotal" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Pendentes</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <span class="summary-label">Pendentes</span>
+                </div>
                 <span id="departamentoPendentes" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Em Andamento</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon blue">
+                    <i class="fas fa-spinner"></i>
+                  </div>
+                  <span class="summary-label">Em Andamento</span>
+                </div>
                 <span id="departamentoEmAndamento" class="stat-number">0</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Resolvidos</span>
+                <div class="summary-item-content">
+                  <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                  <span class="summary-label">Resolvidos</span>
+                </div>
                 <span id="departamentoResolvidos" class="stat-number">0</span>
               </div>
             </div>
@@ -423,9 +547,10 @@
                   <tr>
                     <th>ID</th>
                     <th>Título</th>
+                    <th>Solicitante</th>
+                    <th>Setor</th>
                     <th>Prioridade</th>
                     <th>Status</th>
-                    <th>Solicitante</th>
                     <th>Data Criação</th>
                     <th>Conclusão</th>
                     <th>Prazo</th>
@@ -634,46 +759,66 @@
       </div>
       <div class="modal-body">
         <form id="newTicketForm">
-          <div class="form-group">
-            <label for="ticketTitle">Título</label>
-            <input type="text" id="ticketTitle" required>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ticketTitle">Assunto:</label>
+              <input type="text" id="ticketTitle" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="ticketCategory">Categoria:</label>
+              <select id="ticketCategory" required>
+                <!-- As opções serão inseridas aqui via JavaScript -->
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ticketDepartment">Setor Destino:</label>
+              <select id="ticketDepartment" required>
+                <!-- As opções serão inseridas aqui via JavaScript -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="ticketUser">Usuário Destino:</label>
+              <select id="ticketUser" disabled>
+                <option value="">Selecione um setor primeiro</option>
+                <!-- As opções serão inseridas aqui via JavaScript -->
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ticketPriority">Prioridade:</label>
+              <div class="checkbox-group">
+                <label class="checkbox-container">
+                  <input type="checkbox" name="ticketPriority" value="baixa"> Baixa
+                </label>
+                <label class="checkbox-container">
+                  <input type="checkbox" name="ticketPriority" value="media"> Média
+                </label>
+                <label class="checkbox-container">
+                  <input type="checkbox" name="ticketPriority" value="alta"> Alta
+                </label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="ticketDeadline">Data de Conclusão:</label>
+              <input type="date" id="ticketDeadline">
+            </div>
           </div>
           
           <div class="form-group">
-            <label for="ticketDepartment">Departamento</label>
-            <select id="ticketDepartment" required>
-              <!-- As opções serão inseridas aqui via JavaScript -->
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="ticketCategory">Categoria</label>
-            <select id="ticketCategory" required>
-              <!-- As opções serão inseridas aqui via JavaScript -->
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="ticketPriority">Prioridade</label>
-            <select id="ticketPriority" required>
-              <option value="baixa">Baixa</option>
-              <option value="media" selected>Média</option>
-              <option value="alta">Alta</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="ticketDeadline">Prazo</label>
-            <input type="date" id="ticketDeadline">
-          </div>
-          
-          <div class="form-group">
-            <label for="ticketDescription">Descrição</label>
+            <label for="ticketDescription">Descrição:</label>
             <textarea id="ticketDescription" rows="5" required></textarea>
           </div>
           
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary" data-close-modal="newTicketModal">Cancelar</button>
+            <button type="button" id="clearTicketForm" class="btn btn-secondary">Limpar</button>
             <button type="submit" class="btn btn-primary">Criar Ticket</button>
           </div>
         </form>
@@ -723,34 +868,6 @@
             <i class="fas fa-sign-out-alt"></i>
             Sair
           </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de Notificações -->
-  <div class="modal" id="notificationsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Notificações</h2>
-        <button class="close-btn" data-close-modal="notificationsModal">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="notifications-actions">
-          <button id="markAllReadButton" class="btn btn-text">
-            <i class="fas fa-check-double"></i>
-            Marcar todas como lidas
-          </button>
-        </div>
-        
-        <div class="notifications-list" id="notificationList">
-          <!-- As notificações serão inseridas aqui via JavaScript -->
-          <div class="notification-empty">
-            <i class="far fa-bell-slash"></i>
-            <p>Você não tem novas notificações</p>
-          </div>
         </div>
       </div>
     </div>

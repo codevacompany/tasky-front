@@ -170,7 +170,32 @@ class ApiService {
    * @returns {Promise<Array>} Lista de tickets
    */
   async getTicketsByTargetUser(userId) {
-    return this.request(`/tickets/target-user/${userId}`);
+    console.log(`[ApiService] Buscando tickets atribuídos ao usuário ${userId}`);
+    try {
+      // Tenta primeiro o endpoint específico para tickets atribuídos
+      const tickets = await this.request(`/tickets/target-user/${userId}`);
+      console.log(`[ApiService] Encontrados ${tickets ? tickets.length : 0} tickets para o usuário ${userId}`);
+      return tickets || [];
+    } catch (error) {
+      console.error(`[ApiService] Erro ao buscar tickets do usuário ${userId}:`, error);
+      
+      // Como fallback, tenta buscar todos os tickets e filtrar pelo usuário alvo
+      try {
+        console.log(`[ApiService] Tentando buscar todos os tickets como fallback`);
+        const allTickets = await this.request('/tickets');
+        // Filtra tickets onde o usuário é o alvo (pode variar dependendo da estrutura do ticket)
+        const userTickets = allTickets.filter(ticket => 
+          ticket.targetUserId === userId || 
+          ticket.assignedTo === userId || 
+          (ticket.targetUser && ticket.targetUser.id === userId)
+        );
+        console.log(`[ApiService] Filtrados ${userTickets.length} tickets para o usuário ${userId}`);
+        return userTickets;
+      } catch (fallbackError) {
+        console.error(`[ApiService] Erro no fallback para tickets do usuário ${userId}:`, fallbackError);
+        return []; // Retorna array vazio em caso de falha
+      }
+    }
   }
 
   /**
@@ -179,7 +204,32 @@ class ApiService {
    * @returns {Promise<Array>} Lista de tickets
    */
   async getTicketsByRequester(userId) {
-    return this.request(`/tickets/requester/${userId}`);
+    console.log(`[ApiService] Buscando tickets criados pelo usuário ${userId}`);
+    try {
+      // Tenta primeiro o endpoint específico
+      const tickets = await this.request(`/tickets/requester/${userId}`);
+      console.log(`[ApiService] Encontrados ${tickets ? tickets.length : 0} tickets criados pelo usuário ${userId}`);
+      return tickets || [];
+    } catch (error) {
+      console.error(`[ApiService] Erro ao buscar tickets criados pelo usuário ${userId}:`, error);
+      
+      // Como fallback, tenta buscar todos os tickets e filtrar pelo criador
+      try {
+        console.log(`[ApiService] Tentando buscar todos os tickets como fallback`);
+        const allTickets = await this.request('/tickets');
+        // Filtra tickets onde o usuário é o criador
+        const userTickets = allTickets.filter(ticket => 
+          ticket.requesterId === userId || 
+          ticket.createdBy === userId || 
+          (ticket.requester && ticket.requester.id === userId)
+        );
+        console.log(`[ApiService] Filtrados ${userTickets.length} tickets criados pelo usuário ${userId}`);
+        return userTickets;
+      } catch (fallbackError) {
+        console.error(`[ApiService] Erro no fallback para tickets criados pelo usuário ${userId}:`, fallbackError);
+        return []; // Retorna array vazio em caso de falha
+      }
+    }
   }
 
   /**
