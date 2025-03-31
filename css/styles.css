@@ -181,10 +181,12 @@ body.admin-user .admin-only {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  display: none;
 }
 
 .notification-badge.has-notifications {
   animation: pulse 1.5s infinite;
+  display: flex;
 }
 
 @keyframes pulse {

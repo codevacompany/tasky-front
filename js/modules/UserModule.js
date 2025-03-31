@@ -151,12 +151,17 @@ class UserModule {
     
     console.log('Atualizando interface para o usuário:', this.currentUser);
     
+    // Construir o nome completo do usuário
+    const firstName = this.currentUser.firstName || '';
+    const lastName = this.currentUser.lastName || '';
+    const nomeCompleto = firstName && lastName ? `${firstName} ${lastName}` : 
+                         firstName || this.currentUser.nome || 'Usuário';
+    
     // Atualizar nome do usuário no cabeçalho
     const userNameElement = document.getElementById('userName');
     if (userNameElement) {
-      const nomeUsuario = this.currentUser.nome || 'Usuário';
-      console.log('Atualizando nome no header para:', nomeUsuario);
-      userNameElement.textContent = nomeUsuario;
+      console.log('Atualizando nome no header para:', nomeCompleto);
+      userNameElement.textContent = nomeCompleto;
     } else {
       console.warn('Elemento userName não encontrado no DOM');
     }
@@ -196,16 +201,32 @@ class UserModule {
    * @returns {string} - Iniciais do nome
    */
   getInitials() {
-    if (!this.currentUser?.nome) {
-      return 'U';
+    // Se temos firstName, usar ele prioritariamente
+    if (this.currentUser?.firstName) {
+      const firstName = this.currentUser.firstName;
+      const lastName = this.currentUser.lastName || '';
+      
+      if (lastName) {
+        // Se tem sobrenome, usar a inicial de ambos
+        return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+      }
+      
+      // Se não tem sobrenome, usar a inicial do primeiro nome
+      return firstName.charAt(0).toUpperCase();
     }
     
+    // Caso de fallback: usar o nome armazenado na propriedade "nome"
+    if (this.currentUser?.nome) {
     return this.currentUser.nome
       .split(' ')
       .map(part => part.charAt(0))
       .join('')
       .slice(0, 2)
       .toUpperCase();
+    }
+    
+    // Fallback final: usar "U" de Usuário
+    return 'U';
   }
 
   /**
@@ -353,23 +374,45 @@ class UserModule {
   /**
    * Carrega dados para o formulário de perfil
    */
-  loadProfileForm() {
+  async loadProfileForm() {
     if (!this.isAuthenticated()) {
       return;
     }
     
     console.log('Carregando perfil do usuário:', this.currentUser);
     
+    // Obter nome completo do usuário
+    const firstName = this.currentUser.firstName || this.currentUser.nome || '';
+    const lastName = this.currentUser.lastName || this.currentUser.sobrenome || '';
+    const nomeCompleto = `${firstName} ${lastName}`.trim() || 'Usuário';
+    
     // Atualizar nome no cabeçalho do perfil
     const profileNameElement = document.getElementById('profileName');
     if (profileNameElement) {
-      profileNameElement.textContent = this.currentUser.nome || 'Usuário';
+      profileNameElement.textContent = nomeCompleto;
     }
     
-    // Atualizar cargo/departamento no cabeçalho do perfil
-    const profileRoleElement = document.getElementById('profileRole');
-    if (profileRoleElement) {
-      profileRoleElement.textContent = this.currentUser.setor || 'Sem departamento';
+    // Obter setor do usuário da API
+    let setorNome = '';
+    if (this.currentUser.setor) {
+      setorNome = this.currentUser.setor;
+    } else if (this.currentUser.departmentId) {
+      try {
+        // Buscar setores da API
+        const departamentos = await apiService.getDepartments();
+        const departmentId = this.currentUser.departmentId;
+        
+        // Encontrar o setor com o ID correspondente
+        const setor = departamentos.find(dept => dept.id == departmentId);
+        if (setor) {
+          setorNome = setor.name || setor.nome;
+        } else {
+          setorNome = `Setor ID: ${departmentId}`;
+        }
+      } catch (error) {
+        console.error('Erro ao buscar nome do setor:', error);
+        setorNome = `Setor ID: ${this.currentUser.departmentId}`;
+      }
     }
     
     // Atualizar avatar no perfil
@@ -378,21 +421,16 @@ class UserModule {
       profileAvatarElement.src = this.getUserAvatar();
     }
     
-    // Preencher campos somente leitura com as informações do usuário
-    const nomeDisplay = document.getElementById('profileNomeDisplay');
+    // Preencher e-mail e setor como subtítulos
     const emailDisplay = document.getElementById('profileEmailDisplay');
     const setorDisplay = document.getElementById('profileSetorDisplay');
-    
-    if (nomeDisplay) {
-      nomeDisplay.textContent = this.currentUser.nome || '-';
-    }
     
     if (emailDisplay) {
       emailDisplay.textContent = this.currentUser.email || '-';
     }
     
     if (setorDisplay) {
-      setorDisplay.textContent = this.currentUser.setor || 'Sem departamento';
+      setorDisplay.textContent = setorNome || '-';
     }
   }
 

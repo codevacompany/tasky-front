@@ -1346,6 +1346,17 @@ class TicketModule {
       const deadlineInput = document.getElementById('ticketDeadline');
       const descriptionInput = document.getElementById('ticketDescription');
       
+      // Log de debug para verificar o valor da data
+      console.log(`[DEBUG] Valor do campo data de conclusão:`, deadlineInput.value);
+      
+      // Garantir que a data tenha o formato correto
+      let deadlineValue = null;
+      if (deadlineInput.value) {
+        // Adicionar 'Z' ao final para indicar UTC e garantir formato ISO 8601 completo
+        deadlineValue = new Date(deadlineInput.value).toISOString();
+        console.log(`[DEBUG] Data formatada:`, deadlineValue);
+      }
+      
       // Obter o valor da prioridade dos checkboxes
       const priorityCheckbox = document.querySelector('input[name="ticketPriority"]:checked');
       
@@ -1363,19 +1374,35 @@ class TicketModule {
         return;
       }
       
+      // Verificar se o título tem pelo menos 2 caracteres
+      if (titleInput.value.trim().length < 2) {
+        uiService.showAlert('O título deve ter pelo menos 2 caracteres', 'error');
+        uiService.hideLoading();
+        return;
+      }
+      
       const priority = priorityCheckbox.value;
+      const currentUserId = userModule.getCurrentUserId();
+      
+      // Validar que o ID do usuário está disponível
+      if (!currentUserId) {
+        uiService.showAlert('Não foi possível identificar o usuário atual. Tente fazer login novamente.', 'error');
+        uiService.hideLoading();
+        return;
+      }
       
       // Criar objeto do ticket
       const ticketData = {
-        titulo: titleInput.value,
-        setorId: departmentSelect.value,
-        categoriaId: categorySelect.value,
-        destinatarioId: userSelect.value || null, // Pode ser null se nenhum usuário for selecionado
-        prioridade: priority,
-        prazo: deadlineInput.value || null,
-        descricao: descriptionInput.value,
-        status: 'pendente',
-        criadorId: userModule.getCurrentUserId()
+        title: titleInput.value.trim(),
+        departmentId: parseInt(departmentSelect.value),
+        categoryId: parseInt(categorySelect.value),
+        targetUserId: userSelect.value ? parseInt(userSelect.value) : null,
+        priority: priority,
+        deadline: deadlineValue,
+        completionDate: deadlineValue,
+        description: descriptionInput.value.trim(),
+        status: 'Pendente',
+        requesterId: parseInt(currentUserId)
       };
       
       console.log('Enviando ticket para API:', ticketData);
@@ -1383,21 +1410,20 @@ class TicketModule {
       // Enviar para a API
       const response = await apiService.createTicket(ticketData);
       
-      if (response && response.success) {
-        // Fechar o modal
-        uiService.closeModal('newTicketModal');
-        
-        // Limpar formulário
-        document.getElementById('newTicketForm').reset();
-        
-        // Mostrar mensagem de sucesso
-        uiService.showAlert('Ticket criado com sucesso!', 'success');
-        
-        // Recarregar os tickets
-        this.carregarTicketsIniciais();
-      } else {
-        throw new Error(response?.message || 'Erro ao criar ticket');
-      }
+      console.log('Resposta da API:', response);
+      
+      // Fechar o modal
+      uiService.closeModal('newTicketModal');
+      
+      // Limpar formulário
+      document.getElementById('newTicketForm').reset();
+      
+      // Mostrar mensagem de sucesso
+      uiService.showAlert('Ticket criado com sucesso!', 'success');
+      
+      // Recarregar os tickets
+      this.carregarTicketsIniciais();
+      
     } catch (error) {
       console.error('Erro ao criar ticket:', error);
       uiService.showAlert(
@@ -1418,6 +1444,26 @@ class TicketModule {
     // Obter referências aos selects
     const departmentSelect = document.getElementById('ticketDepartment');
     const categorySelect = document.getElementById('ticketCategory');
+    const deadlineInput = document.getElementById('ticketDeadline');
+    
+    // Definir um valor padrão para o campo de data e hora
+    if (deadlineInput) {
+      // Criar data atual, adicionar 3 dias e formatar para o input datetime-local
+      const dataAtual = new Date();
+      dataAtual.setDate(dataAtual.getDate() + 3); // Adiciona 3 dias à data atual
+      
+      // Formatar a data e hora para o formato esperado pelo datetime-local (YYYY-MM-DDThh:mm)
+      const ano = dataAtual.getFullYear();
+      const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+      const dia = String(dataAtual.getDate()).padStart(2, '0');
+      const hora = String(dataAtual.getHours()).padStart(2, '0');
+      const minuto = String(dataAtual.getMinutes()).padStart(2, '0');
+      
+      const dataFormatada = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
+      deadlineInput.value = dataFormatada;
+      
+      console.log('Data padrão definida:', dataFormatada);
+    }
     
     try {
       // Carregar setores para o select de departamentos

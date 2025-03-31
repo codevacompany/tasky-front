@@ -17,10 +17,28 @@ class NotificationModule {
    * Inicializa o módulo de notificações
    */
   init() {
-    // Carregar contador de notificações do localStorage
-    const savedCount = localStorage.getItem('notificationCount');
-    if (savedCount) {
-      this.updateNotificationCount(parseInt(savedCount, 10));
+    console.log('[NotificationModule] Inicializando módulo de notificações');
+    
+    // Verificar o estado de "todas lidas"
+    const allRead = localStorage.getItem('allNotificationsRead') === 'true';
+    console.log('[NotificationModule] Estado de "todas lidas":', allRead);
+    
+    if (allRead) {
+      // Se todas as notificações foram marcadas como lidas, garantir que o contador esteja zerado
+      this.updateNotificationCount(0);
+      
+      // Garantir que o badge esteja oculto
+      const badgeElement = document.getElementById("notificationBadge");
+      if (badgeElement) {
+        badgeElement.style.display = "none";
+        badgeElement.classList.remove("has-notifications");
+      }
+    } else {
+      // Carregar contador de notificações do localStorage
+      const savedCount = localStorage.getItem('notificationCount');
+      if (savedCount) {
+        this.updateNotificationCount(parseInt(savedCount, 10));
+      }
     }
 
     // Iniciar verificação periódica
@@ -82,6 +100,43 @@ class NotificationModule {
   }
 
   /**
+   * Filtra notificações, removendo aquelas com mais de 5 dias
+   * @param {Array} notificacoes - Lista de notificações a serem filtradas
+   * @returns {Array} - Lista filtrada de notificações
+   */
+  filtrarNotificacoesAntigas(notificacoes) {
+    if (!notificacoes || !Array.isArray(notificacoes)) {
+      console.warn('[NotificationModule] Não há notificações para filtrar ou formato inválido');
+      return [];
+    }
+    
+    console.log('[NotificationModule] Filtrando notificações antigas. Total antes:', notificacoes.length);
+    
+    // Calcular data limite (5 dias atrás)
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - 5);
+    console.log('[NotificationModule] Data limite para filtro:', dataLimite.toISOString().split('T')[0]);
+    
+    // Filtrar notificações
+    const notificacoesFiltradas = notificacoes.filter(notificacao => {
+      const dataCriacao = new Date(notificacao.createdAt);
+      const manter = dataCriacao > dataLimite;
+      
+      if (!manter) {
+        console.log('[NotificationModule] Removendo notificação antiga:', 
+          notificacao.id, 
+          notificacao.titulo, 
+          '- Data criação:', dataCriacao.toISOString().split('T')[0]);
+      }
+      
+      return manter;
+    });
+    
+    console.log('[NotificationModule] Total após filtro:', notificacoesFiltradas.length);
+    return notificacoesFiltradas;
+  }
+  
+  /**
    * Verifica novas notificações
    */
   async checkNewNotifications() {
@@ -91,10 +146,69 @@ class NotificationModule {
         return;
       }
 
+      // Obter a data da última vez que todas as notificações foram marcadas como lidas
+      const lastClearTime = localStorage.getItem('lastNotificationClearTime');
+      const allRead = localStorage.getItem('allNotificationsRead') === 'true';
+      
+      // Buscar notificações da API
       const notificacoes = await apiService.getUserNotifications(userId);
-      this.updateNotificationCount(notificacoes.length);
+      
+      // Filtrar notificações
+      let notificacoesFiltradas = [];
+      
+      if (notificacoes && Array.isArray(notificacoes)) {
+        // Primeiro, filtrar por antiguidade (mais de 5 dias)
+        notificacoesFiltradas = this.filtrarNotificacoesAntigas(notificacoes);
+        
+        // Se todas foram marcadas como lidas anteriormente, filtrar também por data de criação
+        if (allRead && lastClearTime) {
+          const lastClearDate = new Date(lastClearTime);
+          console.log('[NotificationModule] Aplicando filtro adicional para notificações após', lastClearDate.toISOString());
+          
+          // Verificar se há notificações mais recentes que o último clear
+          const novasNotificacoes = notificacoesFiltradas.filter(notificacao => {
+            // Verificar se a notificação já está marcada como visualizada
+            if (notificacao.visualizada) {
+              return false;
+            }
+            
+            // Verificar se a notificação foi criada depois da limpeza
+            const dataCriacao = new Date(notificacao.createdAt);
+            const isNewer = dataCriacao > lastClearDate;
+            
+            if (isNewer) {
+              console.log('[NotificationModule] Nova notificação detectada após a limpeza:', 
+                notificacao.id, notificacao.titulo, 
+                '- Criada em:', dataCriacao.toISOString());
+              
+              // Se há notificações novas não lidas, resetar o estado de "todas lidas"
+              this.resetarEstadoTodasLidas();
+            }
+            
+            return isNewer;
+          });
+          
+          notificacoesFiltradas = novasNotificacoes;
+          console.log('[NotificationModule] Notificações após filtro de leitura:', notificacoesFiltradas.length);
+        }
+      }
+      
+      // Atualizar contador com notificações filtradas
+      this.updateNotificationCount(notificacoesFiltradas.length);
     } catch (error) {
       console.error("Erro ao verificar notificações:", error);
+    }
+  }
+
+  /**
+   * Reseta o estado de "todas lidas" quando novas notificações chegam
+   */
+  resetarEstadoTodasLidas() {
+    const currentState = localStorage.getItem('allNotificationsRead') === 'true';
+    
+    if (currentState) {
+      console.log('[NotificationModule] Resetando estado de "todas lidas" devido a novas notificações');
+      localStorage.setItem('allNotificationsRead', 'false');
     }
   }
 
@@ -210,6 +324,10 @@ class NotificationModule {
       // Mostrar estado de carregamento
       notificationList.innerHTML = this.getLoadingNotificationHTML();
       
+      // Obter a data da última vez que todas as notificações foram marcadas como lidas
+      const lastClearTime = localStorage.getItem('lastNotificationClearTime');
+      const allRead = localStorage.getItem('allNotificationsRead') === 'true';
+      
       // Buscar as notificações
       const notificacoes = await apiService.getUserNotifications(userId);
       
@@ -220,8 +338,39 @@ class NotificationModule {
         // Mostrar estado vazio
         notificationList.innerHTML = this.getEmptyNotificationHTML();
       } else {
-        // Adicionar as notificações
-        notificacoes.forEach(notificacao => {
+        // Filtrar notificações
+        let notificacoesFiltradas = this.filtrarNotificacoesAntigas(notificacoes);
+        
+        // Se todas foram marcadas como lidas anteriormente, filtrar também por data de criação
+        if (allRead && lastClearTime) {
+          const lastClearDate = new Date(lastClearTime);
+          console.log('[NotificationModule] Aplicando filtro adicional para notificações após', lastClearDate.toISOString());
+          
+          notificacoesFiltradas = notificacoesFiltradas.filter(notificacao => {
+            // Verificar se a notificação já está marcada como visualizada
+            if (notificacao.visualizada) {
+              return false;
+            }
+            
+            // Verificar se a notificação foi criada depois da limpeza
+            const dataCriacao = new Date(notificacao.createdAt);
+            return dataCriacao > lastClearDate;
+          });
+          
+          console.log('[NotificationModule] Notificações após filtro de leitura:', notificacoesFiltradas.length);
+        }
+        
+        // Atualizar contador apenas com notificações filtradas
+        this.updateNotificationCount(notificacoesFiltradas.length);
+        
+        if (notificacoesFiltradas.length === 0) {
+          // Mostrar estado vazio se todas as notificações foram filtradas
+          notificationList.innerHTML = this.getEmptyNotificationHTML();
+          return;
+        }
+        
+        // Adicionar as notificações filtradas
+        notificacoesFiltradas.forEach(notificacao => {
           // Converter para o formato esperado pelo método getNotificationHTML
           const notificacaoFormatada = {
             id: notificacao.id,
@@ -369,12 +518,40 @@ class NotificationModule {
     try {
       uiService.showLoading();
       
+      // Obter o ID do usuário atual
+      const userId = userModule.getCurrentUserId();
+      if (!userId) {
+        console.error("[NotificationModule] Usuário não identificado ao tentar marcar notificações como lidas");
+        uiService.showAlert("Erro ao marcar notificações como lidas. Usuário não identificado.", "error");
+        return;
+      }
+      
+      console.log('[NotificationModule] Marcando todas as notificações como lidas para o usuário', userId);
+      
+      // Tentativa de chamar a API para marcar todas como lidas
       try {
-        // Tentativa de chamar a API
-        await apiService.markAllNotificationsAsRead();
+        await apiService.markAllNotificationsAsRead(userId);
+        console.log('[NotificationModule] API: Todas as notificações marcadas como lidas com sucesso');
       } catch (apiError) {
-        console.warn("API para marcar notificações como lidas não disponível:", apiError);
-        // Continue mesmo com erro na API - tratamos como sucesso local
+        console.warn("[NotificationModule] API para marcar notificações como lidas não disponível:", apiError);
+        
+        // Plano B: Marcar individualmente cada notificação como lida
+        try {
+          // Obter todas as notificações do usuário
+          const notificacoes = await apiService.getUserNotifications(userId);
+          console.log('[NotificationModule] Obtidas', notificacoes.length, 'notificações para marcação individual');
+          
+          // Marcar cada uma como lida
+          const promessas = notificacoes.map(notificacao => {
+            return apiService.markNotificationAsRead(notificacao.id)
+              .catch(err => console.error('[NotificationModule] Erro ao marcar notificação', notificacao.id, 'como lida:', err));
+          });
+          
+          await Promise.allSettled(promessas);
+          console.log('[NotificationModule] Notificações marcadas individualmente como lidas');
+        } catch (backupError) {
+          console.error('[NotificationModule] Erro no plano B para marcar notificações:', backupError);
+        }
       }
       
       // Atualizar visual das notificações com animação
@@ -391,14 +568,27 @@ class NotificationModule {
         }
       }, 300);
 
-      // Zerar o contador
+      // Zerar o contador - isso irá ocultar o badge
       this.updateNotificationCount(0);
+      
+      // Garantir que o badge esteja oculto
+      const badgeElement = document.getElementById("notificationBadge");
+      if (badgeElement) {
+        badgeElement.style.display = "none";
+        badgeElement.classList.remove("has-notifications");
+      }
+
+      // Indicar que todas as notificações foram vistas
+      localStorage.setItem('allNotificationsRead', 'true');
+      localStorage.setItem('lastNotificationClearTime', new Date().toISOString());
 
       // Mostrar mensagem de sucesso
       uiService.showAlert("Todas as notificações foram marcadas como lidas");
 
-      // Fechar o dropdown
-      this.closeNotifications();
+      // Fechar o dropdown após um breve atraso para que o usuário veja o estado vazio
+      setTimeout(() => {
+        this.closeNotifications();
+      }, 800);
     } catch (error) {
       console.error("Erro ao marcar notificações como lidas:", error);
       uiService.showAlert("Não foi possível marcar as notificações como lidas", "error");
@@ -413,10 +603,42 @@ class NotificationModule {
    */
   async visualizarNotificacao(notificationId) {
     try {
+      console.log(`[NotificationModule] Marcando notificação ${notificationId} como lida`);
+      
+      // Chamar a API para marcar como lida
       await apiService.markNotificationAsRead(notificationId);
-      this.checkNewNotifications(); // Atualizar contador
+      
+      // Atualizar visualmente o item na lista
+      const notificationItem = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+      if (notificationItem) {
+        notificationItem.classList.remove('unread');
+        console.log(`[NotificationModule] Atualizado visualmente item ${notificationId}`);
+      }
+      
+      // Verificar se existem outras notificações não lidas na lista
+      const unreadItems = document.querySelectorAll('.notification-item.unread');
+      if (unreadItems.length === 0) {
+        console.log('[NotificationModule] Nenhuma notificação não lida restante');
+        
+        // Se não há mais notificações não lidas, marcar todas como lidas
+        localStorage.setItem('allNotificationsRead', 'true');
+        localStorage.setItem('lastNotificationClearTime', new Date().toISOString());
+        
+        // Atualizar contador
+        this.updateNotificationCount(0);
+        
+        // Garantir que o badge esteja oculto
+        const badgeElement = document.getElementById("notificationBadge");
+        if (badgeElement) {
+          badgeElement.style.display = "none";
+          badgeElement.classList.remove("has-notifications");
+        }
+      } else {
+        console.log(`[NotificationModule] Ainda restam ${unreadItems.length} notificações não lidas`);
+        this.updateNotificationCount(unreadItems.length);
+      }
     } catch (error) {
-      console.error("Erro ao marcar notificação como lida:", error);
+      console.error(`[NotificationModule] Erro ao marcar notificação ${notificationId} como lida:`, error);
     }
   }
 

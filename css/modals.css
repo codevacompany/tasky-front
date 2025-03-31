@@ -88,16 +88,18 @@ body.modal-open {
 /* Perfil Modal */
 .profile-header {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  align-items: center;
 }
 
 .profile-avatar {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 75px;
+  height: 75px;
   border-radius: 50%;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .profile-avatar img {
@@ -129,17 +131,57 @@ body.modal-open {
 
 .profile-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 75px;
 }
 
 .profile-info h3 {
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.15rem;
+  margin-top: 0;
+  color: var(--text-color);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
-.profile-info p {
+.profile-info .profile-subtitle {
+  font-size: 0.75rem;
   color: var(--text-light);
-  font-size: 0.95rem;
+  margin: 0.05rem 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.profile-details {
+  margin-top: 1.5rem;
+}
+
+.profile-details .info-group {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-details .info-group label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.profile-details .info-group p {
+  font-size: 1.05rem;
+  color: var(--text-color);
+  font-weight: 500;
+  margin: 0;
+  word-break: break-word;
 }
 
 #profileForm {
@@ -308,12 +350,14 @@ body.modal-open {
 #newTicketModal .modal-content {
   position: relative;
   margin: auto;
-  width: 85%;
-  max-width: 1200px;
-  min-width: 850px;
+  width: 90%;
+  max-width: 1000px;
   max-height: 90vh;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 #newTicketModal .modal-header {
@@ -321,13 +365,13 @@ body.modal-open {
   color: white;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border-bottom: none;
 }
 
 #newTicketModal .modal-header h2 {
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -343,13 +387,15 @@ body.modal-open {
 }
 
 #newTicketModal .modal-body {
-  padding: 2.5rem;
+  padding: 1rem 2rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 #newTicketModal .form-row {
   display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 #newTicketModal .form-row .form-group {
@@ -358,13 +404,13 @@ body.modal-open {
 }
 
 #newTicketModal .form-group {
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.75rem;
 }
 
 #newTicketModal .form-group label {
   display: block;
-  margin-bottom: 0.7rem;
-  font-size: 1rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-color);
 }
@@ -374,11 +420,11 @@ body.modal-open {
 #newTicketModal select,
 #newTicketModal textarea {
   width: 100%;
-  padding: 1rem;
+  padding: 0.6rem 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
   background-color: var(--input-bg);
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
@@ -401,43 +447,45 @@ body.modal-open {
 }
 
 #newTicketModal textarea {
-  min-height: 180px;
+  min-height: 80px;
+  max-height: 200px;
   resize: vertical;
 }
 
 /* Estilo para os checkboxes de prioridade */
 #newTicketModal .checkbox-group {
   display: flex;
-  gap: 2.5rem;
-  margin-top: 0.8rem;
-  padding: 0.5rem;
+  gap: 2rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
 }
 
 #newTicketModal .checkbox-container {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  font-size: 1rem;
+  gap: 0.5rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
-#newTicketModal .checkbox-container input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+#newTicketModal .checkbox-container input[type="checkbox"],
+#newTicketModal .checkbox-container input[type="radio"] {
+  width: 16px;
+  height: 16px;
   cursor: pointer;
 }
 
 #newTicketModal .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 1.2rem;
-  margin-top: 2rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 #newTicketModal .btn {
-  padding: 0.9rem 2rem;
+  padding: 0.6rem 1.5rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
   border: none;
@@ -608,4 +656,282 @@ body.modal-open {
 #ticketDetailsModal .btn-danger:hover {
   background-color: #c0392b;
   transform: translateY(-1px);
+}
+
+/* Media queries para responsividade do modal de novo ticket */
+@media (max-width: 992px) {
+  #newTicketModal .modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  #newTicketModal .modal-body {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #newTicketModal .form-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  #newTicketModal .checkbox-group {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+  }
+  
+  #newTicketModal textarea {
+    min-height: 90px;
+  }
+  
+  #newTicketModal .form-actions {
+    justify-content: space-between;
+  }
+  
+  #newTicketModal .btn {
+    padding: 0.5rem 1rem;
+  }
+  
+  #newTicketModal input[type="text"],
+  #newTicketModal input[type="date"],
+  #newTicketModal select,
+  #newTicketModal textarea {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+  
+  #newTicketModal .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #newTicketModal .modal-content {
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 0;
+  }
+  
+  #newTicketModal .modal-body {
+    padding: 1rem;
+  }
+  
+  #newTicketModal .checkbox-group {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  #newTicketModal .form-actions {
+    flex-direction: column-reverse;
+    gap: 1rem;
+  }
+  
+  #newTicketModal .btn {
+    width: 100%;
+    padding: 0.8rem 1rem;
+  }
+  
+  #newTicketModal input[type="text"],
+  #newTicketModal input[type="date"],
+  #newTicketModal select,
+  #newTicketModal textarea {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  #newTicketModal .checkbox-container {
+    font-size: 0.85rem;
+  }
+  
+  #newTicketModal .checkbox-container input[type="checkbox"],
+  #newTicketModal .checkbox-container input[type="radio"] {
+    width: 14px;
+    height: 14px;
+  }
+  
+  #newTicketModal textarea {
+    min-height: 80px;
+  }
+}
+
+/* Media queries globais para modais */
+@media (max-width: 480px) {
+  .modal {
+    padding: 0;
+  }
+  
+  .modal-content {
+    max-width: 100%;
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100%;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    background-color: var(--card-bg);
+    z-index: 10;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+}
+
+/* Ajustes extras ao modal para telas muito pequenas */
+@media (max-width: 360px) {
+  #newTicketModal .modal-content {
+    width: 100%;
+  }
+  
+  #newTicketModal .modal-header h2 {
+    font-size: 1rem;
+  }
+  
+  #newTicketModal .modal-body {
+    padding: 0.8rem;
+  }
+  
+  #newTicketModal .form-group {
+    margin-bottom: 0.8rem;
+  }
+  
+  #newTicketModal .form-actions {
+    margin-top: 1.5rem;
+  }
+  
+  #newTicketModal textarea {
+    min-height: 120px;
+  }
+  
+  #newTicketModal .btn {
+    font-size: 0.9rem;
+    padding: 0.7rem 1rem;
+  }
+}
+
+/* Estilo compacto para formulário de novo ticket */
+#newTicketForm {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(90vh - 120px);
+}
+
+/* Layout mais compacto para formulários em telas menores */
+@media (max-height: 700px) {
+  #newTicketModal .modal-content {
+    height: 95vh;
+  }
+  
+  #newTicketModal .modal-body {
+    padding: 0.75rem 1.5rem;
+  }
+  
+  #newTicketModal .form-row {
+    margin-bottom: 0.5rem;
+  }
+  
+  #newTicketModal .form-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  #newTicketModal textarea {
+    min-height: 60px;
+  }
+  
+  #newTicketModal .form-actions {
+    margin-top: 0.75rem;
+  }
+}
+
+#newTicketModal .compact-group {
+  margin-bottom: 0.5rem;
+}
+
+#newTicketModal .compact-radios {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.3rem;
+  padding: 0.2rem;
+}
+
+/* Ajustes adicionais para reduzir altura do modal */
+#newTicketModal select {
+  height: 2.3rem;
+}
+
+#newTicketModal input[type="date"] {
+  height: 2.3rem;
+}
+
+/* Ações do formulário alinhadas à direita */
+.form-actions.right-aligned {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.1rem;
+}
+
+.profile-dropdown {
+  display: none;
+  position: fixed;
+  top: 60px;
+  right: 0;
+  z-index: 1010;
+  background-color: transparent;
+  overflow: visible;
+}
+
+.profile-dropdown.show {
+  display: block;
+}
+
+.profile-dropdown .modal-content {
+  width: 290px;
+  max-width: 100%;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  animation: modalDropDown 0.3s ease;
+  overflow: hidden;
+}
+
+.profile-dropdown .modal-body {
+  padding: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .profile-dropdown .modal-content {
+    width: 280px;
+  }
+}
+
+/* Estilo específico para o botão de logout no perfil */
+#logoutBtn {
+  padding: 0.6rem 1.5rem;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  width: auto;
+}
+
+#logoutBtn:hover {
+  background-color: var(--danger-dark);
+  transform: translateY(-1px);
+}
+
+#logoutBtn i {
+  font-size: 0.9rem;
 } 

@@ -106,8 +106,12 @@ function setupGlobalEvents() {
       // Verificar se o dropdown de perfil já está aberto
       const profileModal = document.getElementById('profileModal');
       if (profileModal && profileModal.classList.contains('show')) {
+        // Se estiver aberto, fechar
+        console.log('Fechando dropdown de perfil que já estava aberto');
         uiService.closeProfileModal();
       } else {
+        // Se estiver fechado, abrir
+        console.log('Abrindo dropdown de perfil');
         if (userModule) {
           // Primeiro carregar os dados do perfil
           userModule.loadProfileForm();
@@ -117,8 +121,11 @@ function setupGlobalEvents() {
             // Garantir transparência do container
             if (profileModal) {
               profileModal.style.backgroundColor = 'transparent';
+              console.log('Chamando showProfileModal');
+              uiService.showProfileModal();
+            } else {
+              console.error('Elemento profileModal não encontrado');
             }
-            uiService.showProfileModal();
           }, 100);
         } else {
           console.error('Módulo de usuário não disponível');
@@ -184,6 +191,15 @@ function setupGlobalEvents() {
     newTicketButton.addEventListener('click', function() {
       console.log('Novo ticket clicado');
       uiService.showNewTicketModal();
+    });
+  }
+  
+  // Botão para fechar o dropdown de perfil
+  const closeProfileBtn = document.getElementById('closeProfileBtn');
+  if (closeProfileBtn) {
+    closeProfileBtn.addEventListener('click', function() {
+      console.log('Fechando dropdown de perfil via botão close');
+      uiService.closeProfileModal();
     });
   }
 }

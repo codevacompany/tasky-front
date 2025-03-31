@@ -285,6 +285,10 @@ class AdminModule {
       
       console.log('[AdminModule] Carregando tickets para o usuário:', userId);
       
+      // Primeiro, carregar os setores para garantir que estejam disponíveis
+      await this.loadSetores();
+      console.log('[AdminModule] Setores carregados:', this.setores.length);
+      
       // Carregar tickets recebidos pelo usuário atual
       let ticketsRecebidos = [];
       try {
@@ -401,11 +405,6 @@ class AdminModule {
     
     // Log para depuração - verificar a estrutura dos tickets
     console.log('[DEBUG] Tickets recebidos:', sortedTickets);
-    sortedTickets.forEach((ticket, index) => {
-      console.log(`[DEBUG] Ticket ${index} - deadline:`, ticket.deadline, 
-        'dueDate:', ticket.dueDate, 
-        'completionDate:', ticket.completionDate);
-    });
     
     // Pegar os 5 mais recentes
     const recentTickets = sortedTickets.slice(0, 5);
@@ -424,10 +423,11 @@ class AdminModule {
       <table class="inbox-table">
         <thead>
           <tr>
-            <th>Título</th>
-            <th>Solicitante/Setor</th>
-            <th>Prazo</th>
-            <th class="status-col">Status</th>
+            <th style="text-align: center; padding: 0.4rem;">Assunto</th>
+            <th style="text-align: center; padding: 0.4rem;">Solicitante / Setor</th>
+            <th style="text-align: center; padding: 0.4rem;">Data</th>
+            <th style="text-align: center; padding: 0.4rem;">Prazo</th>
+            <th style="text-align: center; padding: 0.4rem;" class="status-col">Status</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -437,6 +437,8 @@ class AdminModule {
     const tbody = container.querySelector('tbody');
     
     recentTickets.forEach(ticket => {
+      console.log('[DEBUG] Processando ticket:', ticket);
+      
       // Determinar a classe de status
       let statusClass = '';
       switch ((ticket.status || '').toLowerCase()) {
@@ -454,6 +456,9 @@ class AdminModule {
           statusClass = 'status-flag cancelado';
           break;
       }
+      
+      // Formatar data de criação (apenas data, sem hora)
+      const dataCriacao = formatUtils.formatDateOnly(ticket.createdAt);
       
       // Formatar prazo utilizando o formatUtils
       const dataLimite = this.obterDataLimite(ticket);
@@ -475,21 +480,44 @@ class AdminModule {
         solicitante = ticket.requester.firstName + (ticket.requester.lastName ? ' ' + ticket.requester.lastName : '');
       }
       
-      // Obter setor
-      const setorNome = this.getSetorNome(ticket.departmentId);
+      // Obter setor do solicitante
+      let setorNome = 'N/A';
+      
+      // Mostrar detalhes do ticket para diagnóstico
+      console.log('[DEBUG] Dados do ticket para obter setor:');
+      console.log('- requesterDepartment:', ticket.requesterDepartment);
+      console.log('- requester.department:', ticket.requester?.department);
+      console.log('- requesterDepartmentId:', ticket.requesterDepartmentId);
+      console.log('- requester.departmentId:', ticket.requester?.departmentId);
+      
+      // Tentar obter o nome do departamento de diferentes maneiras
+      if (ticket.requesterDepartment && ticket.requesterDepartment.name) {
+        setorNome = ticket.requesterDepartment.name;
+        console.log('[DEBUG] Usando requesterDepartment.name:', setorNome);
+      } else if (ticket.requester && ticket.requester.department && ticket.requester.department.name) {
+        setorNome = ticket.requester.department.name;
+        console.log('[DEBUG] Usando requester.department.name:', setorNome);
+      } else if (ticket.requesterDepartmentId) {
+        setorNome = this.getSetorNome(ticket.requesterDepartmentId);
+        console.log('[DEBUG] Usando requesterDepartmentId:', ticket.requesterDepartmentId, '-> Nome:', setorNome);
+      } else if (ticket.requester && ticket.requester.departmentId) {
+        setorNome = this.getSetorNome(ticket.requester.departmentId);
+        console.log('[DEBUG] Usando requester.departmentId:', ticket.requester.departmentId, '-> Nome:', setorNome);
+      } else {
+        console.log('[DEBUG] Nenhuma informação de departamento encontrada para o solicitante');
+      }
+      
+      // Transformar o assunto para maiúsculas
+      const assunto = (ticket.title || ticket.name).toUpperCase();
       
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="title-cell">${ticket.title || ticket.name}</td>
-        <td>${solicitante}<br><small>${setorNome}</small></td>
-        <td>${prazo}</td>
-        <td class="status-cell"><span class="${statusClass}">${ticket.status}</span></td>
+        <td style="text-align: center; padding: 0.4rem;" class="title-cell">${assunto}</td>
+        <td style="text-align: center; padding: 0.4rem;">${solicitante} / ${setorNome}</td>
+        <td style="text-align: center; padding: 0.4rem;">${dataCriacao}</td>
+        <td style="text-align: center; padding: 0.4rem;">${prazo}</td>
+        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px;">${ticket.status}</span></td>
       `;
-      
-      // Event listener para abrir detalhes do ticket
-      row.addEventListener('click', () => {
-        ticketModule.showTicketDetails(ticket.id);
-      });
       
       tbody.appendChild(row);
     });
@@ -523,11 +551,11 @@ class AdminModule {
       <table class="inbox-table">
         <thead>
           <tr>
-            <th>Título</th>
-            <th>Setor Destino</th>
-            <th>Data</th>
-            <th>Prazo</th>
-            <th class="status-col">Status</th>
+            <th style="text-align: center; padding: 0.4rem;">Assunto</th>
+            <th style="text-align: center; padding: 0.4rem;">Setor Destino</th>
+            <th style="text-align: center; padding: 0.4rem;">Data</th>
+            <th style="text-align: center; padding: 0.4rem;">Prazo</th>
+            <th style="text-align: center; padding: 0.4rem;" class="status-col">Status</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -555,8 +583,8 @@ class AdminModule {
           break;
       }
       
-      // Formatar data de criação
-      const dataCriacao = formatUtils.formatDate(ticket.createdAt);
+      // Formatar data de criação (apenas data, sem hora)
+      const dataCriacao = formatUtils.formatDateOnly(ticket.createdAt);
       
       // Formatar prazo utilizando o formatUtils
       const dataLimiteCriados = this.obterDataLimite(ticket);
@@ -569,19 +597,17 @@ class AdminModule {
       // Definir setor destino
       const setorDestino = ticket.department ? ticket.department.name : 'N/A';
       
+      // Transformar o assunto para maiúsculas
+      const assunto = (ticket.title || ticket.name).toUpperCase();
+      
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="title-cell">${ticket.title || ticket.name}</td>
-        <td>${setorDestino}</td>
-        <td>${dataCriacao}</td>
-        <td>${prazoExibicao}</td>
-        <td class="status-cell"><span class="${statusClass}">${ticket.status}</span></td>
+        <td style="text-align: center; padding: 0.4rem;" class="title-cell">${assunto}</td>
+        <td style="text-align: center; padding: 0.4rem;">${setorDestino}</td>
+        <td style="text-align: center; padding: 0.4rem;">${dataCriacao}</td>
+        <td style="text-align: center; padding: 0.4rem;">${prazoExibicao}</td>
+        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px;">${ticket.status}</span></td>
       `;
-      
-      // Event listener para abrir detalhes do ticket
-      row.addEventListener('click', () => {
-        ticketModule.showTicketDetails(ticket.id);
-      });
       
       tbody.appendChild(row);
     });
@@ -615,16 +641,29 @@ class AdminModule {
 
   /**
    * Carrega lista de setores
+   * @returns {Promise} - Promise que resolve quando os setores forem carregados
    */
   async loadSetores() {
     try {
+      console.log('[AdminModule] Carregando setores...');
       const setores = await apiService.getDepartments();
-      this.setores = setores;
-      this.updateSetoresDropdowns(setores);
-      this.updateSetoresTable(setores);
+      console.log('[AdminModule] Setores recebidos da API:', setores);
+      
+      if (Array.isArray(setores)) {
+        this.setores = setores;
+        console.log('[AdminModule] Setores armazenados:', this.setores.length);
+      } else {
+        console.error('[AdminModule] Resposta de setores inválida:', setores);
+        this.setores = [];
+      }
+      
+      this.updateSetoresDropdowns(this.setores);
+      this.updateSetoresTable(this.setores);
+      return this.setores;
     } catch (error) {
       console.error('Erro ao carregar setores:', error);
       uiService.showAlert('Erro ao carregar setores. Tente novamente.', 'error');
+      return [];
     }
   }
 
@@ -842,8 +881,22 @@ class AdminModule {
    * @returns {string} - Nome do setor ou "Desconhecido"
    */
   getSetorNome(setorId) {
-    const setor = this.setores.find(s => s.id == setorId);
-    return setor ? setor.name : 'Desconhecido';
+    console.log('[DEBUG] getSetorNome - ID recebido:', setorId);
+    console.log('[DEBUG] getSetorNome - Setores disponíveis:', this.setores);
+    
+    if (!setorId) {
+      console.log('[DEBUG] getSetorNome - ID vazio ou nulo');
+      return 'N/A';
+    }
+    
+    const setor = this.setores.find(s => String(s.id) === String(setorId));
+    if (setor) {
+      console.log('[DEBUG] getSetorNome - Setor encontrado:', setor.name);
+      return setor.name;
+    } else {
+      console.log('[DEBUG] getSetorNome - Setor NÃO encontrado para ID:', setorId);
+      return 'N/A';
+    }
   }
 
   /**

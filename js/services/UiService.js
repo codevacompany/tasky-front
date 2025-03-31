@@ -64,6 +64,15 @@ class UiService {
         this.hideAlert();
       });
     }
+    
+    // Configurar botão de fechar específico para o modal de perfil
+    const closeProfileBtn = document.getElementById('closeProfileBtn');
+    if (closeProfileBtn) {
+      closeProfileBtn.addEventListener('click', () => {
+        console.log('Fechando modal de perfil via setupModalHandlers');
+        this.closeProfileModal();
+      });
+    }
   }
 
   /**
@@ -365,8 +374,10 @@ class UiService {
       // Adicionar classe para animação se houver notificações
       if (count > 0) {
         badgeElement.classList.add("has-notifications");
+        badgeElement.style.display = "flex"; // Exibir o contador
       } else {
         badgeElement.classList.remove("has-notifications");
+        badgeElement.style.display = "none"; // Ocultar o contador quando for zero
       }
     }
   }
@@ -444,6 +455,9 @@ class UiService {
     console.log('Mostrando dropdown de perfil');
     const modal = document.getElementById('profileModal');
     if (modal) {
+      // Garantir que o display esteja configurado corretamente
+      modal.style.display = 'block';
+      
       // Posicionar corretamente com base no header
       const headerHeight = document.querySelector('header')?.offsetHeight || 60;
       modal.style.top = `${headerHeight}px`;
@@ -490,7 +504,12 @@ class UiService {
     console.log('Fechando dropdown de perfil');
     const modal = document.getElementById('profileModal');
     if (modal) {
+      // Remover a classe show do modal
       modal.classList.remove('show');
+      
+      // Garantir que o estilo de display esteja correto para permitir reabrir
+      modal.style.display = '';
+      
       // Remover evento de redimensionamento
       window.removeEventListener('resize', this.adjustProfileModalPosition);
     }

@@ -244,13 +244,103 @@ class ApiService {
   /**
    * Cria um novo ticket
    * @param {Object} ticketData - Dados do ticket
-   * @returns {Promise<Object>} Ticket criado
+   * @returns {Promise<Object>} - Promise resolvida com a resposta da API
    */
   async createTicket(ticketData) {
-    return this.request("/tickets", {
-      method: "POST",
-      body: JSON.stringify(ticketData),
-    });
+    try {
+      console.log('ApiService.createTicket - Enviando dados:', ticketData);
+      
+      // Adaptar os campos para o formato esperado pela API
+      const adaptedData = {
+        name: ticketData.title, // A API espera 'name' em vez de 'title'
+        departmentId: parseInt(ticketData.departmentId || ticketData.department_id),
+        categoryId: parseInt(ticketData.categoryId || ticketData.category_id),
+        priority: this.formatarPrioridade(ticketData.priority), // Garantir que seja 'Baixa', 'Média' ou 'Alta'
+        description: ticketData.description,
+        status: 'Pendente', // Iniciar com P maiúsculo conforme esperado pela API
+        requesterId: parseInt(ticketData.requesterId || ticketData.requester_id)
+      };
+      
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (ticketData.targetUserId || ticketData.target_user_id) {
+        adaptedData.targetUserId = parseInt(ticketData.targetUserId || ticketData.target_user_id);
+      }
+      
+      // Adicionar campos de data de conclusão e deadline se tiverem valor
+      if (ticketData.deadline) {
+        adaptedData.deadline = ticketData.deadline;
+        adaptedData.completionDate = ticketData.deadline; // Usar o mesmo valor para completionDate
+        console.log(`[DEBUG] Adicionando datas - deadline: ${adaptedData.deadline}, completionDate: ${adaptedData.completionDate}`);
+      } else if (ticketData.completionDate) {
+        // Caso apenas o completionDate esteja definido
+        adaptedData.deadline = ticketData.completionDate;
+        adaptedData.completionDate = ticketData.completionDate;
+        console.log(`[DEBUG] Adicionando apenas completionDate: ${adaptedData.completionDate}`);
+      }
+      
+      console.log('ApiService.createTicket - Dados adaptados:', adaptedData);
+      
+      // Fazer a requisição com um tratamento de erro mais detalhado
+      try {
+        const url = `${CONFIG.API_URL}/tickets`;
+        console.log(`ApiService.createTicket - Fazendo requisição para: ${url}`);
+        
+        const headers = {
+          "Content-Type": "application/json"
+        };
+        
+        if (this.authToken) {
+          headers["Authorization"] = `Bearer ${this.authToken}`;
+        }
+        
+        const response = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(adaptedData)
+        });
+        
+        console.log(`ApiService.createTicket - Status da resposta: ${response.status}`);
+        
+        // Tentar ler o corpo da resposta mesmo se não for sucesso
+        const textResponse = await response.text();
+        let jsonResponse;
+        try {
+          jsonResponse = textResponse ? JSON.parse(textResponse) : null;
+          console.log('ApiService.createTicket - Resposta detalhada:', jsonResponse);
+        } catch (e) {
+          console.warn('ApiService.createTicket - Resposta não é um JSON válido:', textResponse);
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status}${jsonResponse ? ` - ${jsonResponse.message || JSON.stringify(jsonResponse)}` : ''}`);
+        }
+        
+        return jsonResponse || { success: true };
+      } catch (requestError) {
+        console.error('ApiService.createTicket - Erro na requisição:', requestError);
+        throw requestError;
+      }
+    } catch (error) {
+      console.error('ApiService.createTicket - Erro:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Formata a prioridade para o formato esperado pela API
+   * @param {string} prioridade - Prioridade do ticket (baixa, media, alta)
+   * @returns {string} - Prioridade formatada
+   */
+  formatarPrioridade(prioridade) {
+    if (!prioridade) return 'Média'; // Valor padrão
+    
+    const prioridadeLowerCase = prioridade.toLowerCase();
+    
+    if (prioridadeLowerCase === 'baixa') return 'Baixa';
+    if (prioridadeLowerCase === 'media' || prioridadeLowerCase === 'média') return 'Média';
+    if (prioridadeLowerCase === 'alta') return 'Alta';
+    
+    return 'Média'; // Valor padrão caso não seja reconhecido
   }
 
   /**
