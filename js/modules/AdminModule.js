@@ -289,7 +289,7 @@ class AdminModule {
       await this.loadSetores();
       console.log('[AdminModule] Setores carregados:', this.setores.length);
       
-      // Carregar tickets recebidos pelo usuário atual
+      // Carregar tickets recebidos pelo usuário atual - são estes tickets que são usados para as estatísticas do dashboard
       let ticketsRecebidos = [];
       try {
         ticketsRecebidos = await apiService.getTicketsByTargetUser(userId);
@@ -298,6 +298,8 @@ class AdminModule {
         console.error('[AdminModule] Erro ao carregar tickets recebidos:', error);
         ticketsRecebidos = [];
       }
+      
+      // As estatísticas do dashboard (total, pendentes, em andamento, etc.) são baseadas apenas nos tickets atribuídos ao usuário logado
       
       // Carregar tickets criados pelo usuário atual
       let ticketsCriados = [];
@@ -516,7 +518,7 @@ class AdminModule {
         <td style="text-align: center; padding: 0.4rem;">${solicitante} / ${setorNome}</td>
         <td style="text-align: center; padding: 0.4rem;">${dataCriacao}</td>
         <td style="text-align: center; padding: 0.4rem;">${prazo}</td>
-        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px;">${ticket.status}</span></td>
+        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px; padding: 2px 6px;">${ticket.status}</span></td>
       `;
       
       tbody.appendChild(row);
@@ -606,7 +608,7 @@ class AdminModule {
         <td style="text-align: center; padding: 0.4rem;">${setorDestino}</td>
         <td style="text-align: center; padding: 0.4rem;">${dataCriacao}</td>
         <td style="text-align: center; padding: 0.4rem;">${prazoExibicao}</td>
-        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px;">${ticket.status}</span></td>
+        <td style="text-align: center; padding: 0.4rem;" class="status-cell"><span class="${statusClass}" style="border-radius: 4px; padding: 2px 6px;">${ticket.status}</span></td>
       `;
       
       tbody.appendChild(row);

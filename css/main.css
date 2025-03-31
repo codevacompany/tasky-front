@@ -943,11 +943,12 @@ body.dark-mode .header-logo .logo-text {
 .priority-flag,
 .status-flag {
   display: inline-block;
-  padding: 0.35rem 0.75rem;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-align: center;
+  min-width: 80px;
 }
 
 .priority-flag.alta {
@@ -996,41 +997,35 @@ body.dark-mode .header-logo .logo-text {
 .prazo-col {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 0.85rem;
+  white-space: nowrap;
   font-weight: 500;
-  gap: 5px;
-  min-width: 70px;
 }
 
 .prazo-col i {
-  font-size: 0.9em;
+  margin-right: 4px;
 }
 
 .prazo-col.prazo-ok {
-  background-color: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #fff;
+  background-color: #28a745;
 }
 
 .prazo-col.prazo-proximo {
-  background-color: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  color: #000;
+  background-color: #17a2b8;
 }
 
 .prazo-col.prazo-atrasado {
-  background-color: rgba(244, 67, 54, 0.1);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #fff;
+  background-color: #dc3545;
 }
 
 .prazo-col.prazo-erro {
-  background-color: rgba(97, 97, 97, 0.1);
-  color: #616161;
-  border: 1px solid rgba(97, 97, 97, 0.3);
+  color: #fff;
+  background-color: #6c757d;
 }
 
 /* Estilos para botões de ação como Novo Setor, Nova Categoria, Novo Colaborador */
@@ -1643,10 +1638,11 @@ body.dark-mode .compact-form label {
 .status-flag {
   display: inline-block;
   padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 0.7rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
   font-weight: 500;
   text-align: center;
+  min-width: 80px;
 }
 
 /* Cores para prioridades */

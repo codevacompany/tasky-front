@@ -562,37 +562,41 @@ body.modal-open {
 /* Classes para as etiquetas de prioridade */
 #ticketDetailsModal .priority-label, 
 #ticketDetailsModal .status-label {
-  padding: 4px 12px;
-  border-radius: 50px;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 500;
-  text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
   min-width: 80px;
-  white-space: nowrap;
 }
 
 #ticketDetailsModal .priority-baixa {
-  background-color: #e9f7ef;
-  color: #27ae60;
+  background-color: #28a745 !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
 }
 
 #ticketDetailsModal .priority-media {
-  background-color: #fef9e7;
-  color: #f1c40f;
+  background-color: #ffc107 !important;
+  color: black !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
 }
 
 #ticketDetailsModal .priority-alta {
-  background-color: #fae5e5;
-  color: #e74c3c;
+  background-color: #dc3545 !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
 }
 
 /* Classes para as etiquetas de status */
 #ticketDetailsModal .status-pendente {
-  background-color: #fef9e7;
-  color: #f1c40f;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 #ticketDetailsModal .status-em-andamento {

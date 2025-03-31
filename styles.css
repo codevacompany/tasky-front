@@ -468,8 +468,9 @@ button:hover {
 }
 
 .status-flag.pendente {
-  color: #F59E0B;
-  background: #FEF3C7;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 .status-flag.em_andamento {
@@ -486,27 +487,31 @@ button:hover {
 .prazo-col {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 0.85rem;
+  white-space: nowrap;
   font-weight: 500;
 }
 
 .prazo-atrasado {
-  color: #dc2626;
-  font-weight: bold;
+  color: #fff;
+  background-color: #dc3545;
 }
 
 .prazo-proximo {
-  color: #f97316;
+  color: #000;
+  background-color: #17a2b8;
 }
 
 .prazo-ok {
-  color: #10b981;
+  color: #fff;
+  background-color: #28a745;
 }
 
 .prazo-urgente {
-  color: #ef4444;
-  font-weight: 600;
+  color: #000;
+  background-color: #ffc107;
 }
 
 /* Botões de ação */
@@ -587,27 +592,24 @@ button:hover {
 
 /* Status e Prioridade */
 .status-label, .priority-label {
-  padding: 2px 4px;
-  border-radius: 12px;
-  font-size: 9px;
-  font-weight: 600;
   display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
   text-align: center;
-  min-width: 60px;
-  max-width: 70px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-width: 80px;
 }
 
 .status-pendente {
-  background-color: #e0e7ff;
-  color: #4338ca;
-  border: 1px solid #c7d2fe;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 .status-em_andamento {
   background-color: #dbeafe;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  color: #1d40af;
 }
 
 .status-resolvido, .status-finalizado {
@@ -984,8 +986,9 @@ button:hover {
 }
 
 .status-pendente {
-  background-color: #fef9e7;
-  color: #f1c40f;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 .status-em-andamento {
@@ -1393,8 +1396,9 @@ td {
 }
 
 .status-pendente {
-  background: #fef3c7;
-  color: #92400e;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
 .status-em_andamento {
@@ -1763,11 +1767,31 @@ td {
 }
 
 .ticket-info span.prazo-atrasado {
-  color: #ef4444;
+  background-color: #dc3545;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .ticket-info span.prazo-ok {
-  color: #10b981;
+  background-color: #28a745;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ticket-info span.prazo-urgente {
+  background-color: #ffc107;
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ticket-info span.prazo-proximo {
+  background-color: #17a2b8;
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .ticket-status {
@@ -1775,12 +1799,13 @@ td {
 }
 
 .status-flag {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 500;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: capitalize;
-  white-space: nowrap;
+  text-align: center;
+  min-width: 80px;
 }
 
 /* Limitar a quantidade de cartões visíveis */

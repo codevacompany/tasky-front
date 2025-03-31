@@ -153,87 +153,99 @@
 
 /* Status e Prioridade */
 .status-label, .priority-label {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3rem 0.6rem;
-  border-radius: 50px;
-  font-size: 0.8rem;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
   font-weight: 500;
-  gap: 0.3rem;
+  text-align: center;
+  min-width: 80px;
 }
 
 /* Status flags quadrados para a seção "Últimos Tickets Criados" */
 .inbox-table .status-flag {
   display: inline-block;
-  padding: 0.3rem 0.6rem;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-align: center;
-  min-width: 90px;
+  min-width: 80px;
 }
 
 .status-pendente {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #9c27b0;
+  border: 1px solid rgba(156, 39, 176, 0.3);
 }
 
+.status-em-andamento,
 .status-em_andamento {
-  background-color: rgba(14, 165, 233, 0.1);
-  color: var(--info-color);
+  background-color: #17a2b8;
+  color: white;
 }
 
+.status-finalizado,
 .status-resolvido {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: var(--success-color);
+  background-color: #28a745;
+  color: white;
 }
 
 .status-cancelado {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
-}
-
-.priority-alta {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
-}
-
-.priority-media {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
+  background-color: #dc3545;
+  color: white;
 }
 
 .priority-baixa {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: var(--success-color);
+  background-color: #28a745;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.priority-media {
+  background-color: #ffc107;
+  color: black;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.priority-alta {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 6px;
 }
 
 /* Prazo */
 .prazo-col {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .prazo-atrasado {
-  color: #dc2626;
-  font-weight: bold;
+  color: #fff;
+  background-color: #dc3545;
 }
 
 .prazo-urgente {
-  color: #ef4444;
-  font-weight: 600;
+  color: #000;
+  background-color: #ffc107;
 }
 
 .prazo-proximo {
-  color: #f97316;
+  color: #000;
+  background-color: #17a2b8;
 }
 
 .prazo-ok {
-  color: #10b981;
+  color: #fff;
+  background-color: #28a745;
 }
 
 /* Paginação */

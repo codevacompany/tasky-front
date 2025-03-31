@@ -375,7 +375,7 @@ class NotificationModule {
           const notificacaoFormatada = {
             id: notificacao.id,
             tipo: this.mapTipoNotificacao(notificacao.tipo),
-            titulo: notificacao.titulo || 'Notificação',
+            mensagem: notificacao.message || notificacao.titulo || 'Notificação do sistema',
             data_criacao: notificacao.createdAt,
             lida: !notificacao.visualizada
           };
@@ -431,7 +431,7 @@ class NotificationModule {
    * @returns {string} - Data formatada
    */
   formatarDataRelativa(dateString) {
-    if (!dateString) return "Há alguns instantes";
+    if (!dateString) return "Agora";
     
     try {
       const date = new Date(dateString);
@@ -442,23 +442,23 @@ class NotificationModule {
       if (diffDays > 30) {
         return date.toLocaleDateString();
       } else if (diffDays >= 1) {
-        return `Há ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`;
+        return `Há ${diffDays}d`;
       } else {
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
         if (diffHours >= 1) {
-          return `Há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+          return `Há ${diffHours}h`;
         } else {
           const diffMinutes = Math.floor(diffMs / (1000 * 60));
           if (diffMinutes >= 1) {
-            return `Há ${diffMinutes} ${diffMinutes === 1 ? 'minuto' : 'minutos'}`;
+            return `Há ${diffMinutes}min`;
           } else {
-            return "Há alguns instantes";
+            return "Agora";
           }
         }
       }
     } catch (e) {
       console.error("Erro ao formatar data:", e);
-      return "Data desconhecida";
+      return "Data ?";
     }
   }
 
@@ -702,32 +702,28 @@ class NotificationModule {
    * @returns {Object} - Notificação de exemplo
    */
   createSampleNotification(data = {}) {
-    const types = ['ticket_novo', 'comentario', 'atribuicao', 'alteracao_status', 'prazo'];
-    const titles = [
-      'Novo ticket criado', 
-      'Comentário adicionado', 
-      'Ticket atribuído a você', 
-      'Status do ticket alterado', 
-      'Prazo do ticket próximo'
-    ];
+    const types = ['ticket', 'comentario', 'atribuicao', 'status', 'prazo'];
+    const typeIndex = Math.floor(Math.random() * types.length);
+    
     const messages = [
-      'Um novo ticket foi criado e atribuído ao seu setor.',
-      'Um comentário foi adicionado ao ticket que você está acompanhando.',
-      'Um ticket foi atribuído diretamente a você.',
-      'O status de um ticket que você acompanha foi alterado.',
-      'O prazo de um ticket está se aproximando do fim.'
+      'Um novo ticket foi criado',
+      'Um comentário foi adicionado ao ticket',
+      'O ticket foi atribuído a você',
+      'O status do ticket foi alterado',
+      'O prazo do ticket está se aproximando'
     ];
     
-    const randomType = data.tipo || types[Math.floor(Math.random() * types.length)];
-    const typeIndex = types.indexOf(randomType);
+    // Gerar data aleatória nos últimos 7 dias
+    const now = new Date();
+    const daysAgo = Math.floor(Math.random() * 7);
+    const randomDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
     
     return {
-      id: data.id || Math.floor(Math.random() * 1000),
-      tipo: randomType,
-      titulo: data.titulo || titles[typeIndex],
+      id: data.id || Math.floor(Math.random() * 1000) + 1,
+      tipo: data.tipo || types[typeIndex],
       mensagem: data.mensagem || messages[typeIndex],
-      createdAt: data.createdAt || new Date().toISOString(),
-      visualizada: data.visualizada || false
+      data_criacao: data.data_criacao || randomDate.toISOString(),
+      lida: data.lida !== undefined ? data.lida : Math.random() > 0.5
     };
   }
   
@@ -736,39 +732,32 @@ class NotificationModule {
    * @param {number} count - Número de notificações a serem geradas
    */
   loadSampleNotifications(count = 5) {
+    const notifications = [];
+    for (let i = 0; i < count; i++) {
+      notifications.push(this.createSampleNotification());
+    }
+    
+    console.log('[DEBUG] Carregando notificações de amostra:', notifications);
+    
+    // Obter referência para a lista de notificações
     const notificationList = document.getElementById("notificationList");
     if (!notificationList) return;
     
+    // Limpar a lista
     notificationList.innerHTML = '';
     
-    // Gerar notificações de exemplo
-    for (let i = 0; i < count; i++) {
-      const notificacao = this.createSampleNotification({
-        visualizada: i % 3 === 0, // Algumas lidas, outras não
-        createdAt: new Date(Date.now() - (i * 3600000)).toISOString() // Horas diferentes
-      });
-      
-      // Converter para o formato esperado pelo método getNotificationHTML
-      const notificacaoFormatada = {
-        id: notificacao.id,
-        tipo: this.mapTipoNotificacao(notificacao.tipo),
-        titulo: notificacao.titulo,
-        data_criacao: notificacao.createdAt,
-        lida: !notificacao.visualizada
-      };
-      
-      // Criar elemento a partir do HTML gerado
-      const notificationHTML = this.getNotificationHTML(notificacaoFormatada);
-      notificationList.insertAdjacentHTML('beforeend', notificationHTML);
-      
-      // Adicionar evento de clique à última notificação adicionada
-      const lastItem = notificationList.lastElementChild;
-      if (lastItem) {
-        lastItem.addEventListener('click', () => {
-          this.visualizarNotificacao(notificacao.id);
-        });
-      }
+    // Se não houver notificações, mostrar estado vazio
+    if (notifications.length === 0) {
+      notificationList.innerHTML = this.getEmptyNotificationHTML();
+      return;
     }
+    
+    // Adicionar as notificações
+    notifications.forEach(notificacao => {
+      // Criar elemento a partir do HTML gerado
+      const notificationHTML = this.getNotificationHTML(notificacao);
+      notificationList.insertAdjacentHTML('beforeend', notificationHTML);
+    });
     
     // Atualizar contador
     this.updateNotificationCount(count);
@@ -806,23 +795,25 @@ class NotificationModule {
         break;
     }
     
-    // Limitar o tamanho do título para evitar quebra de layout
-    const titulo = notificacao.titulo.length > 30
-      ? notificacao.titulo.substring(0, 30) + '...' 
-      : notificacao.titulo;
+    // Limitar o tamanho da mensagem para evitar quebra de layout
+    // Limitando para 60 caracteres para caber na mesma linha com a hora
+    const mensagem = notificacao.mensagem.length > 60
+      ? notificacao.mensagem.substring(0, 60) + '...' 
+      : notificacao.mensagem;
     
     return `
       <div class="notification-item ${unreadClass}" data-id="${notificacao.id}">
         <i class="fas fa-${icone}"></i>
         <div class="notification-content">
-          <div class="notification-title">${titulo}</div>
-        <div class="notification-time">
-          <i class="far fa-clock"></i>
-            ${dataRelativa}
+          <div class="notification-row">
+            <div class="notification-message">${mensagem}</div>
+            <div class="notification-time">
+              <i class="far fa-clock"></i>${dataRelativa}
+            </div>
           </div>
         </div>
-        </div>
-      `;
+      </div>
+    `;
   }
 }
 

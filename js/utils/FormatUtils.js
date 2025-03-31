@@ -48,23 +48,7 @@ class FormatUtils {
       const diffDias = Math.ceil((prazo - hoje) / (1000 * 60 * 60 * 24));
       
       let classe = 'prazo-ok';
-      let icone = 'check-circle';
       let textoFormato = '';
-      
-      if (diffDias < 0) {
-        classe = 'prazo-atrasado';
-        icone = 'exclamation-circle';
-        textoFormato = 'Atrasado';
-      } else {
-        textoFormato = `${Math.abs(diffDias)} dia${diffDias !== 1 ? 's' : ''} restantes`;
-        if (diffDias <= 3) {
-          classe = 'prazo-urgente';
-          icone = 'exclamation-circle';
-        } else if (diffDias <= 7) {
-          classe = 'prazo-proximo';
-          icone = 'clock';
-        }
-      }
       
       // Formatar a data para exibição no tooltip
       const dia = String(prazo.getDate()).padStart(2, '0');
@@ -72,11 +56,28 @@ class FormatUtils {
       const ano = prazo.getFullYear();
       const dataFormatada = `${dia}/${mes}/${ano}`;
       
-      // Construir o HTML com o texto formatado
-      return `<span class="prazo-col ${classe}" title="Prazo: ${dataFormatada}">
-                <i class="fas fa-${icone}"></i> 
-                ${textoFormato}
-              </span>`;
+      // Para prazos atrasados, mostrar flag e ícone
+      if (diffDias < 0) {
+        classe = 'prazo-atrasado';
+        return `<span class="prazo-col ${classe}" title="Prazo: ${dataFormatada}">
+                  <i class="fas fa-exclamation-circle"></i> 
+                  Atrasado
+                </span>`;
+      } 
+      // Para os demais casos, mostrar apenas o texto com a coloração adequada
+      else {
+        textoFormato = `${Math.abs(diffDias)} dia${diffDias !== 1 ? 's' : ''} restantes`;
+        
+        if (diffDias <= 3) {
+          classe = 'prazo-urgente';
+        } else if (diffDias <= 7) {
+          classe = 'prazo-proximo';
+        }
+        
+        return `<span class="prazo-col ${classe}" title="Prazo: ${dataFormatada}">
+                  ${textoFormato}
+                </span>`;
+      }
     } catch (error) {
       console.error('Erro ao formatar prazo:', error, deadline);
       return `<span class="prazo-col prazo-erro" title="Erro ao processar data">

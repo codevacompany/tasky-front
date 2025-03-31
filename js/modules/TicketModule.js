@@ -1488,7 +1488,7 @@ class TicketModule {
             option.textContent = sector.name;
             departmentSelect.appendChild(option);
           });
-        } else {
+      } else {
           console.warn('Nenhum setor disponível para carregar no select');
         }
       }
