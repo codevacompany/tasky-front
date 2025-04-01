@@ -357,11 +357,13 @@ class ApiService {
   /**
    * Rejeita um ticket
    * @param {number} ticketId - ID do ticket
+   * @param {string} reason - Motivo da rejeição
    * @returns {Promise<Object>} Resultado da operação
    */
-  async rejectTicket(ticketId) {
+  async rejectTicket(ticketId, reason) {
     return this.request(`/tickets/${ticketId}/reject`, {
       method: "POST",
+      body: JSON.stringify({ disapprovalReason: reason })
     });
   }
 
@@ -591,6 +593,57 @@ class ApiService {
       return response;
     } catch (error) {
       console.error(`Erro ao cancelar ticket ${ticketId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Envia um ticket para revisão
+   * @param {number} ticketId - ID do ticket
+   * @returns {Promise<Object>} Resultado da operação
+   */
+  async sendTicketToReview(ticketId) {
+    console.log(`[ApiService] Enviando ticket ${ticketId} para revisão`);
+    try {
+      const url = `${CONFIG.API_URL}/tickets/${ticketId}/review`;
+      console.log(`[ApiService] Fazendo requisição para: ${url}`);
+
+      const headers = {
+        "Content-Type": "application/json"
+      };
+
+      if (this.authToken) {
+        headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
+
+      const response = await fetch(url, {
+        method: "PUT", // Mudando para PUT já que estamos atualizando o status
+        headers: headers,
+        body: JSON.stringify({ 
+          status: 'Em verificação',
+          updatedAt: new Date().toISOString()
+        })
+      });
+
+      console.log(`[ApiService] Status da resposta: ${response.status}`);
+
+      // Tentar ler o corpo da resposta mesmo se não for sucesso
+      const textResponse = await response.text();
+      let jsonResponse;
+      try {
+        jsonResponse = textResponse ? JSON.parse(textResponse) : null;
+        console.log('[ApiService] Resposta detalhada:', jsonResponse);
+      } catch (e) {
+        console.warn('[ApiService] Resposta não é um JSON válido:', textResponse);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Erro na requisição: ${response.status}${jsonResponse ? ` - ${jsonResponse.message || JSON.stringify(jsonResponse)}` : ''}`);
+      }
+
+      return jsonResponse || { success: true };
+    } catch (error) {
+      console.error('[ApiService] Erro ao enviar ticket para revisão:', error);
       throw error;
     }
   }

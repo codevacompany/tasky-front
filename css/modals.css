@@ -513,8 +513,39 @@ body.modal-open {
 }
 
 /* Estilos para o modal de detalhes do ticket */
+#ticketDetailsModal .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 800px;
+  max-width: 95%;
+}
+
+#ticketDetailsModal .modal-body {
+  max-height: calc(90vh - 60px); /* 60px é a altura aproximada do header */
+  overflow-y: auto;
+}
+
 #ticketDetailsModal .ticket-details {
   margin-bottom: 24px;
+}
+
+/* Estilização da barra de rolagem */
+#ticketDetailsModal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#ticketDetailsModal .modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+#ticketDetailsModal .modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+#ticketDetailsModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Novo layout em grid para o modal de detalhes */
@@ -539,24 +570,24 @@ body.modal-open {
   padding: 12px 16px;
   border-radius: 8px;
   display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  align-items: flex-start;
+  flex-wrap: wrap;
   overflow: hidden;
+  min-height: 45px;
 }
 
 #ticketDetailsModal .details-row.full-width .details-item {
   width: 100%;
   white-space: normal;
+  word-break: break-word;
 }
 
 #ticketDetailsModal .ticket-details strong {
   color: #2c3e50;
   margin-right: 8px;
   font-weight: 600;
-  min-width: 160px;
+  min-width: 120px;
   display: inline-block;
-  white-space: nowrap;
 }
 
 /* Classes para as etiquetas de prioridade */
@@ -593,28 +624,52 @@ body.modal-open {
 }
 
 /* Classes para as etiquetas de status */
-#ticketDetailsModal .status-pendente {
-  background-color: rgba(156, 39, 176, 0.1);
-  color: #9c27b0;
-  border: 1px solid rgba(156, 39, 176, 0.3);
+.status-pendente,
+.status-flag.pendente,
+[data-status="Pendente"],
+.status-flag.status-pendente {
+  background-color: rgba(255, 152, 0, 0.1) !important;
+  color: #ff9800 !important;
+  border: 1px solid rgba(255, 152, 0, 0.3) !important;
 }
 
-#ticketDetailsModal .status-em-andamento {
-  background-color: #e8f4fd;
-  color: #3498db;
+.status-em-andamento,
+.status-flag.em_andamento,
+[data-status="Em andamento"],
+.status-flag.status-em-andamento {
+  background-color: #e8f4fd !important;
+  color: #3498db !important;
+  border: 1px solid rgba(52, 152, 219, 0.3) !important;
 }
 
-#ticketDetailsModal .status-resolvido {
-  background-color: #e9f7ef;
-  color: #27ae60;
+.status-em-verificacao,
+.status-flag.em_verificacao,
+[data-status="Em verificação"],
+.status-flag.status-em-verificacao {
+  background-color: rgba(156, 39, 176, 0.1) !important;
+  color: #9c27b0 !important;
+  border: 1px solid rgba(156, 39, 176, 0.3) !important;
 }
 
-#ticketDetailsModal .status-cancelado {
-  background-color: #f8f9fa;
-  color: #7f8c8d;
+.status-resolvido,
+.status-flag.resolvido,
+[data-status="Resolvido"],
+.status-flag.status-resolvido {
+  background-color: #e9f7ef !important;
+  color: #27ae60 !important;
+  border: 1px solid rgba(39, 174, 96, 0.3) !important;
 }
 
-/* Estilos para os botões de ação */
+.status-cancelado,
+.status-flag.cancelado,
+[data-status="Cancelado"],
+.status-flag.status-cancelado {
+  background-color: #f8f9fa !important;
+  color: #7f8c8d !important;
+  border: 1px solid rgba(127, 140, 141, 0.3) !important;
+}
+
+/* Estilos para os botões de ação no modal de detalhes */
 #ticketDetailsModal .ticket-actions {
   display: flex;
   justify-content: flex-end;
@@ -623,6 +678,9 @@ body.modal-open {
 }
 
 #ticketDetailsModal .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -632,34 +690,42 @@ body.modal-open {
   transition: all 0.2s ease;
 }
 
-#ticketDetailsModal .btn-primary {
-  background-color: #1a2233;
-  color: white;
-}
-
-#ticketDetailsModal .btn-primary:hover {
-  background-color: #141b2a;
-  transform: translateY(-1px);
+#ticketDetailsModal .btn i {
+  font-size: 14px;
 }
 
 #ticketDetailsModal .btn-success {
-  background-color: #27ae60;
+  background-color: #22c55e;
   color: white;
 }
 
 #ticketDetailsModal .btn-success:hover {
-  background-color: #219955;
-  transform: translateY(-1px);
+  background-color: #16a34a;
 }
 
-#ticketDetailsModal .btn-danger {
-  background-color: #e74c3c;
+#ticketDetailsModal .btn-primary {
+  background-color: #2196F3;
   color: white;
 }
 
-#ticketDetailsModal .btn-danger:hover {
-  background-color: #c0392b;
-  transform: translateY(-1px);
+#ticketDetailsModal .btn-primary:hover {
+  background-color: #1976D2;
+}
+
+#ticketDetailsModal .action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #9333ea;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#ticketDetailsModal .action-icon i {
+  font-size: 14px;
 }
 
 /* Media queries para responsividade do modal de novo ticket */
@@ -938,4 +1004,555 @@ body.modal-open {
 
 #logoutBtn i {
   font-size: 0.9rem;
+}
+
+/* Estilos para o modal de confirmação */
+.confirmation-modal {
+  max-width: 500px;
+}
+
+.confirmation-modal .modal-footer {
+  padding: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e9ecef;
+}
+
+.confirmation-modal .confirmation-message {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.confirmation-modal .confirmation-description {
+  color: #6c757d;
+}
+
+.confirmation-modal .btn-primary,
+.confirmation-modal .btn-secondary {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.confirmation-modal .btn-primary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.confirmation-modal .btn-primary:hover {
+  background: #2563eb;
+}
+
+.confirmation-modal .btn-secondary {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.confirmation-modal .btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+/* Estilos para os botões de ação */
+.actions {
+  text-align: center;
+  white-space: nowrap;
+  width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0 3px;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn i {
+  font-size: 14px;
+}
+
+/* Estilos específicos para cada tipo de botão */
+.action-btn[title="Aceitar ticket"] {
+  background-color: #22c55e;
+}
+
+.action-btn[title="Aceitar ticket"]:hover {
+  background-color: #16a34a;
+}
+
+.action-btn[title="Enviar para REVISÃO"] {
+  background-color: #2196F3;
+}
+
+.action-btn[title="Enviar para REVISÃO"]:hover {
+  background-color: #1976D2;
+}
+
+.action-btn[title="Cancelar ticket"] {
+  background: #ef4444;
+}
+
+.action-btn[title="Cancelar ticket"]:hover {
+  background: #dc2626;
+}
+
+.action-btn[title="VERIFICAR"] {
+  background: #9333ea;
+}
+
+.action-btn[title="VERIFICAR"]:hover {
+  background: #7e22ce;
+}
+
+/* Ícone de aguardando verificação */
+.action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #9333ea;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-icon i {
+  font-size: 14px;
+}
+
+/* Modal de verificação */
+.verification-modal {
+  max-width: 600px;
+}
+
+.verification-modal .ticket-details {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.verification-modal .ticket-details h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.verification-modal .ticket-description {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.verification-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.verification-actions button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.verification-actions .btn-success {
+  background-color: #4caf50;
+  color: white;
+}
+
+.verification-actions .btn-success:hover {
+  background-color: #388e3c;
+}
+
+.verification-actions .btn-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.verification-actions .btn-danger:hover {
+  background-color: #d32f2f;
+}
+
+/* Modal de rejeição */
+.rejection-modal {
+  max-width: 500px;
+}
+
+.rejection-modal textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+  font-family: inherit;
+  margin-top: 12px;
+}
+
+.rejection-modal textarea:focus {
+  border-color: #666;
+  outline: none;
+}
+
+/* Botão de verificar */
+.action-btn.verificar {
+  background-color: #9c27b0;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.action-btn.verificar:hover {
+  background-color: #7b1fa2;
+}
+
+/* Estilos para centralizar botões de ação */
+.actions-column {
+  text-align: center !important;
+  width: 120px; /* Largura fixa para a coluna de ações */
+  white-space: nowrap; /* Evita quebra de linha nos botões */
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px;
+  padding: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ajuste para ícones dentro dos botões */
+.action-button i {
+  margin: 0 auto;
+  font-size: 16px;
+}
+
+/* Estilos para a seção de atualizações */
+.ticket-updates {
+  margin-top: 32px;
+  padding-top: 24px;
+}
+
+/* Linha separadora entre seções */
+.ticket-timeline {
+  margin: 30px 0;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #e0e0e0;
+  padding-top: 30px;
+}
+
+.ticket-updates h3,
+.ticket-timeline h3 {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.ticket-updates h3 i,
+.ticket-timeline h3 i {
+  color: #666;
+}
+
+.updates-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #f8f9fa;
+  margin-bottom: 20px;
+  padding: 4px;
+}
+
+.updates-list {
+  padding: 12px;
+}
+
+.update-item {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f0f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.update-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.update-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.update-author {
+  font-weight: 600;
+  color: #1a2233;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-author i {
+  color: #2196F3;
+  font-size: 0.9rem;
+}
+
+.update-date {
+  color: #6c757d;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.update-date i {
+  font-size: 0.8rem;
+}
+
+.update-content {
+  color: #4a5568;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  padding: 4px 0;
+}
+
+.update-form {
+  margin-top: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+}
+
+.update-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #1a2233;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.update-input {
+  width: 100%;
+  min-height: 100px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-family: inherit;
+  resize: vertical;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.update-input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+  background-color: white;
+}
+
+.update-input::placeholder {
+  color: #a0aec0;
+}
+
+.empty-updates {
+  text-align: center;
+  padding: 40px 24px;
+  color: #6c757d;
+}
+
+.empty-updates i {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: #2196F3;
+  opacity: 0.5;
+}
+
+.empty-updates p {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px 24px;
+  color: #dc3545;
+}
+
+.error-state i {
+  font-size: 32px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.ticket-timeline h3 {
+  color: #333;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2em;
+}
+
+.ticket-timeline h3 i {
+  color: #666;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #e0e0e0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+  padding-left: 20px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid;
+}
+
+/* Cores dos marcadores por estado */
+.timeline-item.created::before { border-color: #4CAF50; }
+.timeline-item.accepted::before { border-color: #2196F3; }
+.timeline-item.review::before { border-color: #FF9800; }
+.timeline-item.waiting::before { border-color: #9C27B0; }
+.timeline-item.rejected::before { border-color: #f44336; }
+.timeline-item.finished::before { border-color: #4CAF50; }
+
+.timeline-content {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.timeline-title {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-title i {
+  font-size: 0.9em;
+}
+
+.timeline-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.timeline-reason {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  color: #666;
+}
+
+/* Cores dos ícones por estado */
+.timeline-item.created .timeline-title i { color: #4CAF50; }
+.timeline-item.accepted .timeline-title i { color: #2196F3; }
+.timeline-item.review .timeline-title i { color: #FF9800; }
+.timeline-item.waiting .timeline-title i { color: #9C27B0; }
+.timeline-item.rejected .timeline-title i { color: #f44336; }
+.timeline-item.finished .timeline-title i { color: #4CAF50; }
+
+/* Hover effects */
+.timeline-content:hover {
+  background-color: #f0f2f5;
+  transition: background-color 0.2s ease;
 } 

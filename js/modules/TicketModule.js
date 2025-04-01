@@ -275,7 +275,7 @@ class TicketModule {
   }
 
   /**
-   * Configura os botões de ação dos tickets (visualizar, editar, cancelar)
+   * Configura os botões de ação dos tickets
    */
   setupTicketActionButtons() {
     // Configurar clique na linha do ticket
@@ -292,28 +292,6 @@ class TicketModule {
       
       // Adicionar estilo de cursor para indicar que é clicável
       row.style.cursor = 'pointer';
-    });
-    
-    // Configurar botões de visualizar
-    document.querySelectorAll('.action-btn .fa-eye').forEach(btn => {
-      const row = btn.closest('tr');
-      const ticketId = row.getAttribute('data-id');
-      
-      btn.parentElement.addEventListener('click', (event) => {
-        event.stopPropagation(); // Evitar propagação para o evento da linha
-        this.viewTicketDetails(ticketId);
-      });
-    });
-    
-    // Configurar botões de editar
-    document.querySelectorAll('.action-btn .fa-edit').forEach(btn => {
-      const row = btn.closest('tr');
-      const ticketId = row.getAttribute('data-id');
-      
-      btn.parentElement.addEventListener('click', (event) => {
-        event.stopPropagation(); // Evitar propagação para o evento da linha
-        this.openEditTicketForm(ticketId);
-      });
     });
     
     // Configurar botões de cancelar
@@ -344,13 +322,14 @@ class TicketModule {
         throw new Error('Ticket não encontrado');
       }
       
-      console.log('Detalhes do ticket carregados:', ticket);
-      
       // Gerar o HTML com os detalhes do ticket
       const ticketHTML = this.getTicketDetailsHTML(ticket);
       
       // Mostrar o modal com os detalhes do ticket
       uiService.showTicketDetails(ticketHTML);
+      
+      // Carregar as atualizações do ticket
+      await this.carregarAtualizacoes(ticketId);
       
       // Configurar os botões de ação para o ticket no modal, se necessário
       this.setupTicketModalActions(ticket);
@@ -444,7 +423,30 @@ class TicketModule {
       prazo = formatUtils.formatarPrazo(dataLimite);
     }
     
-    return `
+    // Obter nome do solicitante
+    let solicitante = "Desconhecido";
+    if (ticket.requesterName) {
+      solicitante = ticket.requesterName;
+    } else if (ticket.requester && typeof ticket.requester === 'string') {
+      solicitante = ticket.requester;
+    } else if (ticket.requester && ticket.requester.name) {
+      solicitante = ticket.requester.name;
+    } else if (ticket.requester && ticket.requester.firstName) {
+      solicitante = ticket.requester.firstName + (ticket.requester.lastName ? ' ' + ticket.requester.lastName : '');
+    }
+
+    // Obter assunto do ticket
+    let assunto = "-";
+    if (ticket.subject) {
+      assunto = ticket.subject;
+    } else if (ticket.title) {
+      assunto = ticket.title;
+    } else if (ticket.name) {
+      assunto = ticket.name;
+    }
+    
+    // Botões de ação
+    let html = `
       <div class="ticket-details ticket-details-grid">
         <div class="details-row">
           <div class="details-item"><strong>ID:</strong> ${ticket.id || '-'}</div>
@@ -452,7 +454,7 @@ class TicketModule {
         </div>
         
         <div class="details-row full-width">
-          <div class="details-item"><strong>Assunto:</strong> ${ticket.title || ticket.subject || '-'}</div>
+          <div class="details-item"><strong>Assunto:</strong> ${assunto}</div>
         </div>
         
         <div class="details-row">
@@ -461,7 +463,7 @@ class TicketModule {
         </div>
         
         <div class="details-row">
-          <div class="details-item"><strong>Solicitante:</strong> ${ticket.requester?.name || ticket.solicitante || '-'}</div>
+          <div class="details-item"><strong>Solicitante:</strong> ${solicitante}</div>
           <div class="details-item"><strong>Setor:</strong> ${ticket.department?.name || ticket.setor || '-'}</div>
         </div>
         
@@ -479,15 +481,171 @@ class TicketModule {
           <div class="details-item"><strong>Descrição:</strong> ${ticket.description || '-'}</div>
         </div>
         
-        <div class="ticket-actions full-width">
-          <button class="btn btn-primary ticket-action-btn" data-action="edit">Editar</button>
-          ${ticket.status !== 'resolvido' && ticket.status !== 'cancelado' ? 
-            `<button class="btn btn-success ticket-action-btn" data-action="resolve">Resolver</button>` : ''}
-          ${ticket.status !== 'cancelado' ? 
-            `<button class="btn btn-danger ticket-action-btn" data-action="cancel">Cancelar</button>` : ''}
+        <div class="ticket-actions">`;
+
+    if (ticket.status === 'Pendente') {
+      html += `
+        <button class="btn btn-success" onclick="ticketModule.aceitarTicket(${ticket.id})">
+          <i class="fas fa-check"></i> Aceitar
+        </button>`;
+    } else if (ticket.status === 'Em andamento') {
+      html += `
+        <button class="btn btn-primary" onclick="ticketModule.enviarParaRevisao(${ticket.id})">
+          <i class="fas fa-arrow-right"></i> Enviar para Revisão
+        </button>`;
+    } else if (ticket.status === 'Em verificação') {
+      html += `
+        <span class="action-icon" title="Aguardando verificação">
+          <i class="fas fa-clock"></i>
+        </span>`;
+    }
+
+    html += `
+      </div>`;
+
+    html += `
+        </div>
+      
+      <div class="ticket-updates">
+        <h3><i class="fas fa-comments"></i> Atualizações</h3>
+        <div id="atualizacoesContainer" class="updates-container">
+          <div id="atualizacoesList" class="updates-list">
+            <!-- As atualizações serão carregadas aqui dinamicamente -->
+      </div>
+        </div>
+        
+        <div class="update-form">
+          <label for="novoComentario">Adicionar comentário</label>
+          <textarea 
+            id="novoComentario" 
+            placeholder="Digite seu comentário aqui..." 
+            class="update-input"
+          ></textarea>
+          <button onclick="ticketModule.enviarComentario(${ticket.id})" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i> Enviar comentário
+          </button>
         </div>
       </div>
-    `;
+      
+      <div class="ticket-timeline">
+        <h3><i class="fas fa-history"></i> Linha do Tempo</h3>
+        <div class="timeline">`;
+
+    // Criação do ticket
+    html += `
+          <div class="timeline-item created">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-plus-circle"></i>
+                  Ticket criado por ${ticket.requesterName}
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.createdAt)}
+                </span>
+              </div>
+            </div>
+          </div>`;
+
+    // Aceitação do ticket
+    if (ticket.acceptedAt) {
+      html += `
+          <div class="timeline-item accepted">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-check"></i>
+                  Ticket aceito por ${ticket.assigneeName}
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.acceptedAt)}
+                </span>
+              </div>
+            </div>
+          </div>`;
+    }
+
+    // Envio para revisão
+    if (ticket.reviewedAt) {
+      html += `
+          <div class="timeline-item review">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-arrow-right"></i>
+                  Enviado para revisão por ${ticket.assigneeName}
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.reviewedAt)}
+                </span>
+              </div>
+            </div>
+          </div>`;
+    }
+
+    // Aguardando verificação
+    if (ticket.status === 'Em verificação') {
+      html += `
+          <div class="timeline-item waiting">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-clock"></i>
+                  Aguardando verificação do solicitante
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.reviewedAt)}
+                </span>
+              </div>
+            </div>
+          </div>`;
+    }
+
+    // Rejeição do ticket
+    if (ticket.disapprovalReason) {
+      html += `
+          <div class="timeline-item rejected">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-times-circle"></i>
+                  Ticket reprovado por ${ticket.requesterName}
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.disapprovedAt)}
+                </span>
+              </div>
+              <div class="timeline-reason">
+                <strong>Motivo:</strong> ${ticket.disapprovalReason}
+              </div>
+            </div>
+          </div>`;
+    }
+
+    // Finalização do ticket
+    if (ticket.status === 'Resolvido' || ticket.status === 'Finalizado') {
+      html += `
+          <div class="timeline-item finished">
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">
+                  <i class="fas fa-check-circle"></i>
+                  Ticket finalizado por ${ticket.assigneeName}
+                </span>
+                <span class="timeline-date">
+                  ${formatUtils.formatDate(ticket.completedAt)}
+                </span>
+              </div>
+            </div>
+          </div>`;
+    }
+
+    html += `
+        </div>
+      </div>
+    </div>`;
+
+    return html;
   }
 
   /**
@@ -901,6 +1059,9 @@ class TicketModule {
       case "em andamento":
         statusClass = "status-flag em_andamento";
         break;
+      case "em verificação":
+        statusClass = "status-flag em_verificacao";
+        break;
       case "finalizado":
       case "concluído":
       case "concluido":
@@ -933,6 +1094,37 @@ class TicketModule {
     } else {
       console.log(`Ticket #${ticket.id}: Nenhuma data limite encontrada`);
     }
+    
+    // Coluna de ações
+    let actionsHtml = `<td class="actions">`;
+
+    if (secao === 'recebidos') {
+      if (ticket.status === 'Pendente') {
+        actionsHtml += `
+          <button class="action-btn" onclick="event.stopPropagation(); ticketModule.aceitarTicket(${ticket.id});" title="Aceitar ticket">
+            <i class="fas fa-check" style="color: white;"></i>
+          </button>`;
+      } else if (ticket.status === 'Em andamento') {
+        actionsHtml += `
+          <button class="action-btn" onclick="event.stopPropagation(); ticketModule.enviarParaRevisao(${ticket.id});" title="Enviar para REVISÃO">
+            <i class="fas fa-arrow-right" style="color: white;"></i>
+          </button>`;
+      } else if (ticket.status === 'Em verificação') {
+        actionsHtml += `
+          <span class="action-icon" title="Aguardando verificação">
+            <i class="fas fa-clock" style="color: #9C27B0;"></i>
+          </span>`;
+      }
+    }
+
+    if (ticket.requesterId === userModule.getCurrentUserId() && ticket.status === 'Em verificação') {
+      actionsHtml += `
+        <button class="action-btn" onclick="event.stopPropagation(); ticketModule.abrirVerificacao(${ticket.id});" title="VERIFICAR">
+          <i class="fas fa-check-double" style="color: #9C27B0;"></i>
+        </button>`;
+    }
+
+    actionsHtml += `</td>`;
     
     // Construir HTML com base na seção
     let html = `
@@ -976,28 +1168,10 @@ class TicketModule {
     `;
     
     // Adicionar coluna de ações
-    html += `
-        <td class="actions">
-          <button class="action-btn" title="Ver detalhes">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="action-btn" title="Editar ticket">
-            <i class="fas fa-edit"></i>
-          </button>
-    `;
-    
-    // Adicionar botão de cancelar apenas para tickets criados pelo usuário
-    if (secao === 'criados') {
-      html += `
-          <button class="action-btn" title="Cancelar ticket">
-            <i class="fas fa-times"></i>
-          </button>
-      `;
-    }
+    html += actionsHtml;
     
     // Fechar a tag da coluna de ações e a linha
     html += `
-        </td>
       </tr>
     `;
     
@@ -1040,55 +1214,105 @@ class TicketModule {
   }
 
   /**
-   * Carrega as atualizações de um ticket específico
+   * Carrega as atualizações de um ticket
    * @param {number} ticketId - ID do ticket
    */
   async carregarAtualizacoes(ticketId) {
     try {
       const atualizacoes = await apiService.getTicketUpdates(ticketId);
-      const commentContainer = document.getElementById("atualizacoes");
+      const container = document.getElementById('atualizacoesList');
+      
+      if (!container) {
+        console.error('Container de atualizações não encontrado');
+        return;
+      }
 
-      if (!commentContainer) return;
-
-      commentContainer.innerHTML = "";
-
-      atualizacoes.forEach((a) => {
-        const commentDiv = document.createElement("div");
-        commentDiv.className = "comment";
-        commentDiv.innerHTML = `
-          <div class="comment-header">
-            <span class="comment-author">${a.user.name}</span>
-            <span class="comment-timestamp">${formatUtils.formatarData(a.dateTime)}</span>
+      if (!atualizacoes || atualizacoes.length === 0) {
+        container.innerHTML = `
+          <div class="empty-updates">
+            <i class="fas fa-comments"></i>
+            <p>Nenhuma atualização ainda</p>
+            <small>Seja o primeiro a comentar!</small>
           </div>
-          <div class="comment-text">${a.comment}</div>
         `;
-        commentContainer.appendChild(commentDiv);
-      });
+        return;
+      }
 
-      commentContainer.scrollTop = commentContainer.scrollHeight;
+      // Ordenar atualizações por data (mais recentes por último)
+      const sortedUpdates = atualizacoes.sort((a, b) => 
+        new Date(a.dateTime) - new Date(b.dateTime)
+      );
+
+      container.innerHTML = sortedUpdates.map(update => `
+        <div class="update-item">
+          <div class="update-header">
+            <span class="update-author">
+              <i class="fas fa-user-circle"></i>
+              ${update.user?.name || 'Usuário'}
+            </span>
+            <span class="update-date">
+              <i class="far fa-clock"></i>
+              ${formatUtils.formatDate(update.dateTime)}
+            </span>
+          </div>
+          <div class="update-content">${update.comment}</div>
+        </div>
+      `).join('');
+
+      // Rolar para a última atualização
+      container.scrollTop = container.scrollHeight;
     } catch (error) {
-      console.error("Erro ao carregar atualizações:", error);
+      console.error('Erro ao carregar atualizações:', error);
+      const container = document.getElementById('atualizacoesList');
+      if (container) {
+        container.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Erro ao carregar atualizações</p>
+            <small>Por favor, tente novamente mais tarde</small>
+          </div>
+        `;
+      }
     }
   }
 
   /**
    * Envia um novo comentário para um ticket
+   * @param {number} ticketId - ID do ticket
    */
-  async enviarComentario() {
-    const comentario = document.getElementById("novoComentario").value;
-    if (!comentario.trim()) return;
-
+  async enviarComentario(ticketId) {
     try {
-      await apiService.createTicketUpdate({
-        ticketId: this.currentTicketId,
-        comment: comentario,
-      });
+      const comentario = document.getElementById('novoComentario').value.trim();
+      
+      if (!comentario) {
+        uiService.showAlert('Por favor, digite um comentário.', 'warning');
+        return;
+      }
 
-      document.getElementById("novoComentario").value = "";
-      await this.carregarAtualizacoes(this.currentTicketId);
+      const userId = userModule.getCurrentUserId();
+      if (!userId) {
+        throw new Error('Usuário não identificado');
+      }
+
+      const updateData = {
+        ticketId: ticketId,
+        userId: userId,
+        comment: comentario,
+        dateTime: new Date().toISOString()
+      };
+
+      await apiService.createTicketUpdate(updateData);
+      
+      // Limpar o campo de comentário
+      document.getElementById('novoComentario').value = '';
+      
+      // Recarregar as atualizações
+      await this.carregarAtualizacoes(ticketId);
+      
+      uiService.showAlert('Comentário enviado com sucesso!', 'success');
     } catch (error) {
-      console.error("Erro ao enviar comentário:", error);
-      uiService.showAlert("Erro ao enviar comentário. Tente novamente.");
+      console.error('Erro ao enviar comentário:', error);
+      uiService.showAlert('Erro ao enviar comentário. Por favor, tente novamente.', 'error');
     }
   }
 
@@ -1122,60 +1346,12 @@ class TicketModule {
         </div>
       `;
 
-      // Adicionar estilos específicos para este modal
-      const style = document.createElement('style');
-      style.textContent = `
-        .confirmation-modal {
-          max-width: 500px;
-        }
-        .modal-footer {
-          padding: 20px;
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          border-top: 1px solid #e9ecef;
-        }
-        .confirmation-message {
-          font-size: 18px;
-          font-weight: 500;
-          margin-bottom: 10px;
-        }
-        .confirmation-description {
-          color: #6c757d;
-        }
-        .btn-primary, .btn-secondary {
-          padding: 8px 16px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-        .btn-primary {
-          background: #3b82f6;
-          color: white;
-          border: none;
-        }
-        .btn-primary:hover {
-          background: #2563eb;
-        }
-        .btn-secondary {
-          background: #f1f5f9;
-          color: #1e293b;
-          border: 1px solid #e2e8f0;
-        }
-        .btn-secondary:hover {
-          background: #e2e8f0;
-        }
-      `;
-
-      document.head.appendChild(style);
       document.body.appendChild(confirmModal);
 
       // Adicionar evento de fechar ao clicar fora do modal
       confirmModal.addEventListener('click', (e) => {
         if (e.target === confirmModal) {
           confirmModal.remove();
-          style.remove();
         }
       });
 
@@ -1188,7 +1364,6 @@ class TicketModule {
             if (response) {
               uiService.showAlert('Ticket aceito com sucesso! O status foi alterado para "Em andamento" e a data de aceitação foi registrada.', 'success');
               await this.carregarTicketsRecebidos();
-              await this.carregarTicketsSetor();
               resolve(true);
             } else {
               uiService.showAlert('Erro ao aceitar o ticket. Por favor, tente novamente.', 'error');
@@ -1200,7 +1375,6 @@ class TicketModule {
             resolve(false);
           } finally {
             confirmModal.remove();
-            style.remove();
           }
         });
       });
@@ -1555,6 +1729,218 @@ class TicketModule {
       console.error('Erro ao resolver ticket:', error);
       uiService.hideLoading();
       uiService.showAlert('Erro ao resolver ticket: ' + error.message, 'error');
+    }
+  }
+
+  /**
+   * Envia um ticket para revisão
+   * @param {number} ticketId - ID do ticket
+   */
+  async enviarParaRevisao(ticketId) {
+    try {
+      // Criar modal de confirmação
+      const confirmModal = document.createElement('div');
+      confirmModal.className = 'modal';
+      confirmModal.style.display = 'block';
+      confirmModal.innerHTML = `
+        <div class="modal-content confirmation-modal">
+          <div class="modal-header">
+            <h2>Enviar para Verificação</h2>
+          </div>
+          <div class="modal-body">
+            <p class="confirmation-message">Tem certeza que deseja enviar este ticket para verificação?</p>
+            <p class="confirmation-description">O solicitante será notificado para verificar e aprovar o atendimento.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" onclick="this.closest('.modal').remove()">
+              <i class="fas fa-times"></i> CANCELAR
+            </button>
+            <button class="btn-primary" id="confirmSendToReview">
+              <i class="fas fa-check"></i> CONFIRMAR
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(confirmModal);
+
+      // Adicionar evento de fechar ao clicar fora do modal
+      confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) {
+          confirmModal.remove();
+        }
+      });
+
+      // Adicionar evento de confirmação
+      return new Promise((resolve) => {
+        confirmModal.querySelector('#confirmSendToReview').addEventListener('click', async () => {
+          try {
+            const response = await apiService.sendTicketToReview(ticketId);
+
+            if (response) {
+              uiService.showAlert('Ticket enviado para verificação com sucesso!', 'success');
+              await this.carregarTicketsRecebidos();
+              resolve(true);
+            } else {
+              uiService.showAlert('Erro ao enviar o ticket para verificação. Por favor, tente novamente.', 'error');
+              resolve(false);
+            }
+          } catch (error) {
+            console.error('Erro ao enviar ticket para verificação:', error);
+            uiService.showAlert('Erro ao enviar o ticket para verificação. Por favor, tente novamente.', 'error');
+            resolve(false);
+          } finally {
+            confirmModal.remove();
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Erro ao criar modal de confirmação:', error);
+      uiService.showAlert('Erro ao processar a solicitação. Por favor, tente novamente.', 'error');
+      return false;
+    }
+  }
+
+  /**
+   * Abre o modal de verificação do ticket
+   * @param {number} ticketId - ID do ticket
+   */
+  async abrirVerificacao(ticketId) {
+    try {
+      const ticket = await apiService.getTicketById(ticketId);
+      
+      if (!ticket) {
+        throw new Error('Ticket não encontrado');
+      }
+
+      // Criar modal de verificação
+      const verificationModal = document.createElement('div');
+      verificationModal.className = 'modal';
+      verificationModal.style.display = 'block';
+      verificationModal.innerHTML = `
+        <div class="modal-content verification-modal">
+          <div class="modal-header">
+            <h2>Verificar Atendimento</h2>
+            <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="ticket-details">
+              <h3>${ticket.title}</h3>
+              <p class="ticket-description">${ticket.description}</p>
+            </div>
+            <div class="verification-actions">
+              <button class="btn-success" onclick="ticketModule.aprovarTicket(${ticketId}); this.closest('.modal').remove();">
+                <i class="fas fa-check"></i> APROVAR
+              </button>
+              <button class="btn-danger" onclick="ticketModule.rejeitarTicket(${ticketId}); this.closest('.modal').remove();">
+                <i class="fas fa-times"></i> REJEITAR
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(verificationModal);
+
+      // Adicionar evento de fechar ao clicar fora do modal
+      verificationModal.addEventListener('click', (e) => {
+        if (e.target === verificationModal) {
+          verificationModal.remove();
+        }
+      });
+
+    } catch (error) {
+      console.error('Erro ao abrir verificação do ticket:', error);
+      uiService.showAlert('Erro ao carregar detalhes do ticket. Por favor, tente novamente.', 'error');
+    }
+  }
+
+  /**
+   * Aprova um ticket após verificação
+   * @param {number} ticketId - ID do ticket
+   */
+  async aprovarTicket(ticketId) {
+    try {
+      const response = await apiService.approveTicket(ticketId);
+      
+      if (response) {
+        uiService.showAlert('Ticket aprovado com sucesso! O atendimento foi finalizado.', 'success');
+        await this.carregarTicketsCriados();
+      } else {
+        uiService.showAlert('Erro ao aprovar o ticket. Por favor, tente novamente.', 'error');
+      }
+    } catch (error) {
+      console.error('Erro ao aprovar ticket:', error);
+      uiService.showAlert('Erro ao aprovar o ticket. Por favor, tente novamente.', 'error');
+    }
+  }
+
+  /**
+   * Rejeita um ticket após verificação
+   * @param {number} ticketId - ID do ticket
+   */
+  async rejeitarTicket(ticketId) {
+    try {
+      // Criar modal para motivo da rejeição
+      const rejectModal = document.createElement('div');
+      rejectModal.className = 'modal';
+      rejectModal.style.display = 'block';
+      rejectModal.innerHTML = `
+        <div class="modal-content rejection-modal">
+          <div class="modal-header">
+            <h2>Motivo da Rejeição</h2>
+          </div>
+          <div class="modal-body">
+            <textarea id="rejectionReason" placeholder="Descreva o motivo da rejeição..." rows="4"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" onclick="this.closest('.modal').remove()">
+              CANCELAR
+            </button>
+            <button class="btn-primary" id="confirmReject">
+              CONFIRMAR REJEIÇÃO
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(rejectModal);
+
+      // Adicionar evento de confirmação
+      rejectModal.querySelector('#confirmReject').addEventListener('click', async () => {
+        const reason = document.getElementById('rejectionReason').value.trim();
+        
+        if (!reason) {
+          uiService.showAlert('Por favor, informe o motivo da rejeição.', 'warning');
+          return;
+        }
+
+        try {
+          const response = await apiService.rejectTicket(ticketId, reason);
+          
+          if (response) {
+            uiService.showAlert('Ticket rejeitado. O atendimento voltará para "Em andamento".', 'success');
+            await this.carregarTicketsCriados();
+            rejectModal.remove();
+          } else {
+            uiService.showAlert('Erro ao rejeitar o ticket. Por favor, tente novamente.', 'error');
+          }
+        } catch (error) {
+          console.error('Erro ao rejeitar ticket:', error);
+          uiService.showAlert('Erro ao rejeitar o ticket. Por favor, tente novamente.', 'error');
+        }
+      });
+
+      // Adicionar evento de fechar ao clicar fora do modal
+      rejectModal.addEventListener('click', (e) => {
+        if (e.target === rejectModal) {
+          rejectModal.remove();
+        }
+      });
+
+    } catch (error) {
+      console.error('Erro ao rejeitar ticket:', error);
+      uiService.showAlert('Erro ao processar a rejeição. Por favor, tente novamente.', 'error');
     }
   }
 }
