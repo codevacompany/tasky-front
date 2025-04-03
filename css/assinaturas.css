@@ -1,0 +1,205 @@
+/* Estilos específicos para o módulo de assinaturas */
+body {
+    background: #f8f9fa;
+    color: #212529;
+    font-family: 'Roboto', sans-serif;
+}
+
+.sidebar {
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.pricing-card-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.pricing-card-title small {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.list-unstyled {
+    text-align: left;
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+.list-unstyled li {
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: #495057;
+}
+
+.list-unstyled li i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-success {
+    background-color: #198754;
+    border: none;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+}
+
+.btn-dark {
+    background-color: #212529;
+    border: none;
+}
+
+.btn-dark:hover {
+    background-color: #1a1e21;
+}
+
+.table {
+    color: #212529;
+    text-align: center;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 500;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 30px;
+    }
+    
+    .pricing-card-title {
+        font-size: 2rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilos para o resumo de assinatura */
+.summary-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card h5 {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card h2 {
+    color: #212529;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card p {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Estilos para links ativos na sidebar */
+.nav-link.active {
+    background-color: #f8f9fa;
+    color: #0d6efd !important;
+    border-radius: 8px;
+}
+
+.nav-link.active i {
+    color: #0d6efd;
+}
+
+/* Ajustes de tamanho de fonte */
+.card-title.text-muted {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.badge.bg-success {
+    font-size: 16px;
+    padding: 8px 16px;
+}
+
+/* Ajustes de espaçamento */
+.card-body {
+    padding: 2rem;
+}
+
+.table th, .table td {
+    padding: 1rem;
+} 
